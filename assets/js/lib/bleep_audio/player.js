@@ -9,7 +9,8 @@ export default Player = class {
   #params;
   #monitor;
 
-  constructor(ctx, generator, pitchHz, level, params, monitor) {
+  constructor(ctx, generator, pitchHz, level, duration, params, monitor) {
+    console.log(`Hello I am playing a note with duration of ${duration}`);
     this.#context = ctx;
     this.#generator = generator;
     this.#params = { ...generator.defaults, ...params };
@@ -18,6 +19,7 @@ export default Player = class {
     // add the pitch and level to the parameters
     this.#params.pitch = pitchHz;
     this.#params.level = level;
+    this.#params.duration = duration;
     // create the webaudio network in three steps
 
     this.#createModules();

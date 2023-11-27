@@ -28,6 +28,7 @@ export default class BleepAudioCore {
       "/bleep_audio/synthdefs/fmbell.txt",
       "/bleep_audio/synthdefs/funkybass.txt",
       "/bleep_audio/synthdefs/hammond.txt",
+      "/bleep_audio/synthdefs/ninth.txt",
       "/bleep_audio/synthdefs/pantest.txt",
       "/bleep_audio/synthdefs/randomblips.txt",
       "/bleep_audio/synthdefs/rolandtb.txt",
@@ -99,12 +100,13 @@ export default class BleepAudioCore {
     //alert("oneshot...")
     const delta_s = time - this.#initial_wallclock_time_s + 0.2;
     const audio_context_sched_s = this.#base_audio_context_time_s + delta_s; //- this.audio_context.baseLatency
-
-    console.log(opts);
     
-    const note = opts.note || 70;
+    const note = opts.note || 60;
     const level = opts.level || 0.2;
+    const duration = opts.duration || 1; // duration in seconds
     const pitchHz = 440 * Math.pow(2, (note - 69) / 12.0);
+
+    console.log(`note is ${note}`);
 
     const gen = this.#getSynthGen(synthdef_id);
     let synth = new Player(
@@ -112,6 +114,7 @@ export default class BleepAudioCore {
       gen,
       pitchHz,
       level,
+      duration,
       opts,
       this.#monitor
     );
@@ -121,7 +124,7 @@ export default class BleepAudioCore {
     synth.out.connect(this.#audio_context.destination);
     synth.start(audio_context_sched_s);
     // TODO bug fix needed, envelope values are not properly tracked when an end time is given
-    synth.stopAfterRelease(audio_context_sched_s + 1);
+    synth.stopAfterRelease(audio_context_sched_s + duration);
   }
 
   loadSynthDef(synthdef) {
