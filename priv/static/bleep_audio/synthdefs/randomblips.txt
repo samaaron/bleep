@@ -1,0 +1,112 @@
+@synth randomblips
+longname : Random Blips
+type : synth
+author : Guy Brown
+version : 1.0
+doc : Simple synth demonstrating the use of random parameter values
+@end
+
+@param cutoff
+type: float
+mutable: yes
+step: 0.01
+min: 0
+max: 1
+default: 0.5
+doc : controls the brightness of the sound
+@end
+
+@param decay
+type: float
+mutable: no
+step: 0.01
+min: 0
+max: 1
+default: 0.5
+doc : controls the decay time of the envelope
+@end
+
+@param randomness
+type: float
+mutable: no
+step: 0.01
+min: 0
+max: 1
+default: 0.5
+doc : the amount of randomness
+@end
+
+@param sub_level
+type: float
+mutable: yes
+step: 0.01
+min: 0
+max: 1
+default: 0.5
+doc : controls the level of the sub oscillator an octave below the note you play
+@end
+
+@param volume
+type: float
+mutable: yes
+step: 0.01
+min: 0
+max: 1
+default: 0.7
+doc : overall volume
+@end
+
+# modules
+
+SAW-OSC : vco1
+SQR-OSC : vco2
+LPF : filter
+LPF : filter2
+VCA : vca
+ADSR : env
+VCA : mix1
+VCA : mix2
+VCA : sum
+ADSR : env2
+
+# patch
+
+vco1.out -> mix1.in
+vco2.out -> mix2.in
+mix1.out -> sum.in
+mix2.out -> sum.in
+sum.out -> filter.in
+filter.out -> filter2.in
+filter2.out -> vca.in
+vca.out -> audio.in
+env.out -> vca.levelCV
+
+# tweak
+
+mix1.level = 0.5
+mix2.level = map(param.sub_level,0,0.5)
+vco2.detune = -1202
+vco1.pitch = param.pitch
+vco2.pitch = param.pitch
+filter.resonance = param.randomness*random(0,15)
+env2.out -> filter.cutoffCV
+filter2.cutoff = map(param.cutoff,100,15000)
+filter2.resonance = 0
+
+# apply the envelope 
+
+env.attack = 0.001
+env.level = param.level*param.volume
+env.sustain = 0
+env.release = 0.1
+env.decay = map(param.decay,0.1,1)
+
+# filter envelope
+
+env2.attack = 0.001
+env2.level = map(param.cutoff,100,8000)+param.randomness*random(0,8000)
+env2.sustain = map(param.cutoff,100,8000)
+env2.release = 0.1
+env2.decay = map(param.decay,0.1,1)
+
+# end

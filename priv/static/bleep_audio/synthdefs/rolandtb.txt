@@ -1,0 +1,109 @@
+@synth rolandtb
+longname: Roland TB303 Bassline
+type : synth
+author: Guy Brown
+version: 1.0
+doc: Simulation of roland TB3030 bassline with distortion
+@end
+
+# parameter
+
+@param cutoff
+type: float
+mutable: yes
+step: 0.01
+min: 0
+max: 1
+default: 0.5
+doc : filter cutoff
+@end
+
+@param resonance
+type: float
+mutable: yes
+step: 0.01
+min: 0
+max: 1
+default: 0
+doc : filter resonance
+@end
+
+@param distortion
+type: float
+mutable: yes
+step: 0.01
+min: 0
+max: 1
+default: 0
+doc : distortion amount
+@end
+
+@param env_mod
+type: float
+mutable: no
+step: 0.01
+min: 0
+max: 1
+default: 0
+doc : envelope mod amount
+@end
+
+@param decay
+type: float
+mutable: no
+step: 0.01
+min: 0
+max: 1
+default: 0
+doc : filter decay
+@end
+
+@param volume
+type: float
+mutable: no
+step: 0.01
+min: 0
+max: 1
+default: 0.7
+doc : volume
+@end
+
+SAW-OSC : saw
+LPF : lowpass1
+LPF : lowpass2
+ADSR : filterenv
+ADSR : ampenv
+VCA : vca
+SHAPER : distortion
+
+# patching
+
+saw.out -> lowpass1.in
+lowpass1.out -> lowpass2.in
+lowpass2.out -> distortion.in
+distortion.out -> vca.in
+vca.out -> audio.in
+
+ampenv.out -> vca.levelCV
+
+ampenv.level = param.level*param.volume
+ampenv.attack = 0.01
+ampenv.release = 0.01
+ampenv.sustain = param.level*param.volume
+ampenv.decay = 0.1
+
+filterenv.level = map(param.cutoff,50,10000)
+filterenv.attack = 0
+filterenv.decay = map(param.decay,0.01,0.5)
+filterenv.sustain = map(param.cutoff,50,10000)*(1-param.env_mod)
+filterenv.release = 0.1
+
+filterenv.out -> lowpass1.cutoffCV
+filterenv.out -> lowpass2.cutoffCV
+
+saw.pitch = param.pitch
+lowpass1.resonance = map(param.resonance,0,20)
+lowpass2.resonance = map(param.resonance,0,20)
+distortion.fuzz = map(param.distortion,0,200)
+
+# end of file

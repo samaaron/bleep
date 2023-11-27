@@ -1,0 +1,79 @@
+@synth brasspad
+longname : Bass pad
+type : synth
+author : Guy J Brown
+version : 1.0
+doc : A brassy pad with added fifth
+@end
+
+# parameters
+
+@param cutoff
+type : float
+mutable: yes
+step : 0.01
+min : 100
+max : 3000
+default : 1000
+doc : cutoff frequency
+@end
+
+@param volume
+type : float
+mutable: no
+step : 0.01
+min : 0
+max : 1
+default : 0.5
+doc : overall volume
+@end
+
+# modules
+
+SAW-OSC : osc1
+SAW-OSC : osc2
+SAW-OSC : osc3
+SAW-OSC : osc4
+LPF : lowpass
+VCA : vca
+VCA : mix
+ADSR : env
+ADSR : filtenv
+
+# patch
+
+env.out -> vca.levelCV
+env.level = param.level*param.volume
+env.attack = 1
+env.decay = 2
+env.sustain = 0.5
+env.release = 1.5
+
+filtenv.out -> lowpass.cutoffCV
+filtenv.level = param.cutoff
+filtenv.attack = 1
+filtenv.decay = 2
+filtenv.sustain = 200
+filtenv.release = 1.5
+
+osc1.out -> mix.in
+osc2.out -> mix.in
+osc3.out -> mix.in
+osc4.out -> mix.in
+mix.out -> lowpass.in
+lowpass.out -> vca.in
+vca.out -> audio.in
+
+mix.level = 0.2
+
+# tweak
+
+osc1.pitch = param.pitch
+osc2.pitch = param.pitch
+osc3.pitch = param.pitch
+osc4.pitch = param.pitch
+osc3.detune = 10
+osc2.detune = 500
+osc4.detune = 490
+
+# end

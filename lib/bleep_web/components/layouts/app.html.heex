@@ -1,0 +1,30 @@
+<header class="px-4 sm:px-6 lg:px-8">
+  <div class="flex items-center justify-between py-3 text-sm border-b border-zinc-100">
+    <div class="flex items-center gap-4">
+      <a href="/">
+        <img src={~p"/images/bleep_logo.png"} width="200" />
+      </a>
+      <p class="px-2 font-medium leading-6 rounded-full bg-brand/5 text-brand">
+        v0.0.1
+      </p>
+    </div>
+    <div class="flex items-center gap-4 font-semibold leading-6 text-zinc-900">
+
+      <a href="https://github.com/samaaron/bleep" class="hover:text-zinc-700">
+        GitHub
+      </a>
+      <a
+        href="https://hexdocs.pm/phoenix/overview.html"
+        class="px-2 py-1 rounded-lg bg-zinc-100 hover:bg-zinc-200/80"
+      >
+        Help <n aria-hidden="true">&rarr;</n>
+      </a>
+    </div>
+  </div>
+</header>
+<main class="px-4 py-20 sm:px-6 lg:px-8">
+  <div class="max-w-2xl mx-auto">
+    <.flash_group flash={@flash} />
+    <%= @inner_content %>
+  </div>
+</main>

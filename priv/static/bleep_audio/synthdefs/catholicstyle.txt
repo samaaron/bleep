@@ -1,0 +1,85 @@
+@synth catholicstyle
+longname : Catholic Style
+type : synth
+author : Guy Brown
+version : 1.0
+doc : Hollow synth reminiscent of the lead in King in a Catholic Style by China Crisis
+@end
+
+@param cutoff
+type: float
+mutable: yes
+step: 0.01
+min: 0
+max: 1
+default: 0.5
+doc: filter cutoff
+@end
+
+@param resonance
+type: float
+mutable: yes
+step: 0.01
+min: 0
+max: 1
+default: 0.1
+doc: filter resonance
+@end
+
+@param noise
+type: float
+mutable: no
+step: 0.01
+min: 0
+max: 1
+default: 0.5
+doc: amount of noise
+@end
+
+
+# modules
+
+SQR-OSC : vco
+LPF : filter
+VCA : vca
+ADSR : env
+NOISE : noise
+VCA : mix
+VCA : noisegain
+HPF : highpass
+ADSR : noiseenv
+
+# patch
+
+vco.out -> mix.in
+noise.out -> noisegain.in
+noisegain.out -> highpass.in
+highpass.out -> mix.in
+mix.out -> filter.in
+filter.out -> vca.in
+vca.out -> audio.in
+env.out -> vca.levelCV
+noiseenv.out -> noisegain.levelCV
+
+# tweak
+
+vco.pitch = param.pitch
+filter.cutoff = map(param.cutoff,100,4000)
+filter.resonance = map(param.resonance,0,30)
+highpass.cutoff = 3000
+
+# apply the envelope 
+
+env.attack = 0.02
+env.level = param.level
+env.sustain = 0.5
+env.release = 0.1
+env.decay = 0.05
+
+noiseenv.level = param.noise
+noiseenv.attack = 0
+noiseenv.sustain = param.noise*0.5
+noiseenv.decay = 0.2
+noiseenv.release = 0.1
+
+# end

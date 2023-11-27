@@ -1,0 +1,109 @@
+{
+  "longname": "Modulated filter",
+  "shortname": "filterwobble",
+  "version": "1.0",
+  "author": "Guy Brown",
+  "doc": "A demo of how to modulate with a LFO, try this with a high pitch",
+  "prototype": "builder",
+  "modules": [
+    { "type": "SAW-OSC", "id": "saw" },
+    { "type": "SQR-OSC", "id": "lfo" },
+    { "type": "LPF", "id": "lowpass" },
+    { "type": "VCA", "id": "pitchmod" },
+    { "type": "VCA", "id": "filtermod" },
+    { "type": "VCA", "id": "vca" },
+    { "type": "ADSR", "id": "pitchenv" },
+    { "type": "ADSR", "id": "env" }
+  ],
+  "parameters": [
+    {
+      "name": "lfo_rate",
+      "type": "float",
+      "mutable": "yes",
+      "step": 0.01,
+      "min": 0,
+      "max": 1,
+      "default": 0.3,
+      "doc": "controls the LFO rate"
+    },
+    {
+      "name": "decay",
+      "type": "float",
+      "mutable": "no",
+      "step": 0.01,
+      "min": 0,
+      "max": 1,
+      "default": 0.3,
+      "doc": "controls the envelope decay rate"
+    }
+  ],
+  "tweaks": [
+    { "id": "pitchenv", "param": "level", "expression": ["param.pitch"] },
+    {
+      "id": "pitchenv",
+      "param": "sustain",
+      "expression": ["param.pitch", "0.2", "*"]
+    },
+    { "id": "pitchenv", "param": "attack", "expression": ["0"] },
+    { "id": "pitchenv", "param": "decay", "expression": ["2"] },
+    { "id": "pitchenv", "param": "release", "expression": ["0.1"] },
+    { "id": "env", "param": "level", "expression": ["1"] },
+    {
+      "id": "env",
+      "param": "decay",
+      "expression": ["param.decay", "1", "5", "map"]
+    },
+    { "id": "env", "param": "sustain", "expression": ["0"] },
+    { "id": "env", "param": "release", "expression": ["0.1"] },
+    { "id": "lowpass", "param": "cutoff", "expression": ["6000"] },
+    { "id": "filtermod", "param": "level", "expression": ["500"] },
+    { "id": "lowpass", "param": "resonance", "expression": ["20"] },
+    { "id": "saw", "param": "pitch", "expression": ["param.pitch"] },
+    {
+      "id": "lfo",
+      "param": "pitch",
+      "expression": ["param.lfo_rate", "0.1", "20", "map"]
+    },
+    { "id": "pitchmod", "param": "level", "expression": ["200"] }
+  ],
+  "envelopes": [
+    {
+      "from": { "id": "pitchenv", "param": "out" },
+      "to": { "id": "saw", "param": "pitchCV" }
+    },
+    {
+      "from": { "id": "env", "param": "out" },
+      "to": { "id": "vca", "param": "levelCV" }
+    }
+  ],
+  "patches": [
+    {
+      "from": { "id": "saw", "param": "out" },
+      "to": { "id": "lowpass", "param": "in" }
+    },
+    {
+      "from": { "id": "lowpass", "param": "out" },
+      "to": { "id": "vca", "param": "in" }
+    },
+    {
+      "from": { "id": "vca", "param": "out" },
+      "to": { "id": "audio", "param": "in" }
+    },
+    {
+      "from": { "id": "lfo", "param": "out" },
+      "to": { "id": "pitchmod", "param": "in" }
+    },
+    {
+      "from": { "id": "pitchmod", "param": "out" },
+      "to": { "id": "saw", "param": "pitchCV" }
+    },
+    {
+      "from": { "id": "lfo", "param": "out" },
+      "to": { "id": "filtermod", "param": "in" }
+    },
+    {
+      "from": { "id": "filtermod", "param": "out" },
+      "to": { "id": "lowpass", "param": "cutoffCV" }
+    }
+  ]
+}

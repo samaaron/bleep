@@ -1,0 +1,159 @@
+@synth elpiano
+longname : Electric Piano
+type : synth
+author : Guy Brown
+version : 1.0
+doc : Electronic piano roughly on the Juno-106 patch Electric Piano II
+@end
+
+@param timbre
+type: float
+mutable: no
+step: 0.01
+min: 0
+max: 1
+default: 0.5
+doc: changes the timbre
+@end
+
+@param release
+type: float
+mutable: no
+step: 0.01
+min: 0
+max: 1
+default: 0.2
+doc: release time
+@end
+
+@param volume
+type: float
+mutable: no
+step: 0.01
+min: 0
+max: 1
+default: 0.5
+doc: overall volume
+@end
+
+@param trem_rate
+type: float
+mutable: yes
+step: 0.01
+min: 0
+max: 1
+default: 0.55
+doc: rate of tremolo
+@end
+
+@param trem_depth
+type: float
+mutable: yes
+step: 0.01
+min: 0
+max: 1
+default: 0.9
+doc: depth of tremolo
+@end
+
+# modules
+
+PULSE-OSC : vco
+SIN-OSC : carrier
+SIN-OSC : mod
+VCA : gain
+VCA : tinkle
+LPF : lpf
+HPF : hpf
+VCA : vca
+ADSR : env1
+ADSR : env2
+ADSR : env3
+VCA : mix
+LFO : lefttrem
+LFO : righttrem
+VCA : leftdepth
+VCA : rightdepth
+VCA : leftgain
+VCA : rightgain
+VCA : stereomix
+PAN : leftpan
+PAN : rightpan
+
+# patch
+
+vco.out -> mix.in
+mix.out -> hpf.in
+hpf.out -> lpf.in
+lpf.out -> vca.in
+env1.out -> vca.levelCV
+env2.out -> lpf.cutoffCV
+mod.out -> gain.in
+gain.out -> carrier.pitchCV
+carrier.out -> tinkle.in
+tinkle.out -> mix.in
+env3.out -> tinkle.levelCV
+
+vca.out -> leftgain.in
+vca.out -> rightgain.in
+leftgain.out -> leftpan.in
+rightgain.out -> rightpan.in
+
+lefttrem.out -> leftdepth.in
+leftdepth.out -> leftgain.levelCV
+
+righttrem.out -> rightdepth.in
+rightdepth.out -> rightgain.levelCV
+
+leftpan.out -> stereomix.in
+rightpan.out -> stereomix.in
+
+stereomix.out -> audio.in
+
+# tweak
+
+leftgain.level = 0.5
+rightgain.level = 0.5
+
+leftpan.angle = -1
+rightpan.angle = 1
+
+leftdepth.level = map(param.trem_depth,0,0.5)
+rightdepth.level = map(param.trem_depth,0,0.5)
+
+lefttrem.pitch = map(param.trem_rate,1,7)
+righttrem.pitch = map(param.trem_rate,1,7)
+
+lefttrem.phase = 1.57
+righttrem.phase = -1.57
+
+vco.pulsewidth = 0.55
+hpf.cutoff = 100
+lpf.resonance = 3
+vco.pitch = param.pitch
+gain.level = 50
+tinkle.level = 0.5
+
+carrier.pitch = map(param.pitch,3000,8000)
+mod.pitch = param.pitch
+mod.detune = 1329
+
+env1.attack = 0
+env1.level = param.level*param.volume
+env1.decay = 2
+env1.sustain = 0
+env1.release = param.release
+
+env2.level = map(param.pitch,1000,2500)
+env2.attack = 0
+env2.decay = 0.2
+env2.sustain = map(param.pitch,500,1000)
+env2.release = param.release
+
+env3.level = map(param.timbre,0,5)
+env3.attack = 0
+env3.decay = 0.2
+env3.sustain = 0.1
+env3.release = 0.2
+
+# end
