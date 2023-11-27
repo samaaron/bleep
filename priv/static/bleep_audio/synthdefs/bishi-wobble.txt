@@ -1,0 +1,86 @@
+@synth bishiwobble
+longname : Bishi wobble bass
+type : synth
+author : Guy Brown
+version : 1.0
+doc : Bass with filter wobble as used by Bishi
+@end
+
+@param cutoff
+type: float
+mutable: yes
+step: 0.01
+min: 100
+max: 3000
+default: 420
+doc : Controls the brightness of the sound
+@end
+
+@param volume
+type: float
+mutable: yes
+step: 0.01
+min: 0
+max: 1
+default: 1
+doc : Controls the overall volume
+@end
+
+@param detune
+type: float
+mutable: yes
+step: 0.01
+min: 0
+max: 15
+default: 5
+doc : Controls the detune amount
+@end
+
+# lots of oscillators
+
+PULSE-OSC : vco1
+SQR-OSC : vco2
+SIN-OSC : lfo
+VCA : mix
+VCA : modgain
+VCA : vca
+VCA : volume
+LPF : lowpass
+ADSR : ampenv
+
+vco1.pulsewidth = 0.2
+
+# connect them
+
+vco1.out -> mix.in
+vco2.out -> mix.in
+mix.out -> lowpass.in
+lfo.out -> modgain.in
+modgain.out -> lowpass.cutoffCV
+lowpass.out -> vca.in
+vca.out -> volume.in
+volume.out -> audio.in
+ampenv.out -> vca.levelCV
+
+# tweaks
+
+vco1.pitch = param.pitch
+vco2.pitch = param.pitch
+vco1.detune = -1*param.detune
+vco2.detune = param.detune
+volume.level = param.volume
+lowpass.cutoff = param.cutoff
+lfo.pitch = 2.67
+
+ampenv.level = param.level
+ampenv.attack = 0.1
+ampenv.decay = 1.2
+ampenv.sustain = 0
+ampenv.release = 0.5
+
+modgain.level = 400
+mix.level = 0.5
+
+# end
+
+
