@@ -100,6 +100,8 @@ export default class BleepAudioCore {
     const delta_s = time - this.#initial_wallclock_time_s + 0.2;
     const audio_context_sched_s = this.#base_audio_context_time_s + delta_s; //- this.audio_context.baseLatency
 
+    console.log(opts);
+    
     const note = opts.note || 70;
     const level = opts.level || 0.2;
     const pitchHz = 440 * Math.pow(2, (note - 69) / 12.0);
