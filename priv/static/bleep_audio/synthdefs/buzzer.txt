@@ -1,0 +1,27 @@
+@synth buzzer
+longname : Simple buzzer
+type : synth
+author : Guy J Brown
+version : 1.0
+doc : A very simple buzzer with no envelopes for testing
+@end
+
+# modules
+
+SAW-OSC : osc
+LPF : lowpass
+VCA : vca
+
+# patch
+
+osc.out -> lowpass.in
+lowpass.out -> vca.in
+vca.out -> audio.in
+
+# tweak
+
+osc.pitch = param.pitch
+vca.level = param.level
+lowpass.cutoff = 1000
+
+# end

@@ -20,6 +20,7 @@ export default class BleepAudioCore {
       "/bleep_audio/synthdefs/bishi-fatbass.txt",
       "/bleep_audio/synthdefs/bishi-wobble.txt",
       "/bleep_audio/synthdefs/brasspad.txt",
+      "/bleep_audio/synthdefs/buzzer.txt",
       "/bleep_audio/synthdefs/catholicstyle.txt",
       "/bleep_audio/synthdefs/choir.txt",
       "/bleep_audio/synthdefs/default.txt",
