@@ -702,13 +702,47 @@ moduleContext.Envelope = class {
       this.#controlledParam.setValueAtTime(v, this.#context.currentTime);
   }
 
+  /*
   releaseOnNoteOff(when) {
     let value = this.#controlledParam.value;
     this.#controlledParam.cancelScheduledValues(when);
     this.#controlledParam.setValueAtTime(value, when);
     this.#controlledParam.linearRampToValueAtTime(0, when + this.#release);
   }
+  */
 
+  apply(param, when, duration) {
+    // note that the duration of the note corresponds to the time between a note on and
+    // note off, the release time is extra
+    this.#controlledParam = param;
+    if (duration <= this.#attack) {
+      // if the duration is shorter than the attack, work out how far into the
+      // attack we get, linear ramp to there, and then go to the release
+      const attackLevel = duration / this.#attack * this.#level;
+      param.setValueAtTime(0, when);
+      param.linearRampToValueAtTime(attackLevel, when + duration);
+      param.linearRampToValueAtTime(0, when + duration + this.#release);
+    } else if (duration <= (this.#attack + this.#decay)) {
+      // if the duration is shorter than the decay, do the attack as normal and work out
+      // how far we get through the decay, linear ramp to there, and then go to release
+      const decayLevel = this.#level - (this.#level - this.#sustain) * (duration - this.#attack) / this.#decay;
+      param.setValueAtTime(0, when);
+      param.linearRampToValueAtTime(this.#level, when + this.#attack);
+      param.linearRampToValueAtTime(decayLevel, when + duration);
+      param.linearRampToValueAtTime(0, when + duration + this.#release);
+    } else {
+      // the duration must be longer than the sum of the attack and decay times, so this is a
+      // straightforward ADSR envelope, linear ramp to attack, linear ramp down to sustain level, 
+      // hold there for note duration and then go to the release 
+      param.setValueAtTime(0, when);
+      param.linearRampToValueAtTime(this.#level, when + this.#attack);
+      param.linearRampToValueAtTime(this.#sustain, when + this.#attack + this.#decay);
+      param.setValueAtTime(this.#sustain, when + duration);
+      param.linearRampToValueAtTime(0, when + duration + this.#release);
+    }
+  }
+
+  /*
   apply(param, when) {
     this.#controlledParam = param;
     param.setValueAtTime(0, when);
@@ -718,6 +752,8 @@ moduleContext.Envelope = class {
       when + this.#attack + this.#decay
     );
   }
+  */
+
 };
 
 // ------------------------------------------------------------

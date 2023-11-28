@@ -10,7 +10,6 @@ export default Player = class {
   #monitor;
 
   constructor(ctx, generator, pitchHz, level, duration, params, monitor) {
-    console.log(`Hello I am playing a note with duration of ${duration}`);
     this.#context = ctx;
     this.#generator = generator;
     this.#params = { ...generator.defaults, ...params };
@@ -21,7 +20,6 @@ export default Player = class {
     this.#params.level = level;
     this.#params.duration = duration;
     // create the webaudio network in three steps
-
     this.#createModules();
     this.#createPatches();
     this.#applyTweaks();
@@ -77,19 +75,44 @@ export default Player = class {
     }
   }
 
+  play(when) {
+    let longestRelease = 0;
+    // apply the envelopes
+    for (let e of this.#generator.envelopes) {
+      let env = this.#node[e.from.id];
+      let obj = this.#node[e.to.id];
+      if ((env.release) && (env.release > longestRelease)) {
+        longestRelease = env.release;
+      }
+      env.apply(obj[e.to.param], when, this.#params.duration);
+    }
+    // start all the nodes that have a start function
+    Object.values(this.#node).forEach((m) => {
+      m.start?.(when);
+    });
+    // stop all the nodes after the duration and the longest release
+    Object.values(this.#node).forEach((m) => {
+      m.stop?.(when + this.#params.duration+longestRelease);
+    });
+  }
+
+  /*
   start(when) {
     // apply the envelopes
     for (let e of this.#generator.envelopes) {
       let env = this.#node[e.from.id];
       let obj = this.#node[e.to.id];
-
-      env.apply(obj[e.to.param], when);
+      if (env.release) {
+        console.log(`release time is ${env.release}`);
+      }
+      env.applyProperly(obj[e.to.param], when,this.#params.duration);
     }
     // start all the nodes that have a start function
     Object.values(this.#node).forEach((m) => {
       m.start?.(when);
     });
   }
+  */
 
   // stop the webaudio network right now
   stopImmediately() {
@@ -100,13 +123,13 @@ export default Player = class {
     });
   }
 
+  /*
   // stop the webaudio network only after the release phase of envelopes has completed
   stopAfterRelease(when) {
     if (VERBOSE) console.log("stopping after release");
     let longestRelease = 0;
     Object.values(this.#node).forEach((m) => {
       if (m.release) {
-        m.releaseOnNoteOff(when);
         if (m.release > longestRelease) longestRelease = m.release;
       }
     });
@@ -115,6 +138,7 @@ export default Player = class {
       m.stop?.(when + longestRelease);
     });
   }
+  */
 
   get out() {
     return this.#node.audio.out;

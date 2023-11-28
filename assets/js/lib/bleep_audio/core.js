@@ -123,9 +123,9 @@ export default class BleepAudioCore {
     // TODO consider whether the audio output should be
     // parmaterised and used here (ouput_node_id)
     synth.out.connect(this.#audio_context.destination);
-    synth.start(audio_context_sched_s);
+    synth.play(audio_context_sched_s);
     // TODO bug fix needed, envelope values are not properly tracked when an end time is given
-    synth.stopAfterRelease(audio_context_sched_s + duration);
+    //synth.stopAfterRelease(audio_context_sched_s + duration);
   }
 
   loadSynthDef(synthdef) {
