@@ -9,7 +9,7 @@ export default Player = class {
   #params;
   #monitor;
 
-  constructor(ctx, generator, pitchHz, level, params, monitor) {
+  constructor(ctx, generator, pitchHz, level, duration, params, monitor) {
     this.#context = ctx;
     this.#generator = generator;
     this.#params = { ...generator.defaults, ...params };
@@ -18,8 +18,8 @@ export default Player = class {
     // add the pitch and level to the parameters
     this.#params.pitch = pitchHz;
     this.#params.level = level;
+    this.#params.duration = duration;
     // create the webaudio network in three steps
-
     this.#createModules();
     this.#createPatches();
     this.#applyTweaks();
@@ -75,42 +75,38 @@ export default Player = class {
     }
   }
 
-  start(when) {
+  play(when) {
+    // since a player may have several different envelopes we need to work
+    // out which one will finish last
+    let longestRelease = 0;
     // apply the envelopes
     for (let e of this.#generator.envelopes) {
       let env = this.#node[e.from.id];
       let obj = this.#node[e.to.id];
-
-      env.apply(obj[e.to.param], when);
+      // update the longest envelope
+      if ((env.release) && (env.release > longestRelease)) {
+        longestRelease = env.release;
+      }
+      env.apply(obj[e.to.param], when, this.#params.duration);
     }
     // start all the nodes that have a start function
     Object.values(this.#node).forEach((m) => {
       m.start?.(when);
     });
+    // stop all the nodes after duration + longest release
+    Object.values(this.#node).forEach((m) => {
+      m.stop?.(when + this.#params.duration+longestRelease);
+    });
   }
 
   // stop the webaudio network right now
+  // keeping this in, just in case we need a panic button to stop all audio
+
   stopImmediately() {
     if (VERBOSE) console.log("stopping immediately");
     let now = context.currentTime;
     Object.values(this.#node).forEach((m) => {
       m.stop?.(now);
-    });
-  }
-
-  // stop the webaudio network only after the release phase of envelopes has completed
-  stopAfterRelease(when) {
-    if (VERBOSE) console.log("stopping after release");
-    let longestRelease = 0;
-    Object.values(this.#node).forEach((m) => {
-      if (m.release) {
-        m.releaseOnNoteOff(when);
-        if (m.release > longestRelease) longestRelease = m.release;
-      }
-    });
-    // stop after the longest release time
-    Object.values(this.#node).forEach((m) => {
-      m.stop?.(when + longestRelease);
     });
   }
 

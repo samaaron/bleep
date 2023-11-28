@@ -1,0 +1,97 @@
+@synth ninth
+longname : Ninth chord
+type : synth
+author : Guy J Brown
+version : 1.0
+doc : A ninth chord with pitch wobble
+@end
+
+# parameters
+
+@param cutoff
+type : float
+mutable: yes
+step : 0.01
+min : 100
+max : 8000
+default : 2000
+doc : cutoff frequency
+@end
+
+@param vibrato_rate
+type : float
+mutable: yes
+step : 0.01
+min : 0.1
+max : 10
+default : 4
+doc : vibrato rate
+@end
+
+@param vibrato_depth
+type : float
+mutable: yes
+step : 0.01
+min : 0
+max : 20
+default : 5
+doc : vibrato depth
+@end
+# modules
+
+SAW-OSC : osc1
+SAW-OSC : osc2
+SAW-OSC : osc3
+SAW-OSC : osc4
+VCA : mix
+LPF : lowpass
+VCA : vca
+ADSR : filterenv
+ADSR : env
+SIN-OSC : lfo
+VCA : lfogain
+
+# patch
+
+osc1.out -> mix.in
+osc2.out -> mix.in
+osc3.out -> mix.in
+osc4.out -> mix.in
+mix.level = 0.2
+
+mix.out -> lowpass.in
+lowpass.out -> vca.in
+vca.out -> audio.in
+
+lfo.pitch = param.vibrato_rate
+lfo.out -> lfogain.in
+lfogain.level = param.vibrato_depth
+lfogain.out -> osc1.pitchCV
+lfogain.out -> osc2.pitchCV
+lfogain.out -> osc3.pitchCV
+lfogain.out -> osc4.pitchCV
+
+# tweak
+
+osc1.pitch = param.pitch
+osc2.pitch = param.pitch*1.25
+osc3.pitch = param.pitch*1.5
+osc4.pitch = param.pitch*2.25
+
+env.out -> vca.levelCV
+env.attack = 0.01
+env.release = 0.05
+env.decay = 0.2
+env.level = param.level
+env.sustain = param.level
+
+lowpass.resonance = 5
+
+filterenv.out -> lowpass.cutoffCV
+filterenv.level = param.cutoff
+filterenv.sustain = param.cutoff*0.2
+filterenv.attack= 0.01
+filterenv.release = 0.1
+filterenv.decay = 0.6
+
+# end

@@ -24,26 +24,8 @@ defmodule BleepWeb.MainLive do
         lang: :lua,
         content: """
         use_synth("elpiano")
-        sample("misc_crow")
         play(36)
         sleep(0.125)
-        play(36 + 24)
-        sleep(0.125)
-        play(36 + 12)
-        sleep(0.25)
-        play(58)
-        sleep(0.125)
-        play(36 + 24)
-        sleep(0.125)
-        play(36 + 12)
-        sleep(0.25)
-        play(63)
-        sleep(0.125)
-        play(36 + 12)
-        sleep(0.125)
-        play(63)
-        sleep(0.125)
-        play(67)
         """
       },
       # %{

@@ -1,0 +1,61 @@
+@synth submarine
+longname : Submarine
+type : synth
+author : Guy J Brown
+version : 1.0
+doc : Sounds a bit like sonar, noise and resonance
+@end
+
+@param volume
+type : float
+mutable: yes
+step : 0.01
+min : 0
+max : 1
+default : 0.8
+doc : master volume
+@end
+
+# parameters
+
+NOISE : noise
+SIN-OSC : osc
+LPF : lowpass
+HPF : highpass
+VCA : vca
+VCA : noiselevel
+VCA : volume
+ADSR : env
+
+# modules
+
+noise.out -> lowpass.in
+lowpass.out -> highpass.in
+highpass.out -> noiselevel.in
+noiselevel.out -> vca.in
+
+osc.out -> vca.in
+
+vca.out -> volume.in
+volume.out -> audio.in
+
+noiselevel.level = map(param.pitch,1,0.3)
+
+lowpass.cutoff = param.pitch
+highpass.cutoff = param.pitch
+lowpass.resonance = 20
+highpass.resonance = 20
+
+volume.level = param.volume
+
+osc.pitch = param.pitch
+
+env.out -> vca.levelCV
+env.attack = 0.01
+env.level = map(param.level,0,0.5)
+env.sustain = 0.5*map(param.level,0,0.5)
+env.decay = 0.1
+env.release = 0.1
+
+
+# end

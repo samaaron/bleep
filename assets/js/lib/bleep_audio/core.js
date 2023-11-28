@@ -17,7 +17,10 @@ export default class BleepAudioCore {
   constructor() {
     this.#monitor = new Monitor();
     this.#default_synthdef_paths = [
+      "/bleep_audio/synthdefs/bishi-fatbass.txt",
+      "/bleep_audio/synthdefs/bishi-wobble.txt",
       "/bleep_audio/synthdefs/brasspad.txt",
+      "/bleep_audio/synthdefs/buzzer.txt",
       "/bleep_audio/synthdefs/catholicstyle.txt",
       "/bleep_audio/synthdefs/choir.txt",
       "/bleep_audio/synthdefs/default.txt",
@@ -26,10 +29,12 @@ export default class BleepAudioCore {
       "/bleep_audio/synthdefs/fmbell.txt",
       "/bleep_audio/synthdefs/funkybass.txt",
       "/bleep_audio/synthdefs/hammond.txt",
+      "/bleep_audio/synthdefs/ninth.txt",
       "/bleep_audio/synthdefs/pantest.txt",
       "/bleep_audio/synthdefs/randomblips.txt",
       "/bleep_audio/synthdefs/rolandtb.txt",
       "/bleep_audio/synthdefs/sawlead.txt",
+      "/bleep_audio/synthdefs/submarine.txt",
       "/bleep_audio/synthdefs/supersaw.txt",
       "/bleep_audio/synthdefs/voxhumana.txt",
     ];
@@ -97,10 +102,13 @@ export default class BleepAudioCore {
     //alert("oneshot...")
     const delta_s = time - this.#initial_wallclock_time_s + 0.2;
     const audio_context_sched_s = this.#base_audio_context_time_s + delta_s; //- this.audio_context.baseLatency
-
-    const note = opts.note || 70;
+    
+    const note = opts.note || 60;
     const level = opts.level || 0.2;
+    const duration = opts.duration || 1; // duration in seconds
     const pitchHz = 440 * Math.pow(2, (note - 69) / 12.0);
+
+    console.log(`note is ${note}`);
 
     const gen = this.#getSynthGen(synthdef_id);
     let synth = new Player(
@@ -108,6 +116,7 @@ export default class BleepAudioCore {
       gen,
       pitchHz,
       level,
+      duration,
       opts,
       this.#monitor
     );
@@ -115,8 +124,7 @@ export default class BleepAudioCore {
     // TODO consider whether the audio output should be
     // parmaterised and used here (ouput_node_id)
     synth.out.connect(this.#audio_context.destination);
-    synth.start(audio_context_sched_s);
-    synth.stopAfterRelease(audio_context_sched_s + 1);
+    synth.play(audio_context_sched_s);
   }
 
   loadSynthDef(synthdef) {
