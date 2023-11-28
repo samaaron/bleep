@@ -34,6 +34,7 @@ export default class BleepAudioCore {
       "/bleep_audio/synthdefs/randomblips.txt",
       "/bleep_audio/synthdefs/rolandtb.txt",
       "/bleep_audio/synthdefs/sawlead.txt",
+      "/bleep_audio/synthdefs/submarine.txt",
       "/bleep_audio/synthdefs/supersaw.txt",
       "/bleep_audio/synthdefs/voxhumana.txt",
     ];

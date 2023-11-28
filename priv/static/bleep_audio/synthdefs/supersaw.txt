@@ -36,6 +36,16 @@ default: 0.18
 doc : Controls the sharpness of the filter usually set low for this sound
 @end
 
+@param detune
+type: float
+mutable: yes
+step: 0.001
+min: 0
+max: 0.03
+default: 0
+doc : Controls the amount of detuning
+@end
+
 # lots of oscillators
 
 SAW-OSC : vco1
@@ -76,17 +86,18 @@ vca.out -> audio.in
 
 # all the oscillators track pitch
 
-vco1.pitch = param.pitch
-vco2.pitch = param.pitch
-vco3.pitch = param.pitch
+vco1.pitch = param.pitch*(1-param.detune)
+vco2.pitch = param.pitch*(1-0.66*param.detune)
+vco3.pitch = param.pitch*(1-0.33*param.detune)
 vco4.pitch = param.pitch
-vco5.pitch = param.pitch
-vco6.pitch = param.pitch
-vco7.pitch = param.pitch
+vco5.pitch = param.pitch*(1+0.33*param.detune)
+vco6.pitch = param.pitch*(1+0.66*param.detune)
+vco7.pitch = param.pitch*(1+param.detune)
 
 # high pass tracks pitch
 
 hpf.cutoff = param.pitch
+hpf.resonance = 2
 
 # other keyboard controls
 
@@ -106,12 +117,15 @@ env.level = param.level
 # this avoids samey phasing effects
 
 shaper.fuzz = 5
-vco1.detune = random(-4.99,5.01)
-vco3.detune = random(4.99,5.01)
-vco4.detune = random(-9.99,10.01)
-vco5.detune = 1
-vco6.detune = random(-14.99,15.01)
-vco7.detune = random(14.99,15.01)
+
+# add a tiny bit of random detune to avoid samey onsets
+
+vco1.detune = random(-1,1)
+vco2.detune = random(-1,1)
+vco3.detune = random(-1,1)
+vco5.detune = random(-1,1)
+vco6.detune = random(-1,1)
+vco7.detune = random(-1,1)
 
 # end
 

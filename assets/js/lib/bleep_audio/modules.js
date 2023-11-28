@@ -714,6 +714,7 @@ moduleContext.Envelope = class {
   apply(param, when, duration) {
     // note that the duration of the note corresponds to the time between a note on and
     // note off, the release time is extra
+    // TODO note that this will generate an numerical error if the attack or decay is zero
     this.#controlledParam = param;
     if (duration <= this.#attack) {
       // if the duration is shorter than the attack, work out how far into the
