@@ -96,25 +96,9 @@ export default Player = class {
     });
   }
 
-  /*
-  start(when) {
-    // apply the envelopes
-    for (let e of this.#generator.envelopes) {
-      let env = this.#node[e.from.id];
-      let obj = this.#node[e.to.id];
-      if (env.release) {
-        console.log(`release time is ${env.release}`);
-      }
-      env.applyProperly(obj[e.to.param], when,this.#params.duration);
-    }
-    // start all the nodes that have a start function
-    Object.values(this.#node).forEach((m) => {
-      m.start?.(when);
-    });
-  }
-  */
-
   // stop the webaudio network right now
+  // keeping this in, just in case we need a panic button to stop all audio
+
   stopImmediately() {
     if (VERBOSE) console.log("stopping immediately");
     let now = context.currentTime;
@@ -122,23 +106,6 @@ export default Player = class {
       m.stop?.(now);
     });
   }
-
-  /*
-  // stop the webaudio network only after the release phase of envelopes has completed
-  stopAfterRelease(when) {
-    if (VERBOSE) console.log("stopping after release");
-    let longestRelease = 0;
-    Object.values(this.#node).forEach((m) => {
-      if (m.release) {
-        if (m.release > longestRelease) longestRelease = m.release;
-      }
-    });
-    // stop after the longest release time
-    Object.values(this.#node).forEach((m) => {
-      m.stop?.(when + longestRelease);
-    });
-  }
-  */
 
   get out() {
     return this.#node.audio.out;
