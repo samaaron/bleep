@@ -76,11 +76,14 @@ export default Player = class {
   }
 
   play(when) {
+    // since a player may have several different envelopes we need to work
+    // out which one will finish last
     let longestRelease = 0;
     // apply the envelopes
     for (let e of this.#generator.envelopes) {
       let env = this.#node[e.from.id];
       let obj = this.#node[e.to.id];
+      // update the longest envelope
       if ((env.release) && (env.release > longestRelease)) {
         longestRelease = env.release;
       }
@@ -90,7 +93,7 @@ export default Player = class {
     Object.values(this.#node).forEach((m) => {
       m.start?.(when);
     });
-    // stop all the nodes after the duration and the longest release
+    // stop all the nodes after duration + longest release
     Object.values(this.#node).forEach((m) => {
       m.stop?.(when + this.#params.duration+longestRelease);
     });
