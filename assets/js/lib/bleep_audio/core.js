@@ -2,6 +2,7 @@ import Monitor from "./monitor";
 import Generator from "./generator";
 import Player from "./player";
 import Grammar from "./grammar";
+import {Reverb, RolandChorus, StereoDelay, EffectsChain} from "./effects";
 
 export default class BleepAudioCore {
   #audio_context;
@@ -13,6 +14,9 @@ export default class BleepAudioCore {
   #initial_wallclock_time_s = 0;
   #started = false;
   #default_synthdef_paths;
+  #reverb
+  #chorus
+  #delay
 
   constructor() {
     this.#monitor = new Monitor();
@@ -54,7 +58,14 @@ export default class BleepAudioCore {
           this.loadSynthDef(synthdef);
         });
       });
+      this.initEffects();
     }
+  }
+
+  initEffects() {
+    this.#reverb = new Reverb(this.#audio_context,this.#monitor);
+    this.#chorus = new RolandChorus(this.#audio_context,this.#monitor);
+    this.#delay = new StereoDelay(this.#audio_context,this.#monitor);
   }
 
   hasStarted() {
@@ -121,10 +132,27 @@ export default class BleepAudioCore {
       this.#monitor
     );
 
+    // DEMO of how to create effects
+
+    const fx = new EffectsChain(this.#audio_context,this.#monitor);
+    fx.addParallel(this.#reverb,0.8);
+    fx.addParallel(this.#chorus,0.5);
+    fx.addSerial(this.#delay,0.5);
+
     // TODO consider whether the audio output should be
     // parmaterised and used here (ouput_node_id)
-    synth.out.connect(this.#audio_context.destination);
+    synth.out.connect(fx.in);
+    fx.out.connect(this.#audio_context.destination);
     synth.play(audio_context_sched_s);
+
+    // after the note has finished you would need to garbage collect the individual effects and the chain
+    // but I think the effects units should really be at the topmost level and shared by all the code boxes
+
+    //this.#reverb.stop();
+    //this.#chorus.stop();
+    //this.#delay.stop();
+    //this.fx.stop();
+
   }
 
   loadSynthDef(synthdef) {
