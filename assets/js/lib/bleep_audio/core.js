@@ -102,7 +102,7 @@ export default class BleepAudioCore {
     //alert("oneshot...")
     const delta_s = time - this.#initial_wallclock_time_s + 0.2;
     const audio_context_sched_s = this.#base_audio_context_time_s + delta_s; //- this.audio_context.baseLatency
-    
+
     const note = opts.note || 60;
     const level = opts.level || 0.2;
     const duration = opts.duration || 1; // duration in seconds
