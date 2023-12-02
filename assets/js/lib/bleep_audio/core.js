@@ -62,8 +62,9 @@ export default class BleepAudioCore {
     }
   }
 
-  initEffects() {
+  async initEffects() {
     this.#reverb = new Reverb(this.#audio_context,this.#monitor);
+    await this.#reverb.load("large-hall.wav");
     this.#chorus = new RolandChorus(this.#audio_context,this.#monitor);
     this.#delay = new StereoDelay(this.#audio_context,this.#monitor);
   }
@@ -113,13 +114,29 @@ export default class BleepAudioCore {
     //alert("oneshot...")
     const delta_s = time - this.#initial_wallclock_time_s + 0.2;
     const audio_context_sched_s = this.#base_audio_context_time_s + delta_s; //- this.audio_context.baseLatency
-    
+        
+    // POSSIBLE BUG 
+    // Is this what you intended? 0 is a false value in javascript
+    // so if opts.level is 0 it gets set back to 0.2 here 
+
     const note = opts.note || 60;
     const level = opts.level || 0.2;
     const duration = opts.duration || 1; // duration in seconds
+
     const pitchHz = 440 * Math.pow(2, (note - 69) / 12.0);
 
     console.log(`note is ${note}`);
+
+    // demo of how to create effects
+
+    const fx = new EffectsChain(this.#audio_context,this.#monitor);
+    fx.addParallel(this.#reverb);
+    //fx.addParallel(this.#chorus,0.5);
+    //fx.addSerial(this.#delay,0.5);
+    opts.sendLevel = 0.5;
+
+    // create a player, passing in the fx chain
+    // we pass the fx chain so that it can be disposed of when we finish playing
 
     const gen = this.#getSynthGen(synthdef_id);
     let synth = new Player(
@@ -128,25 +145,21 @@ export default class BleepAudioCore {
       pitchHz,
       level,
       duration,
+      fx,
       opts,
       this.#monitor
     );
 
-    // DEMO of how to create effects
-
-    const fx = new EffectsChain(this.#audio_context,this.#monitor);
-    fx.addParallel(this.#reverb,0.8);
-    fx.addParallel(this.#chorus,0.5);
-    fx.addSerial(this.#delay,0.5);
-
     // TODO consider whether the audio output should be
     // parmaterised and used here (ouput_node_id)
-    synth.out.connect(fx.in);
-    fx.out.connect(this.#audio_context.destination);
-    synth.play(audio_context_sched_s);
 
-    // after the note has finished you would need to garbage collect the individual effects and the chain
-    // but I think the effects units should really be at the topmost level and shared by all the code boxes
+    // dry pathway
+
+    synth.out.connect(this.#audio_context.destination);
+
+    // play the note
+
+    synth.play(audio_context_sched_s);
 
     //this.#reverb.stop();
     //this.#chorus.stop();

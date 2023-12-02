@@ -23,7 +23,7 @@ defmodule BleepWeb.MainLive do
         kind: :editor,
         lang: :lua,
         content: """
-        use_synth("elpiano")
+        use_synth("buzzer")
         play(36)
         sleep(0.125)
         """

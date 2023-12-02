@@ -8,13 +8,19 @@ export default Player = class {
   #generator;
   #params;
   #monitor;
+  #fx;
+  #mix;
 
-  constructor(ctx, generator, pitchHz, level, duration, params, monitor) {
+  constructor(ctx, generator, pitchHz, level, duration, fx, params, monitor) {
     this.#context = ctx;
     this.#generator = generator;
     this.#params = { ...generator.defaults, ...params };
     this.#node = {};
     this.#monitor = monitor;
+    this.#fx = fx;
+    // the mix receives wet and dry signals
+    this.#mix = ctx.createGain();
+    this.#mix.gain.level = 1;
     // add the pitch and level to the parameters
     this.#params.pitch = pitchHz;
     this.#params.level = level;
@@ -23,6 +29,7 @@ export default Player = class {
     this.#createModules();
     this.#createPatches();
     this.#applyTweaks();
+    this.#patchEffects();
   }
 
   #createModules() {
@@ -55,6 +62,19 @@ export default Player = class {
 
       let val = this.#evaluatePostfix(t.expression);
       obj[t.param] = val;
+    }
+  }
+
+  #patchEffects() {
+    console.log("patching effects");
+    console.log(this.#params);
+    // dry path
+    this.#node.audio.out.connect(this.#mix);
+    // wet path
+    this.#node.audio.out.connect(this.#fx.in);
+    this.#fx.out.connect(this.#mix);
+    if (this.#params.sendLevel!="undefined") {
+      this.#fx.inputLevel = this.#params.sendLevel;
     }
   }
 
@@ -97,6 +117,8 @@ export default Player = class {
     Object.values(this.#node).forEach((m) => {
       m.stop?.(when + this.#params.duration+longestRelease);
     });
+    // stop the effects after the same delay
+    this.#fx.stop(when + this.#params.duration+longestRelease);
   }
 
   // stop the webaudio network right now
@@ -111,7 +133,17 @@ export default Player = class {
   }
 
   get out() {
+    return this.#mix;
+  }
+
+  // just in case we need it - the fx output only
+  get dry() {
     return this.#node.audio.out;
+  }
+
+  // just in case we need it - the dry synth output
+  get wet() {
+    return this.#fx.out;
   }
 
   #scaleValue(low, high, min, max, p) {
