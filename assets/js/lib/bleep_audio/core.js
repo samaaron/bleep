@@ -130,10 +130,11 @@ export default class BleepAudioCore {
     // demo of how to create effects
 
     const fx = new EffectsChain(this.#audio_context,this.#monitor);
-    fx.add(this.#reverb);
-    //fx.addParallel(this.#chorus,0.5);
-    //fx.addSerial(this.#delay,0.5);
-    opts.sendLevel = 0.5;
+    this.#chorus.rate = 2.2;
+    this.#chorus.depth = 2;
+    this.#chorus.spread = 0.95;
+    fx.add(this.#chorus,1.0,0.8);
+    fx.add(this.#reverb,0.2,0.8);
 
     // create a player, passing in the fx chain
     // we pass the fx chain so that it can be disposed of when we finish playing

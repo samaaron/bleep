@@ -9,7 +9,7 @@ export default Player = class {
   #params;
   #monitor;
   #fx;
-  #mix;
+  #out;
 
   constructor(ctx, generator, pitchHz, level, duration, fx, params, monitor) {
     this.#context = ctx;
@@ -18,9 +18,9 @@ export default Player = class {
     this.#node = {};
     this.#monitor = monitor;
     this.#fx = fx;
-    // the mix receives wet and dry signals
-    this.#mix = ctx.createGain();
-    this.#mix.gain.level = 1;
+    // the out receives dry (no fx) or wet (if fx is defined) signals
+    this.#out = ctx.createGain();
+    this.#out.gain.level = 1;
     // add the pitch and level to the parameters
     this.#params.pitch = pitchHz;
     this.#params.level = level;
@@ -68,13 +68,13 @@ export default Player = class {
   #patchEffects() {
     console.log("patching effects");
     console.log(this.#params);
-    // dry path
-    this.#node.audio.out.connect(this.#mix);
-    // wet path
-    this.#node.audio.out.connect(this.#fx.in);
-    this.#fx.out.connect(this.#mix);
-    if (this.#params.sendLevel!="undefined") {
-      this.#fx.inputLevel = this.#params.sendLevel;
+    if (this.#fx == undefined) {
+      // no fx chain so patch directly to output
+      this.#node.audio.out.connect(this.#out);
+    } else {
+      // patch through the fx chain
+      this.#node.audio.out.connect(this.#fx.in);
+      this.#fx.out.connect(this.#out);
     }
   }
 
@@ -133,17 +133,7 @@ export default Player = class {
   }
 
   get out() {
-    return this.#mix;
-  }
-
-  // just in case we need it - the fx output only
-  get dry() {
-    return this.#node.audio.out;
-  }
-
-  // just in case we need it - the dry synth output
-  get wet() {
-    return this.#fx.out;
+    return this.#out;
   }
 
   #scaleValue(low, high, min, max, p) {
