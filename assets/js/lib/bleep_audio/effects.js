@@ -83,9 +83,9 @@ export class Reverb {
         }
     }
 
-    get duration() {
-        // make this available since we must wait this long before disconnecting anything
-        // to avoid reverb tails being cut off
+    timeToFadeOut() {
+        // the time an input to this reverb takes to fade out is equal to the duration
+        // of the impulse response used
         return this.#convolver.buffer.duration;
     }
 
@@ -207,7 +207,7 @@ export class EffectsChain {
         this.#disconnectPause = 0; 
     }
 
-    addSerial(effect) {
+    add(effect) {
         const holder = new EffectsHolder(this.#context,effect,this.#monitor);
         // store a reference to this holder so we can dispose of it later
         this.#holders.push(holder); 
@@ -221,30 +221,10 @@ export class EffectsChain {
         }
         holder.out.connect(this.#out);
         this.#tail = holder.out;
-        // update the maximum time to wait before disconnecting
-        this.#updateDisconnectPause(effect);
-    }
-
-    addParallel(effect) {
-        const holder = new EffectsHolder(this.#context,effect,this.#monitor);
-        // store a reference to this holder so we can dispose of it later
-        this.#holders.push(holder); 
-        console.log("Added a parallel effect");
-        console.log(this.#holders);
-        this.#in.connect(holder.in);
-        holder.out.connect(this.#out);
-        this.#tail = holder.out;
-        // update the maximum time to wait before disconnecting
-        this.#updateDisconnectPause(effect);
-    }
-
-    #updateDisconnectPause(effect) {
-        if (effect.duration != undefined) {
-            if (effect.duration > this.#disconnectPause) {
-                this.#disconnectPause = effect.duration;
-            }
+        // update the time to wait before disconnecting
+        // since some effects (delay, reverb) will need time to fade out
+        this.#disconnectPause += effect.timeToFadeOut();
         }
-    }
 
     set inputLevel(v) {
         this.#in.gain.value = v;

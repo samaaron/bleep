@@ -130,7 +130,7 @@ export default class BleepAudioCore {
     // demo of how to create effects
 
     const fx = new EffectsChain(this.#audio_context,this.#monitor);
-    fx.addParallel(this.#reverb);
+    fx.add(this.#reverb);
     //fx.addParallel(this.#chorus,0.5);
     //fx.addSerial(this.#delay,0.5);
     opts.sendLevel = 0.5;
