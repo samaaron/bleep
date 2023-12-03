@@ -196,18 +196,20 @@ export class Reverb {
 
 export class RolandChorus {
 
+    static DEFAULT_CHORUS_RATE = 0.8;
+    static DEFAULT_STEREO_SPREAD = 0.8;
+    static DEFAULT_CHORUS_DEPTH = 0.001;
+    static DEFAULT_DELAY_TIME = 0.0035;
+    
     #in
     #out
     #lfo
-    #chorusRate
-    #chorusDepth
     #leftDelay
     #rightDelay
     #leftPan
     #rightPan
     #leftGain
     #rightGain
-    #stereoSpread
     #leftMix
     #rightMix
     #monitor
@@ -223,10 +225,6 @@ export class RolandChorus {
         this.#monitor = monitor;
         this.#monitor.retain("chorus");
 
-        // set defaults
-
-        this.#setDefaults();
-
         // in and out gains
 
         this.#in = ctx.createGain();
@@ -238,7 +236,7 @@ export class RolandChorus {
 
         this.#lfo = ctx.createOscillator();
         this.#lfo.type = "triangle";
-        this.#lfo.frequency.value = this.#chorusRate;
+        this.#lfo.frequency.value = RolandChorus.DEFAULT_CHORUS_RATE;
 
         // left and right mixers
 
@@ -250,22 +248,22 @@ export class RolandChorus {
         // left delay line
 
         this.#leftDelay = ctx.createDelay();
-        this.#leftDelay.delayTime.value = 3.5 / 1000; // 3.5ms
+        this.#leftDelay.delayTime.value = RolandChorus.DEFAULT_DELAY_TIME; 
         this.#leftPan = ctx.createStereoPanner();
-        this.#leftPan.pan.value = -this.#stereoSpread; // pan this delay line to the left
+        this.#leftPan.pan.value = -RolandChorus.DEFAULT_STEREO_SPREAD; // pan this delay line to the left
 
         // right delay line
 
         this.#rightDelay = ctx.createDelay();
-        this.#rightDelay.delayTime.value = 3.5 / 1000; // 3.5 ms
+        this.#rightDelay.delayTime.value = RolandChorus.DEFAULT_DELAY_TIME; 
         this.#rightPan = ctx.createStereoPanner();
-        this.#rightPan.pan.value = this.#stereoSpread; // pan this delay line to the right
+        this.#rightPan.pan.value = RolandChorus.DEFAULT_STEREO_SPREAD; // pan this delay line to the right
 
         this.#leftGain = ctx.createGain();
-        this.#leftGain.gain.value = this.#chorusDepth;
+        this.#leftGain.gain.value = RolandChorus.DEFAULT_CHORUS_DEPTH;
 
         this.#rightGain = ctx.createGain();
-        this.#rightGain.gain.value = -this.#chorusDepth;
+        this.#rightGain.gain.value = -RolandChorus.DEFAULT_CHORUS_DEPTH;
 
         this.#lfo.connect(this.#leftGain);
         this.#lfo.connect(this.#rightGain);
@@ -291,16 +289,6 @@ export class RolandChorus {
 
         this.#lfo.start();
 
-    }
-
-    /**
-     * Sets default values for chorus parameters.
-     * @private
-     */
-    #setDefaults() {
-        this.#chorusRate = 0.8;
-        this.#stereoSpread = 0.8;
-        this.#chorusDepth = 1 / 1000;
     }
 
     /**
@@ -333,9 +321,8 @@ export class RolandChorus {
      * @param {number} d - The depth value, typically between 0 and 1.
      */
     set depth(d) {
-        this.#chorusDepth = d / 1000;
-        this.#leftGain.gain.value = this.#chorusDepth;   // normal phase on left ear
-        this.#rightGain.gain.value = -this.#chorusDepth; // phase invert on right ear
+        this.#leftGain.gain.value = d / 1000;   // normal phase on left ear
+        this.#rightGain.gain.value = -d / 1000; // phase invert on right ear
     }
 
     /**
@@ -343,9 +330,8 @@ export class RolandChorus {
      * @param {number} s - The spread value, typically between 0 (mono) and 1 (full stereo).
      */
     set spread(s) {
-        this.#stereoSpread = s;
-        this.#leftPan.pan.value = -this.#stereoSpread;
-        this.#rightPan.pan.value = this.#stereoSpread;
+        this.#leftPan.pan.value = -s;
+        this.#rightPan.pan.value = s;
     }
 
     /**
@@ -353,12 +339,12 @@ export class RolandChorus {
      * @param {number} r - The rate value, in Hz, typically between 0.01 and 15.
      */
     set rate(r) {
-        this.#chorusRate = this.#clamp(r, 0.01, 15);
-        this.#lfo.frequency.value = this.#chorusRate;
+        this.#lfo.frequency.value = this.#clamp(r, 0.01, 15);
     }
 
     /**
      * Clamps a value between a minimum and a maximum.
+     * TODO this is generally useful, factor out into a utility class
      * @param {number} value - The value to clamp.
      * @param {number} min - The minimum value.
      * @param {number} max - The maximum value.
@@ -404,21 +390,121 @@ export class RolandChorus {
 
 export class StereoDelay {
 
-    #context
+    static LOWEST_AMPLITUDE = 0.01;
+    static DEFAULT_SPREAD = 0.8;
+    static DEFAULT_LEFT_DELAY = 0.25;
+    static DEFAULT_RIGHT_DELAY = 0.5;
+    static DEFAULT_FEEDBACK = 0.4;
+
     #monitor
     #in
     #out
+    #leftDelay
+    #rightDelay
+    #leftPan
+    #rightPan
+    #leftFeedbackGain
+    #rightFeedbackGain
+    #feedback
 
+     /**
+     * Creates an instance of StereoDelay.
+     * @param {AudioContext} ctx - The audio context for the delay effect.
+     * @param {Object} monitor - The monitor object to track the delay effect.
+     */
     constructor(ctx, monitor) {
         console.log("Making a Delay");
-        this.#context = ctx;
+
         this.#monitor = monitor;
         this.#monitor.retain("delay");
+
         this.#in = ctx.createGain();
         this.#in.gain.value = 1;
+
         this.#out = ctx.createGain();
         this.#out.gain.value = 1;
-        this.#in.connect(this.#out);
+
+        this.#leftDelay = ctx.createDelay();
+        this.#leftDelay.delayTime.value = StereoDelay.DEFAULT_LEFT_DELAY;
+
+        this.#leftPan = ctx.createStereoPanner();
+        this.#leftPan.pan.value = -StereoDelay.DEFAULT_SPREAD; // pan this delay line to the left
+
+        this.#rightDelay = ctx.createDelay();
+        this.#rightDelay.delayTime.value = StereoDelay.DEFAULT_RIGHT_DELAY;
+
+        this.#rightPan = ctx.createStereoPanner();
+        this.#rightPan.pan.value = StereoDelay.DEFAULT_SPREAD; // pan this delay line to the left
+
+        this.#feedback = StereoDelay.DEFAULT_FEEDBACK;
+        this.#leftFeedbackGain = ctx.createGain();
+        this.#leftFeedbackGain.gain.value = this.#feedback;
+
+        this.#rightFeedbackGain = ctx.createGain();
+        this.#rightFeedbackGain.gain.value = this.#feedback;
+
+        // connect up left side
+
+        this.#in.connect(this.#leftDelay);
+        this.#leftDelay.connect(this.#leftFeedbackGain);
+        this.#leftDelay.connect(this.#leftPan);
+        this.#leftPan.connect(this.#out);
+        this.#leftFeedbackGain.connect(this.#leftDelay);
+
+        // connect up right side
+
+        this.#in.connect(this.#rightDelay);
+        this.#rightDelay.connect(this.#rightFeedbackGain);
+        this.#rightDelay.connect(this.#rightPan);
+        this.#rightPan.connect(this.#out);
+        this.#rightFeedbackGain.connect(this.#rightDelay);
+
+    }
+
+    /**
+     * Sets the stereo spread of the delay effect.
+     * @param {number} s - The spread value, controlling the stereo separation.
+     */
+    set spread(s) {
+        this.#leftPan.pan.value = -s; 
+        this.#rightPan.pan.value = s; 
+    }
+
+    /**
+     * Sets the delay time for the left channel.
+     * @param {number} d - The delay time in seconds for the left channel.
+     */
+    set leftDelay(d) {
+        this.#leftDelay.delayTime.value = d;
+    }
+
+    /**
+     * Sets the delay time for the right channel.
+     * @param {number} d - The delay time in seconds for the right channel.
+     */
+    set rightDelay(d) {
+        this.#rightDelay.delayTime.value = d;
+    }
+
+    /**
+     * Sets the feedback amount for the delay effect.
+     * @param {number} f - The feedback level, typically between 0 and 1.
+     */
+    set feedback(f) {
+        this.#feedback = f;
+        this.#leftFeedbackGain.gain.value = this.#feedback;
+        this.#rightFeedbackGain.gain.value = this.#feedback;
+    }
+
+     /**
+     * Calculates the time it takes for the delay effect to fade out.
+     * @returns {number} The estimated fade out time in seconds.
+     */
+    timeToFadeOut() {
+        // work out how long the delay line will take to fade out (exponential decay)
+        const m = Math.max(this.#leftDelay.delayTime.value,this.#rightDelay.delayTime.value);
+        const n = Math.log(StereoDelay.LOWEST_AMPLITUDE)/Math.log(this.#feedback);
+        return m*n;
     }
 
     /**
@@ -442,10 +528,22 @@ export class StereoDelay {
      */
     stop() {
         this.#in.disconnect();
-        this.#out.disconnect();
         this.#in = null;
+        this.#out.disconnect();
         this.#out = null;
         this.#monitor.release("delay");
+        this.#leftDelay.disconnect();
+        this.#leftDelay = null;
+        this.#rightDelay.disconnect();
+        this.#rightDelay = null;
+        this.#leftPan.disconnect();
+        this.#leftPan = null;
+        this.#rightPan.disconnect();
+        this.#rightPan = null;
+        this.#leftFeedbackGain.disconnect();
+        this.#leftFeedbackGain = null;
+        this.#rightFeedbackGain.disconnect();
+        this.#rightFeedbackGain = null;
     }
 
 }

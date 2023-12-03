@@ -121,7 +121,7 @@ export default class BleepAudioCore {
 
     const note = opts.note || 60;
     const level = opts.level || 0.2;
-    const duration = opts.duration || 1; // duration in seconds
+    const duration = opts.duration || 0.5; // duration in seconds
 
     const pitchHz = 440 * Math.pow(2, (note - 69) / 12.0);
 
@@ -133,6 +133,12 @@ export default class BleepAudioCore {
     this.#chorus.rate = 2.2;
     this.#chorus.depth = 2;
     this.#chorus.spread = 0.95;
+
+    this.#delay.leftDelay = 0.25;
+    this.#delay.rightDelay = 0.5;
+    this.#delay.feedback = 0.2;
+
+    fx.add(this.#delay,0.3,0.8);
     fx.add(this.#chorus,1.0,0.8);
     fx.add(this.#reverb,0.2,0.8);
 
