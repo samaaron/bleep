@@ -217,6 +217,7 @@ export class RolandChorus {
     #leftMix
     #rightMix
     #monitor
+    #context
 
     /**
      * Creates an instance of RolandChorus.
@@ -224,75 +225,72 @@ export class RolandChorus {
      * @param {Object} monitor - The monitor object to track the chorus effect.
      */
     constructor(ctx, monitor) {
-
         if (VERBOSE) console.log("Making a Chorus");
+        this.#context = ctx;
         this.#monitor = monitor;
         this.#monitor.retain("chorus");
+        this.#makeGains();
+        this.#makeDelayLines();
+        this.#makeLFO();
+        this.#makeConnections();
+        this.#lfo.start();
+    }
 
-        // in and out gains
-
-        this.#in = ctx.createGain();
+    #makeGains() {
+        // input and output gains
+        this.#in = this.#context.createGain();
         this.#in.gain.value = 1;
-        this.#out = ctx.createGain();
+        this.#out = this.#context.createGain();
         this.#out.gain.value = 1;
+        // depth controls
+        this.#leftGain = this.#context.createGain();
+        this.#leftGain.gain.value = RolandChorus.DEFAULT_CHORUS_DEPTH;
+        this.#rightGain = this.#context.createGain();
+        this.#rightGain.gain.value = -RolandChorus.DEFAULT_CHORUS_DEPTH;
+        // left and right mixers
+        this.#leftMix = this.#context.createGain();
+        this.#leftMix.gain.value = 0.5;
+        this.#rightMix = this.#context.createGain();
+        this.#rightMix.gain.value = 0.5;
+    }
 
-        // LFO
-
-        this.#lfo = ctx.createOscillator();
+    #makeLFO() {
+        this.#lfo = this.#context.createOscillator();
         this.#lfo.type = "triangle";
         this.#lfo.frequency.value = RolandChorus.DEFAULT_CHORUS_RATE;
+    }
 
-        // left and right mixers
-
-        this.#leftMix = ctx.createGain();
-        this.#leftMix.gain.value = 0.5;
-        this.#rightMix = ctx.createGain();
-        this.#rightMix.gain.value = 0.5;
-
+    #makeDelayLines() {
         // left delay line
-
-        this.#leftDelay = ctx.createDelay();
-        this.#leftDelay.delayTime.value = RolandChorus.DEFAULT_DELAY_TIME; 
-        this.#leftPan = ctx.createStereoPanner();
-        this.#leftPan.pan.value = -RolandChorus.DEFAULT_STEREO_SPREAD; // pan this delay line to the left
-
+        this.#leftDelay = this.#context.createDelay();
+        this.#leftDelay.delayTime.value = RolandChorus.DEFAULT_DELAY_TIME;
+        this.#leftPan = this.#context.createStereoPanner();
+        this.#leftPan.pan.value = -RolandChorus.DEFAULT_STEREO_SPREAD; // pan left
         // right delay line
+        this.#rightDelay = this.#context.createDelay();
+        this.#rightDelay.delayTime.value = RolandChorus.DEFAULT_DELAY_TIME;
+        this.#rightPan = this.#context.createStereoPanner();
+        this.#rightPan.pan.value = RolandChorus.DEFAULT_STEREO_SPREAD; // pan right
+    }
 
-        this.#rightDelay = ctx.createDelay();
-        this.#rightDelay.delayTime.value = RolandChorus.DEFAULT_DELAY_TIME; 
-        this.#rightPan = ctx.createStereoPanner();
-        this.#rightPan.pan.value = RolandChorus.DEFAULT_STEREO_SPREAD; // pan this delay line to the right
-
-        this.#leftGain = ctx.createGain();
-        this.#leftGain.gain.value = RolandChorus.DEFAULT_CHORUS_DEPTH;
-
-        this.#rightGain = ctx.createGain();
-        this.#rightGain.gain.value = -RolandChorus.DEFAULT_CHORUS_DEPTH;
-
-        this.#lfo.connect(this.#leftGain);
-        this.#lfo.connect(this.#rightGain);
-
-        this.#leftGain.connect(this.#leftDelay.delayTime);
-        this.#rightGain.connect(this.#rightDelay.delayTime);
-
-        // left and right sides get a mixture of the original signal and a delayed copy
-
+    #makeConnections() {
+        // connect left delay line
         this.#in.connect(this.#leftDelay);
         this.#leftDelay.connect(this.#leftMix);
         this.#in.connect(this.#leftMix);
         this.#leftMix.connect(this.#leftPan);
         this.#leftPan.connect(this.#out);
-
+        // connect right delay line
         this.#in.connect(this.#rightDelay);
         this.#rightDelay.connect(this.#rightMix);
         this.#in.connect(this.#rightMix);
         this.#rightMix.connect(this.#rightPan);
         this.#rightPan.connect(this.#out);
-
-        // start the LFO
-
-        this.#lfo.start();
-
+        // connect gains on LFO to control depth
+        this.#lfo.connect(this.#leftGain);
+        this.#lfo.connect(this.#rightGain);
+        this.#leftGain.connect(this.#leftDelay.delayTime);
+        this.#rightGain.connect(this.#rightDelay.delayTime);
     }
 
     /**
