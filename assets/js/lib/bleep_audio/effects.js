@@ -1,3 +1,7 @@
+import Utility from "./utility";
+
+const VERBOSE = false;
+
 // ----------------------------------------------------------------
 // EffectsHolder - wiring for an effect
 // wraps inputs and outpus to an effects node, necessary so that we can
@@ -86,7 +90,7 @@ class EffectsHolder {
      * Cleans up resources used by this EffectsHolder.
      */
     dispose() {
-        console.log("called dispose on effects holder");
+        if (VERBOSE) console.log("called dispose on effects holder");
         this.#in.disconnect();
         this.#in = null;
         this.#out.disconnect();
@@ -117,7 +121,7 @@ export class Reverb {
      * @param {Object} monitor - The monitor object to track the reverb effect.
      */
     constructor(ctx, monitor) {
-        console.log("Making a Reverb");
+        if (VERBOSE) console.log("Making a Reverb");
         this.#context = ctx;
         this.#monitor = monitor;
         this.#isValid = false;
@@ -149,7 +153,7 @@ export class Reverb {
             return this.#context.decodeAudioData(await reply.arrayBuffer());
         } catch (err) {
             this.#isValid = false;
-            console.log("unable to load the impulse response file called " + filename);
+            if (VERBOSE) console.log("unable to load the impulse response file called " + filename);
         }
     }
 
@@ -221,7 +225,7 @@ export class RolandChorus {
      */
     constructor(ctx, monitor) {
 
-        console.log("Making a Chorus");
+        if (VERBOSE) console.log("Making a Chorus");
         this.#monitor = monitor;
         this.#monitor.retain("chorus");
 
@@ -339,20 +343,7 @@ export class RolandChorus {
      * @param {number} r - The rate value, in Hz, typically between 0.01 and 15.
      */
     set rate(r) {
-        this.#lfo.frequency.value = this.#clamp(r, 0.01, 15);
-    }
-
-    /**
-     * Clamps a value between a minimum and a maximum.
-     * TODO this is generally useful, factor out into a utility class
-     * @param {number} value - The value to clamp.
-     * @param {number} min - The minimum value.
-     * @param {number} max - The maximum value.
-     * @returns {number} The clamped value.
-     * @private
-     */
-    #clamp(value, min, max) {
-        return Math.min(Math.max(value, min), max);
+        this.#lfo.frequency.value = Utility.clamp(r, 0.01, 15);
     }
 
     /**
@@ -391,7 +382,7 @@ export class RolandChorus {
 export class StereoDelay {
 
     static LOWEST_AMPLITUDE = 0.01;
-    static DEFAULT_SPREAD = 0.8;
+    static DEFAULT_SPREAD = 0.95;
     static DEFAULT_LEFT_DELAY = 0.25;
     static DEFAULT_RIGHT_DELAY = 0.5;
     static DEFAULT_FEEDBACK = 0.4;
@@ -413,7 +404,7 @@ export class StereoDelay {
      * @param {Object} monitor - The monitor object to track the delay effect.
      */
     constructor(ctx, monitor) {
-        console.log("Making a Delay");
+        if (VERBOSE) console.log("Making a Delay");
 
         this.#monitor = monitor;
         this.#monitor.retain("delay");
@@ -568,7 +559,7 @@ export class EffectsChain {
      * @param {Object} monitor - The monitor object to track the effects chain.
      */
     constructor(ctx, monitor) {
-        console.log("Making an Effects Chain");
+        if (VERBOSE) console.log("Making an Effects Chain");
         this.#holders = [];
         this.#context = ctx;
         this.#monitor = monitor;
@@ -592,8 +583,7 @@ export class EffectsChain {
         const holder = new EffectsHolder(this.#context, effect, this.#monitor, mixLevel, outputLevel);
         // store a reference to this holder so we can dispose of it later
         this.#holders.push(holder);
-        console.log("Added a serial effect");
-        console.log(this.#holders);
+        if (VERBOSE) console.log("Added a serial effect");
         if (this.#tail) {
             this.#tail.disconnect(this.#out);
             this.#tail.connect(holder.in);
@@ -647,7 +637,7 @@ export class EffectsChain {
         let stopTime = when - this.#context.currentTime;
         if (stopTime < 0) stopTime = 0;
         setTimeout(() => {
-            console.log("stopping and killing the effects chain");
+            if (VERBOSE) console.log("stopping and killing the effects chain");
             for (let i = 0; i < this.#holders.length; i++) {
                 this.#holders[i].dispose();
                 this.#holders[i] = null;

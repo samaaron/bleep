@@ -3,6 +3,7 @@ import Generator from "./generator";
 import Player from "./player";
 import Grammar from "./grammar";
 import {Reverb, RolandChorus, StereoDelay, EffectsChain} from "./effects";
+import Utility from "./utility";
 
 export default class BleepAudioCore {
   #audio_context;
@@ -123,10 +124,8 @@ export default class BleepAudioCore {
     const level = opts.level || 0.2;
     const duration = opts.duration || 0.5; // duration in seconds
 
-    const pitchHz = 440 * Math.pow(2, (note - 69) / 12.0);
-
-    console.log(`note is ${note}`);
-
+    const pitchHz = Utility.midiNoteToHz(note);
+    
     // demo of how to create effects
 
     const fx = new EffectsChain(this.#audio_context,this.#monitor);
@@ -135,11 +134,11 @@ export default class BleepAudioCore {
     this.#chorus.spread = 0.95;
 
     this.#delay.leftDelay = 0.25;
-    this.#delay.rightDelay = 0.5;
+    this.#delay.rightDelay = 0.75;
     this.#delay.feedback = 0.2;
 
     fx.add(this.#delay,0.3,0.8);
-    fx.add(this.#chorus,1.0,0.8);
+    fx.add(this.#chorus,0.2,0.8);
     fx.add(this.#reverb,0.2,0.8);
 
     // create a player, passing in the fx chain

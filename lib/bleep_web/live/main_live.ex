@@ -23,9 +23,14 @@ defmodule BleepWeb.MainLive do
         kind: :editor,
         lang: :lua,
         content: """
-        use_synth("buzzer")
+        use_synth("ninth")
         play(36)
-        sleep(0.125)
+        sleep(1.0)
+        use_synth("fmbell")
+        play(36)
+        sleep(0.5)
+        play(36)
+        sleep(0.5)
         """
       },
       # %{
