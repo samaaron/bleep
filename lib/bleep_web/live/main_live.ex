@@ -26,11 +26,6 @@ defmodule BleepWeb.MainLive do
         use_synth("ninth")
         play(36)
         sleep(1.0)
-        use_synth("fmbell")
-        play(36)
-        sleep(0.5)
-        play(36)
-        sleep(0.5)
         """
       },
       # %{

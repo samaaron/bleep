@@ -1,16 +1,16 @@
 import Utility from "./utility";
 
-const VERBOSE = false;
+const VERBOSE = true;
 
 // ----------------------------------------------------------------
-// EffectsHolder - wiring for an effect
+// EffectsWrapper - wrapper for an audio effect
 // wraps inputs and outpus to an effects node, necessary so that we can
-// have a several connection points (with different gains) to the same effect
+// have several connection points (with different gains) to the same effect
 // and add/remove as needed without having to create an effect object 
 // each time we play a note
 // ----------------------------------------------------------------
 
-class EffectsHolder {
+class EffectsWrapper {
 
     #in
     #out
@@ -19,7 +19,7 @@ class EffectsHolder {
     #dryGain
 
     /**
-     * Creates an instance of EffectsHolder.
+     * Creates an instance of EffectsWrapper.
      * @param {AudioContext} ctx - The audio context used for creating audio nodes.
      * @param {Object} effect - The audio effect to be applied.
      * @param {Object} monitor - The monitor object to track the effects holder.
@@ -87,7 +87,7 @@ class EffectsHolder {
     }
 
     /**
-     * Cleans up resources used by this EffectsHolder.
+     * Cleans up resources used by this EffectsWrapper.
      */
     dispose() {
         if (VERBOSE) console.log("called dispose on effects holder");
@@ -196,6 +196,7 @@ export class Reverb {
 
 // ----------------------------------------------------------------
 // RolandChorus - chorus unit based on Roland Juno circuit
+// controls for depth, rate and stereo spread
 // ----------------------------------------------------------------
 
 export class RolandChorus {
@@ -236,6 +237,9 @@ export class RolandChorus {
         this.#lfo.start();
     }
 
+    /**
+     * Make various gain stages
+     */
     #makeGains() {
         // input and output gains
         this.#in = this.#context.createGain();
@@ -254,12 +258,18 @@ export class RolandChorus {
         this.#rightMix.gain.value = 0.5;
     }
 
+    /**
+     * Make the LFO that controls the delay time
+     */
     #makeLFO() {
         this.#lfo = this.#context.createOscillator();
         this.#lfo.type = "triangle";
         this.#lfo.frequency.value = RolandChorus.DEFAULT_CHORUS_RATE;
     }
 
+    /**
+     * Make left and right delay lines
+     */
     #makeDelayLines() {
         // left delay line
         this.#leftDelay = this.#context.createDelay();
@@ -273,6 +283,9 @@ export class RolandChorus {
         this.#rightPan.pan.value = RolandChorus.DEFAULT_STEREO_SPREAD; // pan right
     }
 
+    /**
+     * Wire everything together
+     */
     #makeConnections() {
         // connect left delay line
         this.#in.connect(this.#leftDelay);
@@ -338,7 +351,7 @@ export class RolandChorus {
 
     /**
      * Sets the rate of the chorus effect. Rate controls the speed of the modulation.
-     * @param {number} r - The rate value, in Hz, typically between 0.01 and 15.
+     * @param {number} r - The rate value in Hz, between 0.01 and 15.
      */
     set rate(r) {
         this.#lfo.frequency.value = Utility.clamp(r, 0.01, 15);
@@ -375,11 +388,13 @@ export class RolandChorus {
 
 // ----------------------------------------------------------------
 // StereoDelay
+// stereo delay with feedback
+// you can set different delay times for the left and right channels
 // ----------------------------------------------------------------
 
 export class StereoDelay {
 
-    static LOWEST_AMPLITUDE = 0.01;
+    static LOWEST_AMPLITUDE = 0.05; // used to work out when the effect fades out
     static DEFAULT_SPREAD = 0.95;
     static DEFAULT_LEFT_DELAY = 0.25;
     static DEFAULT_RIGHT_DELAY = 0.5;
@@ -395,6 +410,7 @@ export class StereoDelay {
     #leftFeedbackGain
     #rightFeedbackGain
     #feedback
+    #context
 
      /**
      * Creates an instance of StereoDelay.
@@ -403,51 +419,70 @@ export class StereoDelay {
      */
     constructor(ctx, monitor) {
         if (VERBOSE) console.log("Making a Delay");
-
+        this.#context = ctx;
         this.#monitor = monitor;
         this.#monitor.retain("delay");
+        this.#makeGains();
+        this.#makeDelayLines();
+        this.#makeFeedbackPath();
+        this.#makeConnections();
+    }
 
-        this.#in = ctx.createGain();
+    /**
+     * Make the input and output gains
+    */
+    #makeGains() {
+        this.#in = this.#context.createGain();
         this.#in.gain.value = 1;
-
-        this.#out = ctx.createGain();
+        this.#out = this.#context.createGain();
         this.#out.gain.value = 1;
+    }
 
-        this.#leftDelay = ctx.createDelay();
+    /**
+     * Make the delay lines for left and right channels
+     */
+    #makeDelayLines() {
+        // left delay
+        this.#leftDelay = this.#context.createDelay();
         this.#leftDelay.delayTime.value = StereoDelay.DEFAULT_LEFT_DELAY;
-
-        this.#leftPan = ctx.createStereoPanner();
-        this.#leftPan.pan.value = -StereoDelay.DEFAULT_SPREAD; // pan this delay line to the left
-
-        this.#rightDelay = ctx.createDelay();
+        // pan it to the left
+        this.#leftPan = this.#context.createStereoPanner();
+        this.#leftPan.pan.value = -StereoDelay.DEFAULT_SPREAD; // pan left (-ve)
+        // right delay
+        this.#rightDelay = this.#context.createDelay();
         this.#rightDelay.delayTime.value = StereoDelay.DEFAULT_RIGHT_DELAY;
+        // pan it to the right
+        this.#rightPan = this.#context.createStereoPanner();
+        this.#rightPan.pan.value = StereoDelay.DEFAULT_SPREAD; // pan right (+ve)
+    }
 
-        this.#rightPan = ctx.createStereoPanner();
-        this.#rightPan.pan.value = StereoDelay.DEFAULT_SPREAD; // pan this delay line to the left
-
+    /**
+     * Make the feedback pathway
+     */
+    #makeFeedbackPath() {
         this.#feedback = StereoDelay.DEFAULT_FEEDBACK;
-        this.#leftFeedbackGain = ctx.createGain();
+        this.#leftFeedbackGain = this.#context.createGain();
         this.#leftFeedbackGain.gain.value = this.#feedback;
-
-        this.#rightFeedbackGain = ctx.createGain();
+        this.#rightFeedbackGain = this.#context.createGain();
         this.#rightFeedbackGain.gain.value = this.#feedback;
+    }
 
+    /**
+     * Wire everything up
+     */
+    #makeConnections() {
         // connect up left side
-
         this.#in.connect(this.#leftDelay);
         this.#leftDelay.connect(this.#leftFeedbackGain);
         this.#leftDelay.connect(this.#leftPan);
         this.#leftPan.connect(this.#out);
         this.#leftFeedbackGain.connect(this.#leftDelay);
-
         // connect up right side
-
         this.#in.connect(this.#rightDelay);
         this.#rightDelay.connect(this.#rightFeedbackGain);
         this.#rightDelay.connect(this.#rightPan);
         this.#rightPan.connect(this.#out);
         this.#rightFeedbackGain.connect(this.#rightDelay);
-
     }
 
     /**
@@ -578,7 +613,7 @@ export class EffectsChain {
      * @param {number} outputLevel - The output level for the effect.
      */
     add(effect, mixLevel, outputLevel) {
-        const holder = new EffectsHolder(this.#context, effect, this.#monitor, mixLevel, outputLevel);
+        const holder = new EffectsWrapper(this.#context, effect, this.#monitor, mixLevel, outputLevel);
         // store a reference to this holder so we can dispose of it later
         this.#holders.push(holder);
         if (VERBOSE) console.log("Added a serial effect");

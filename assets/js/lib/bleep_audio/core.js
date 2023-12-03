@@ -137,12 +137,23 @@ export default class BleepAudioCore {
     this.#delay.rightDelay = 0.75;
     this.#delay.feedback = 0.2;
 
+    // the second parameter is the mix level (0 = fully dry, 1 = fully wet)
+    // the third parameter controls the output level of this effect (and hence the remainder of the chain)
+    // which is useful to stop amplitudes getting too big (which leads to crackles and clicks)
+
     fx.add(this.#delay,0.3,0.8);
     fx.add(this.#chorus,0.2,0.8);
     fx.add(this.#reverb,0.2,0.8);
 
+    // here we've made global effects, and I think we'll want to do this for reverb since
+    // convolution is expensive
+    // the others (delay, chorus) are cheaper to run and could be created for each note if we dont
+    // want them shared, e.g.
+    // fx.add(new RolandChorus(),0.2,0.8) etc etc
+
     // create a player, passing in the fx chain
     // we pass the fx chain so that it can be disposed of when we finish playing
+    // if fx is undefined then the output of the synth is patched directly to player.out
 
     const gen = this.#getSynthGen(synthdef_id);
     let synth = new Player(
@@ -159,7 +170,7 @@ export default class BleepAudioCore {
     // TODO consider whether the audio output should be
     // parmaterised and used here (ouput_node_id)
 
-    // dry pathway
+    // connect the synth player
 
     synth.out.connect(this.#audio_context.destination);
 
@@ -167,10 +178,8 @@ export default class BleepAudioCore {
 
     synth.play(audio_context_sched_s);
 
-    //this.#reverb.stop();
-    //this.#chorus.stop();
-    //this.#delay.stop();
-    //this.fx.stop();
+    // after the note has played the effects chain (but not any global effects it contains)
+    // is disposed, after a delay that lets delays run out and reverb tails finish
 
   }
 
