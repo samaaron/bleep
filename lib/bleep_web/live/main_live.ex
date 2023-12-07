@@ -171,12 +171,13 @@ defmodule BleepWeb.MainLive do
     note = Enum.at(args, 0)
     time = lua_time(lua)
     opts = %{}
+    opts = Map.put(opts, :note, note)
     {[synth | _rest], _lua} = :luerl.do(<<"return bleep_current_synth">>, lua)
 
     BleepWeb.Endpoint.broadcast(
       "room:bleep-audio",
       "msg",
-      {time, {:play, note, :synth, synth, opts}}
+      {time, {:synth, synth, opts}}
     )
   end
 
@@ -300,7 +301,7 @@ end
 
   @impl true
   def handle_info(
-        %{topic: "room:bleep-audio", payload: {time, {:play, note, :synth, synth, opts}}},
+        %{topic: "room:bleep-audio", payload: {time, {:synth, synth, opts}}},
         socket
       ) do
     {:noreply,
