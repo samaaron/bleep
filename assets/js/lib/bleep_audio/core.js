@@ -115,14 +115,10 @@ export default class BleepAudioCore {
     //alert("oneshot...")
     const delta_s = time - this.#initial_wallclock_time_s + 0.2;
     const audio_context_sched_s = this.#base_audio_context_time_s + delta_s; //- this.audio_context.baseLatency
-        
-    // POSSIBLE BUG 
-    // Is this what you intended? 0 is a false value in javascript
-    // so if opts.level is 0 it gets set back to 0.2 here 
 
-    const note = opts.note || 60;
-    const level = opts.level || 0.2;
-    const duration = opts.duration || 0.5; // duration in seconds
+    const note = opts.hasOwnProperty("note") ? opts.note : 60;
+    const level = opts.hasOwnProperty("level") ? opts.level : 0.2;
+    const duration = opts.hasOwnProperty("duration") ? opts.duration : 0.5; // duration in seconds
 
     const pitchHz = Utility.midiNoteToHz(note);
     
