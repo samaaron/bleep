@@ -23,9 +23,9 @@ defmodule BleepWeb.MainLive do
         kind: :editor,
         lang: :lua,
         content: """
-        use_synth("elpiano")
+        use_synth("ninth")
         play(36)
-        sleep(0.125)
+        sleep(1.0)
         """
       },
       # %{

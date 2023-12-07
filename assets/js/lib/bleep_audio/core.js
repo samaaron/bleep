@@ -2,6 +2,8 @@ import Monitor from "./monitor";
 import Generator from "./generator";
 import Player from "./player";
 import Grammar from "./grammar";
+import {Reverb, RolandChorus, StereoDelay, EffectsChain} from "./effects";
+import Utility from "./utility";
 
 export default class BleepAudioCore {
   #audio_context;
@@ -13,6 +15,9 @@ export default class BleepAudioCore {
   #initial_wallclock_time_s = 0;
   #started = false;
   #default_synthdef_paths;
+  #reverb
+  #chorus
+  #delay
 
   constructor() {
     this.#monitor = new Monitor();
@@ -54,7 +59,15 @@ export default class BleepAudioCore {
           this.loadSynthDef(synthdef);
         });
       });
+      this.initEffects();
     }
+  }
+
+  async initEffects() {
+    this.#reverb = new Reverb(this.#audio_context,this.#monitor);
+    await this.#reverb.load("large-hall.wav");
+    this.#chorus = new RolandChorus(this.#audio_context,this.#monitor);
+    this.#delay = new StereoDelay(this.#audio_context,this.#monitor);
   }
 
   hasStarted() {
@@ -102,13 +115,45 @@ export default class BleepAudioCore {
     //alert("oneshot...")
     const delta_s = time - this.#initial_wallclock_time_s + 0.2;
     const audio_context_sched_s = this.#base_audio_context_time_s + delta_s; //- this.audio_context.baseLatency
+        
+    // POSSIBLE BUG 
+    // Is this what you intended? 0 is a false value in javascript
+    // so if opts.level is 0 it gets set back to 0.2 here 
 
     const note = opts.note || 60;
     const level = opts.level || 0.2;
-    const duration = opts.duration || 1; // duration in seconds
-    const pitchHz = 440 * Math.pow(2, (note - 69) / 12.0);
+    const duration = opts.duration || 0.5; // duration in seconds
 
-    console.log(`note is ${note}`);
+    const pitchHz = Utility.midiNoteToHz(note);
+    
+    // demo of how to create effects
+
+    const fx = new EffectsChain(this.#audio_context,this.#monitor);
+    this.#chorus.rate = 2.2;
+    this.#chorus.depth = 2;
+    this.#chorus.spread = 0.95;
+
+    this.#delay.leftDelay = 0.25;
+    this.#delay.rightDelay = 0.75;
+    this.#delay.feedback = 0.2;
+
+    // the second parameter is the mix level (0 = fully dry, 1 = fully wet)
+    // the third parameter controls the output level of this effect (and hence the remainder of the chain)
+    // which is useful to stop amplitudes getting too big (which leads to crackles and clicks)
+
+    fx.add(this.#delay,0.3,0.8);
+    fx.add(this.#chorus,0.2,0.8);
+    fx.add(this.#reverb,0.2,0.8);
+
+    // here we've made global effects, and I think we'll want to do this for reverb since
+    // convolution is expensive
+    // the others (delay, chorus) are cheaper to run and could be created for each note if we dont
+    // want them shared, e.g.
+    // fx.add(new RolandChorus(),0.2,0.8) etc etc
+
+    // create a player, passing in the fx chain
+    // we pass the fx chain so that it can be disposed of when we finish playing
+    // if fx is undefined then the output of the synth is patched directly to player.out
 
     const gen = this.#getSynthGen(synthdef_id);
     let synth = new Player(
@@ -117,14 +162,25 @@ export default class BleepAudioCore {
       pitchHz,
       level,
       duration,
+      fx,
       opts,
       this.#monitor
     );
 
     // TODO consider whether the audio output should be
     // parmaterised and used here (ouput_node_id)
+
+    // connect the synth player
+
     synth.out.connect(this.#audio_context.destination);
+
+    // play the note
+
     synth.play(audio_context_sched_s);
+
+    // after the note has played the effects chain (but not any global effects it contains)
+    // is disposed, after a delay that lets delays run out and reverb tails finish
+
   }
 
   loadSynthDef(synthdef) {
