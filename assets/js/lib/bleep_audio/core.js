@@ -2,7 +2,7 @@ import Monitor from "./monitor";
 import Generator from "./generator";
 import Player from "./player";
 import Grammar from "./grammar";
-import {Reverb, RolandChorus, StereoDelay, EffectsChain} from "./effects";
+import { Reverb, RolandChorus, StereoDelay, EffectsChain } from "./effects";
 import Utility from "./utility";
 
 export default class BleepAudioCore {
@@ -15,9 +15,9 @@ export default class BleepAudioCore {
   #initial_wallclock_time_s = 0;
   #started = false;
   #default_synthdef_paths;
-  #reverb
-  #chorus
-  #delay
+  #reverb;
+  #chorus;
+  #delay;
 
   constructor() {
     this.#monitor = new Monitor();
@@ -64,10 +64,10 @@ export default class BleepAudioCore {
   }
 
   async initEffects() {
-    this.#reverb = new Reverb(this.#audio_context,this.#monitor);
+    this.#reverb = new Reverb(this.#audio_context, this.#monitor);
     await this.#reverb.load("large-hall.wav");
-    this.#chorus = new RolandChorus(this.#audio_context,this.#monitor);
-    this.#delay = new StereoDelay(this.#audio_context,this.#monitor);
+    this.#chorus = new RolandChorus(this.#audio_context, this.#monitor);
+    this.#delay = new StereoDelay(this.#audio_context, this.#monitor);
   }
 
   hasStarted() {
@@ -121,10 +121,10 @@ export default class BleepAudioCore {
     const duration = opts.hasOwnProperty("duration") ? opts.duration : 0.5; // duration in seconds
 
     const pitchHz = Utility.midiNoteToHz(note);
-    
+
     // demo of how to create effects
 
-    const fx = new EffectsChain(this.#audio_context,this.#monitor);
+    const fx = new EffectsChain(this.#audio_context, this.#monitor);
     this.#chorus.rate = 2.2;
     this.#chorus.depth = 2;
     this.#chorus.spread = 0.95;
@@ -137,9 +137,9 @@ export default class BleepAudioCore {
     // the third parameter controls the output level of this effect (and hence the remainder of the chain)
     // which is useful to stop amplitudes getting too big (which leads to crackles and clicks)
 
-    fx.add(this.#delay,0.3,0.8);
-    fx.add(this.#chorus,0.2,0.8);
-    fx.add(this.#reverb,0.2,0.8);
+    fx.add(this.#delay, 0.3, 0.8);
+    fx.add(this.#chorus, 0.2, 0.8);
+    fx.add(this.#reverb, 0.2, 0.8);
 
     // here we've made global effects, and I think we'll want to do this for reverb since
     // convolution is expensive

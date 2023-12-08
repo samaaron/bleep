@@ -6,7 +6,7 @@ const VERBOSE = true;
 // EffectsWrapper - wrapper for an audio effect
 // wraps inputs and outpus to an effects node, necessary so that we can
 // have several connection points (with different gains) to the same effect
-// and add/remove as needed without having to create an effect object 
+// and add/remove as needed without having to create an effect object
 // each time we play a note
 // ----------------------------------------------------------------
 
@@ -205,7 +205,7 @@ export class RolandChorus {
     static DEFAULT_STEREO_SPREAD = 0.8;
     static DEFAULT_CHORUS_DEPTH = 0.001;
     static DEFAULT_DELAY_TIME = 0.0035;
-    
+
     #in
     #out
     #lfo
@@ -490,8 +490,8 @@ export class StereoDelay {
      * @param {number} s - The spread value, controlling the stereo separation.
      */
     set spread(s) {
-        this.#leftPan.pan.value = -s; 
-        this.#rightPan.pan.value = s; 
+        this.#leftPan.pan.value = -s;
+        this.#rightPan.pan.value = s;
     }
 
     /**
