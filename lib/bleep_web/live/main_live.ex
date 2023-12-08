@@ -24,7 +24,7 @@ defmodule BleepWeb.MainLive do
         lang: :lua,
         content: """
         use_synth("ninth")
-        play(36)
+        play(36, {cutoff = 1500, vibrato_depth = 100})
         sleep(1.0)
         """
       },
@@ -167,11 +167,13 @@ defmodule BleepWeb.MainLive do
     BleepWeb.Endpoint.broadcast("room:bleep-audio", "msg", {time, {:sample, sample_name, opts}})
   end
 
-  def play(lua, args) do
-    note = Enum.at(args, 0)
+  def play(lua, [note]) when is_integer(note) or is_float(note) do
+    play(lua, [note, []])
+  end
+
+  def play(lua, [opts_table]) when is_list(opts_table) do
     time = lua_time(lua)
-    opts = %{}
-    opts = Map.put(opts, :note, note)
+    opts = lua_table_to_map(opts_table)
     {[synth | _rest], _lua} = :luerl.do(<<"return bleep_current_synth">>, lua)
 
     BleepWeb.Endpoint.broadcast(
@@ -179,6 +181,10 @@ defmodule BleepWeb.MainLive do
       "msg",
       {time, {:synth, synth, opts}}
     )
+  end
+
+  def play(lua, [note, opts_table]) when is_integer(note) or is_float(note) do
+    play(lua, [[{"note", note} | opts_table]])
   end
 
   @impl true
@@ -278,6 +284,10 @@ end
     |> push_event("update-luareplres", %{
       lua_repl_result: Kernel.inspect(error)
     })
+  end
+
+  def lua_table_to_map(table) do
+    Enum.reduce(table, %{}, fn {k, v}, acc -> Map.put(acc, k, v) end)
   end
 
   @impl true
