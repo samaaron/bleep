@@ -23,9 +23,94 @@ defmodule BleepWeb.MainLive do
         kind: :editor,
         lang: :lua,
         content: """
-        use_synth("ninth")
-        play(36, {cutoff = 1500, vibrato_depth = 100})
-        sleep(1.0)
+       
+        -- this is the neatest way of playing patterns I can come up with
+        -- we need an approach that works for samples and for synths
+        -- here we pass a funtion name and argument:
+        -- (sample, samplename) to play a sample or
+        -- (play, notenumer) to play a synth
+
+        function pattern(seq,interval,funcName,funcArg)
+          for i=1, #seq do
+            local char = seq:sub(i,i)
+            if char=="x" then
+              funcName(funcArg)
+              sleep(interval)
+            elseif char >="1" and char <="9" then
+              local prob = tonumber(char)*10
+              if math.random(100) <= prob then
+                funcName(funcArg)
+              end
+              sleep(interval)
+            elseif char== "-" then
+              sleep(interval)
+            end
+          end
+        end
+
+        -- ooh we can make euclidean patterns too!
+        -- hits is the number of hits in the pattern
+        -- steps is the length of the pattern
+        -- phase is an optional parameter that offsets the pattern start
+
+        function euclidean(hits,steps,phase)
+          phase = phase or 0
+          local pattern = {}
+          local slope = hits/steps
+          local previous = -1
+          for i=0,steps-1 do
+            current = math.floor(i*slope)
+            pattern[1+(i+phase)%steps] = current~=previous and "x" or "-"
+            previous = current
+          end
+          -- concatenate the table into a string
+          return table.concat(pattern)
+        end
+
+        -- play a pattern from snare samples
+
+        pattern("xx-- x-xx -x-x --xx",0.25,sample,"bishi_snare")
+
+        sleep(1)
+
+        -- we can use integers 1-9 to represent probability of a note
+        -- 1 = 10%, 2 = 20% and so on
+
+        for i=1,5 do
+          pattern("x5-- x1-- x5-- x1--",0.125,sample,"bishi_bass_drum")
+        end
+
+        sleep(1)
+
+        -- play a pattern of synth notes
+
+        use_synth("fmbell")
+        pattern("xx-- x-xx -x-x --xx",0.25,play,84)
+
+        -- make a euclidean pattern
+
+        sleep(1)
+
+        p = euclidean(5,16)
+        pattern(p,0.25,sample,"hat_gnu")
+
+        sleep(1)
+
+        p = euclidean(11,16)
+        pattern(p,0.25,sample,"hat_gnu")
+
+        sleep(1)
+
+        p = euclidean(16,16)
+        pattern(p,0.25,sample,"hat_gnu")
+
+        sleep(1)
+
+        -- optional phase parameter, in this case right shift by 3 places
+        
+        p = euclidean(5,16,3)
+        pattern(p,0.25,sample,"hat_gnu")
+
         """
       },
       # %{

@@ -125,21 +125,24 @@ export default class BleepAudioCore {
     // demo of how to create effects
 
     const fx = new EffectsChain(this.#audio_context, this.#monitor);
-    this.#chorus.rate = 2.2;
-    this.#chorus.depth = 2;
-    this.#chorus.spread = 0.95;
 
-    this.#delay.leftDelay = 0.25;
-    this.#delay.rightDelay = 0.75;
-    this.#delay.feedback = 0.2;
+    fx.add(this.#reverb, 0.05, 0.8);
+
+    //this.#chorus.rate = 2.2;
+    //this.#chorus.depth = 2;
+    //this.#chorus.spread = 0.95;
+
+    //this.#delay.leftDelay = 0.25;
+    //this.#delay.rightDelay = 0.75;
+    //this.#delay.feedback = 0.2;
 
     // the second parameter is the mix level (0 = fully dry, 1 = fully wet)
     // the third parameter controls the output level of this effect (and hence the remainder of the chain)
     // which is useful to stop amplitudes getting too big (which leads to crackles and clicks)
 
-    fx.add(this.#delay, 0.3, 0.8);
-    fx.add(this.#chorus, 0.2, 0.8);
-    fx.add(this.#reverb, 0.2, 0.8);
+    //fx.add(this.#delay, 0.3, 0.8);
+    //fx.add(this.#chorus, 0.2, 0.8);
+    //fx.add(this.#reverb, 0.2, 0.8);
 
     // here we've made global effects, and I think we'll want to do this for reverb since
     // convolution is expensive
