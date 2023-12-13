@@ -8,17 +8,15 @@ export default Player = class {
   #generator;
   #params;
   #monitor;
-  #fx;
   #out;
 
-  constructor(ctx, generator, pitchHz, level, duration, fx, params, monitor) {
+  constructor(ctx, generator, pitchHz, level, duration, params, monitor) {
     this.#context = ctx;
     this.#generator = generator;
     this.#params = { ...generator.defaults, ...params };
     this.#node = {};
     this.#monitor = monitor;
-    this.#fx = fx;
-    // the out receives dry (no fx) or wet (if fx is defined) signals
+        // the out receives dry (no fx) or wet (if fx is defined) signals
     this.#out = ctx.createGain();
     this.#out.gain.level = 1;
     // add the pitch and level to the parameters
@@ -29,7 +27,7 @@ export default Player = class {
     this.#createModules();
     this.#createPatches();
     this.#applyTweaks();
-    this.#patchEffects();
+    this.#node.audio.out.connect(this.#out);
   }
 
   #createModules() {
@@ -65,19 +63,6 @@ export default Player = class {
     }
   }
 
-  #patchEffects() {
-    console.log("patching effects");
-    console.log(this.#params);
-    if (this.#fx == undefined) {
-      // no fx chain so patch directly to output
-      this.#node.audio.out.connect(this.#out);
-    } else {
-      // patch through the fx chain
-      this.#node.audio.out.connect(this.#fx.in);
-      this.#fx.out.connect(this.#out);
-    }
-  }
-
   // apply one tweak now as an instantaneous change
   // you can only do this to parameters that have been identified as mutable
   applyTweakNow(param, value) {
@@ -104,7 +89,7 @@ export default Player = class {
       let env = this.#node[e.from.id];
       let obj = this.#node[e.to.id];
       // update the longest envelope
-      if ((env.release) && (env.release > longestRelease)) {
+      if (env.release && env.release > longestRelease) {
         longestRelease = env.release;
       }
       env.apply(obj[e.to.param], when, this.#params.duration);
@@ -115,10 +100,8 @@ export default Player = class {
     });
     // stop all the nodes after duration + longest release
     Object.values(this.#node).forEach((m) => {
-      m.stop?.(when + this.#params.duration+longestRelease);
+      m.stop?.(when + this.#params.duration + longestRelease);
     });
-    // stop the effects after the same delay
-    this.#fx.stop(when + this.#params.duration+longestRelease);
   }
 
   // stop the webaudio network right now

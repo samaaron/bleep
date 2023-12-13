@@ -2,25 +2,25 @@ import Monitor from "./monitor";
 import Generator from "./generator";
 import Player from "./player";
 import Grammar from "./grammar";
-import { Reverb, RolandChorus, StereoDelay, EffectsChain } from "./effects";
+import { Reverb, RolandChorus, StereoDelay, DefaultFX } from "./effects";
 import Utility from "./utility";
 
 export default class BleepAudioCore {
   #audio_context;
   #monitor;
+  #default_fx;
   #loaded_synthgens = new Map();
   #loaded_buffers = new Map();
+  #running_fx = new Map();
   #initial_audio_context_time_s = 0;
   #base_audio_context_time_s = 0;
   #initial_wallclock_time_s = 0;
   #started = false;
   #default_synthdef_paths;
-  #reverb;
-  #chorus;
-  #delay;
 
   constructor() {
     this.#monitor = new Monitor();
+
     this.#default_synthdef_paths = [
       "/bleep_audio/synthdefs/bishi-fatbass.txt",
       "/bleep_audio/synthdefs/bishi-wobble.txt",
@@ -59,37 +59,77 @@ export default class BleepAudioCore {
           this.loadSynthDef(synthdef);
         });
       });
-      this.initEffects();
-    }
-  }
 
-  async initEffects() {
-    this.#reverb = new Reverb(this.#audio_context, this.#monitor);
-    await this.#reverb.load("large-hall.wav");
-    this.#chorus = new RolandChorus(this.#audio_context, this.#monitor);
-    this.#delay = new StereoDelay(this.#audio_context, this.#monitor);
+      this.#default_fx = new DefaultFX(this.#audio_context, this.#monitor);
+      this.#default_fx.out.connect(this.#audio_context.destination);
+    }
   }
 
   hasStarted() {
     return this.#started;
   }
 
-  triggerSample(time, sample_name, output_node_id, opts) {
+  triggerFX(time, fx_name, id, output_id, opts) {
+    let output_node = this.#resolveOutputId(output_id);
+    let fx;
+
+    // I think we need to be able to trigger at a specific time not just 'now'
+    // Obvs also need to change fx here..
+    switch (fx_name) {
+      case "stereo_delay":
+        fx = new StereoDelay(this.#audio_context, this.#monitor);
+        break;
+      case "reverb":
+        fx = new Reverb(this.#audio_context, this.#monitor);
+        fx.load("large-hall.wav");
+        break;
+      case "roland_chorus":
+        fx = new RolandChorus(this.#audio_context, this.#monitor);
+        break;
+      default:
+        console.log(`unknown FX name ${fx_name}`);
+        fx = nil;
+    }
+
+    this.#running_fx.set(id, fx);
+    fx.out.connect(output_node.in);
+  }
+
+  releaseFX(id) {
+    if (this.#running_fx.has(id)) {
+      const fx = this.#running_fx.get(id);
+      this.#running_fx.delete(id);
+      fx.stop();
+    }
+  }
+
+  triggerSample(time, sample_name, output_id, opts) {
+    let output_node = this.#resolveOutputId(output_id);
     let buf = null;
 
     if (this.#loaded_buffers.has(sample_name)) {
       buf = this.#loaded_buffers.fetch(sample_name);
-      this.#triggerBuffer(time, buf, output_node_id, opts);
+      this.#triggerBuffer(time, buf, output_node, opts);
     } else {
       this.#fetchAudioBuffer(`/bleep_audio/samples/${sample_name}.flac`).then(
         (response) => {
-          this.#triggerBuffer(time, response, output_node_id, opts);
+          this.#triggerBuffer(time, response, output_node, opts);
         }
       );
     }
   }
 
-  #triggerBuffer(time, buffer, output_node_id, opts) {
+  #resolveOutputId(output_id) {
+    let output_node;
+    if (output_id == "default") {
+      output_node = this.#default_fx;
+    } else {
+      output_node = this.#running_fx.get(output_id);
+    }
+    return output_node;
+  }
+
+  #triggerBuffer(time, buffer, output_node, opts) {
     const delta_s = time - this.#initial_wallclock_time_s + 0.2;
     const audio_context_sched_s = this.#base_audio_context_time_s + delta_s; //- this.audio_context.baseLatency
 
@@ -101,7 +141,7 @@ export default class BleepAudioCore {
 
     // TODO consider whether the audio output should be
     // parameterised and used here (ouput_node_id)
-    gain.connect(this.#audio_context.destination);
+    gain.connect(output_node.in);
     source.start(audio_context_sched_s);
 
     // TODO perhaps set a timer here to disconnect the gain
@@ -111,8 +151,8 @@ export default class BleepAudioCore {
     // also need to register lifecycle with monitor
   }
 
-  triggerOneshotSynth(time, synthdef_id, output_node_id, opts) {
-    //alert("oneshot...")
+  triggerOneshotSynth(time, synthdef_id, output_id, opts) {
+    let output_node = this.#resolveOutputId(output_id);
     const delta_s = time - this.#initial_wallclock_time_s + 0.2;
     const audio_context_sched_s = this.#base_audio_context_time_s + delta_s; //- this.audio_context.baseLatency
 
@@ -123,10 +163,9 @@ export default class BleepAudioCore {
     const pitchHz = Utility.midiNoteToHz(note);
 
     // demo of how to create effects
+    // const fx = new EffectsChain(this.#audio_context, this.#monitor);
 
-    const fx = new EffectsChain(this.#audio_context, this.#monitor);
-
-    fx.add(this.#reverb, 0.05, 0.8);
+    //fx.add(this.#reverb, 0.05, 0.8);
 
     //this.#chorus.rate = 2.2;
     //this.#chorus.depth = 2;
@@ -161,7 +200,6 @@ export default class BleepAudioCore {
       pitchHz,
       level,
       duration,
-      fx,
       opts,
       this.#monitor
     );
@@ -170,16 +208,12 @@ export default class BleepAudioCore {
     // parmaterised and used here (ouput_node_id)
 
     // connect the synth player
-
-    synth.out.connect(this.#audio_context.destination);
-
+    synth.out.connect(output_node.in);
     // play the note
-
     synth.play(audio_context_sched_s);
 
     // after the note has played the effects chain (but not any global effects it contains)
     // is disposed, after a delay that lets delays run out and reverb tails finish
-
   }
 
   loadSynthDef(synthdef) {
@@ -197,7 +231,7 @@ export default class BleepAudioCore {
         this.triggerOneshotSynth(
           json.time,
           json.synthdef_id,
-          json.output_node_id,
+          json.output_id,
           json.opts
         );
         break;
@@ -205,9 +239,21 @@ export default class BleepAudioCore {
         this.triggerSample(
           json.time,
           json.sample_name,
-          json.output_node_id,
+          json.output_id,
           json.opts
         );
+        break;
+      case "triggerFX":
+        this.triggerFX(
+          json.time,
+          json.fx_id,
+          json.uuid,
+          json.output_id,
+          json.opts
+        );
+        break;
+      case "releaseFX":
+        this.releaseFX(json.time, json.uuid, json.opts);
         break;
 
       default:

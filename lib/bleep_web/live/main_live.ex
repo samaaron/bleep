@@ -23,7 +23,7 @@ defmodule BleepWeb.MainLive do
         kind: :editor,
         lang: :lua,
         content: """
-       
+
         -- this is the neatest way of playing patterns I can come up with
         -- we need an approach that works for samples and for synths
         -- here we pass a funtion name and argument:
@@ -107,7 +107,7 @@ defmodule BleepWeb.MainLive do
         sleep(1)
 
         -- optional phase parameter, in this case right shift by 3 places
-        
+
         p = euclidean(5,16,3)
         pattern(p,0.25,sample,"hat_gnu")
 
@@ -245,11 +245,44 @@ defmodule BleepWeb.MainLive do
     global_time + start_time
   end
 
+  def bleep_core_start_fx(lua, [uuid, fx_id]) do
+    output_id = fetch_current_output_id(lua)
+    time = lua_time(lua)
+    opts = %{}
+
+    BleepWeb.Endpoint.broadcast(
+      "room:bleep-audio",
+      "msg",
+      {time, {:core_start_fx, uuid, fx_id, output_id, opts}}
+    )
+
+    Logger.info(["hi start fx: ", uuid, fx_id])
+  end
+
+  def bleep_core_stop_fx(lua, [uuid]) do
+    time = lua_time(lua)
+    opts = %{}
+
+    BleepWeb.Endpoint.broadcast(
+      "room:bleep-audio",
+      "msg",
+      {time, {:core_stop_fx, uuid, opts}}
+    )
+
+    Logger.info(["hi stop fx: ", uuid])
+  end
+
   def sample(lua, args) do
+    output_id = fetch_current_output_id(lua)
     sample_name = Enum.at(args, 0)
     time = lua_time(lua)
     opts = %{}
-    BleepWeb.Endpoint.broadcast("room:bleep-audio", "msg", {time, {:sample, sample_name, opts}})
+
+    BleepWeb.Endpoint.broadcast(
+      "room:bleep-audio",
+      "msg",
+      {time, {:sample, sample_name, output_id, opts}}
+    )
   end
 
   def play(lua, [note]) when is_integer(note) or is_float(note) do
@@ -257,14 +290,18 @@ defmodule BleepWeb.MainLive do
   end
 
   def play(lua, [opts_table]) when is_list(opts_table) do
+    output_id = fetch_current_output_id(lua)
     time = lua_time(lua)
     opts = lua_table_to_map(opts_table)
     {[synth | _rest], _lua} = :luerl.do(<<"return bleep_current_synth">>, lua)
 
+    {[fx_id | _rest], _lua} =
+      :luerl.do(<<"return bleep_current_fx_stack[#bleep_current_fx_stack]">>, lua)
+
     BleepWeb.Endpoint.broadcast(
       "room:bleep-audio",
       "msg",
-      {time, {:synth, synth, opts}}
+      {time, {:synth, synth, output_id, opts}}
     )
   end
 
@@ -279,6 +316,7 @@ defmodule BleepWeb.MainLive do
     {_, lua} = :luerl.do(<<"bleep_start_time = #{start_time}">>, lua)
     {_, lua} = :luerl.do(<<"bleep_global_time = 0">>, lua)
     {_, lua} = :luerl.do(<<"bleep_current_synth = \"fmbell\"">>, lua)
+    {_, lua} = :luerl.do(<<"bleep_current_fx_stack = { \"default\" }">>, lua)
 
     {_, lua} =
       :luerl.do(
@@ -286,7 +324,19 @@ defmodule BleepWeb.MainLive do
   bleep_global_time = bleep_global_time + t
 end
 
+function push_fx(fx_id)
+  local uuid = uuid()
+  bleep_core_start_fx(uuid, fx_id)
+  table.insert(bleep_current_fx_stack, uuid)
+end
 
+function pop_fx()
+  if #bleep_current_fx_stack == 1 then
+    return
+  end
+  local uuid = table.remove(bleep_current_fx_stack)
+  bleep_core_stop_fx(uuid)
+end
 
 function use_synth(s)
   bleep_current_synth = s
@@ -323,6 +373,35 @@ end
         [<<"sample">>],
         fn args, state ->
           sample(state, args)
+          {[0], state}
+        end,
+        lua
+      )
+
+    lua =
+      :luerl.set_table(
+        [<<"uuid">>],
+        fn _args, state ->
+          {[UUID.uuid4()], state}
+        end,
+        lua
+      )
+
+    lua =
+      :luerl.set_table(
+        [<<"bleep_core_start_fx">>],
+        fn args, state ->
+          bleep_core_start_fx(state, args)
+          {[0], state}
+        end,
+        lua
+      )
+
+    lua =
+      :luerl.set_table(
+        [<<"bleep_core_stop_fx">>],
+        fn args, state ->
+          bleep_core_stop_fx(state, args)
           {[0], state}
         end,
         lua
@@ -375,9 +454,61 @@ end
     Enum.reduce(table, %{}, fn {k, v}, acc -> Map.put(acc, k, v) end)
   end
 
+  def fetch_current_output_id(lua_state) do
+    {[fx_id | _rest], _lua} =
+      :luerl.do(<<"return bleep_current_fx_stack[#bleep_current_fx_stack]">>, lua_state)
+
+    fx_id
+  end
+
   @impl true
   def handle_info(
-        %{topic: "room:bleep-audio", payload: {time, {:sample, sample_name, opts}}},
+        %{
+          topic: "room:bleep-audio",
+          payload: {time, {:core_stop_fx, uuid, opts}}
+        },
+        socket
+      ) do
+    {:noreply,
+     push_event(socket, "bleep-audio", %{
+       msg:
+         Jason.encode!(%{
+           time: time,
+           cmd: "releaseFX",
+           uuid: uuid,
+           opts: opts
+         })
+     })}
+  end
+
+  @impl true
+  def handle_info(
+        %{
+          topic: "room:bleep-audio",
+          payload: {time, {:core_start_fx, uuid, fx_id, output_id, opts}}
+        },
+        socket
+      ) do
+    {:noreply,
+     push_event(socket, "bleep-audio", %{
+       msg:
+         Jason.encode!(%{
+           time: time,
+           cmd: "triggerFX",
+           fx_id: fx_id,
+           uuid: uuid,
+           output_id: output_id,
+           opts: opts
+         })
+     })}
+  end
+
+  @impl true
+  def handle_info(
+        %{
+          topic: "room:bleep-audio",
+          payload: {time, {:sample, sample_name, output_id, opts}}
+        },
         socket
       ) do
     {:noreply,
@@ -387,8 +518,7 @@ end
            time: time,
            cmd: "triggerSample",
            sample_name: sample_name,
-           output_node_id: "default-modular",
-           input: "",
+           output_id: output_id,
            opts: opts
          })
      })}
@@ -396,7 +526,10 @@ end
 
   @impl true
   def handle_info(
-        %{topic: "room:bleep-audio", payload: {time, {:synth, synth, opts}}},
+        %{
+          topic: "room:bleep-audio",
+          payload: {time, {:synth, synth, output_id, opts}}
+        },
         socket
       ) do
     {:noreply,
@@ -406,9 +539,7 @@ end
            time: time,
            cmd: "triggerOneshotSynth",
            synthdef_id: synth,
-           output_node_id: "default-modular",
-           input: "",
-           # opts: %{note: note, dur: 0.5}
+           output_id: output_id,
            opts: opts
          })
      })}

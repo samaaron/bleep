@@ -49,7 +49,8 @@ defmodule Bleep.MixProject do
       {:plug_cowboy, "~> 2.5"},
       {:luerl, "~> 1.0"},
       {:earmark, "~> 1.4"},
-      {:credo, "~> 1.7", only: [:dev, :test], runtime: false}
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:elixir_uuid, "~> 1.2"}
     ]
   end
 
