@@ -255,8 +255,6 @@ defmodule BleepWeb.MainLive do
       "msg",
       {time, {:core_start_fx, uuid, fx_id, output_id, opts}}
     )
-
-    Logger.info(["hi start fx: ", uuid, fx_id])
   end
 
   def bleep_core_stop_fx(lua, [uuid]) do
@@ -268,8 +266,6 @@ defmodule BleepWeb.MainLive do
       "msg",
       {time, {:core_stop_fx, uuid, opts}}
     )
-
-    Logger.info(["hi stop fx: ", uuid])
   end
 
   def sample(lua, args) do
