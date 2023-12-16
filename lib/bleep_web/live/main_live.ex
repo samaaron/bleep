@@ -151,10 +151,10 @@ defmodule BleepWeb.MainLive do
         kind: :editor,
         lang: :lua,
         content: """
-        for i=1, 10 do
-          play(50 + i)
-          sleep(0.125)
-        end
+        -- EFFECTS TESTBED
+        use_synth("ninth")
+        push_fx("reverb")
+        play(60)
         """
       },
       %{
