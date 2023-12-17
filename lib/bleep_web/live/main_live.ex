@@ -152,9 +152,16 @@ defmodule BleepWeb.MainLive do
         lang: :lua,
         content: """
         -- EFFECTS TESTBED
+        -- For a demo core.js has been hardwired to start the delay after 3 seconds
+        -- and to turn the chorus on after 6 seconds
         use_synth("ninth")
+        push_fx("roland_chorus")
         push_fx("reverb")
+        push_fx("stereo_delay")
+        for i=1,10 do
         play(60)
+        sleep(1)
+        end
         """
       },
       %{

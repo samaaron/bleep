@@ -78,13 +78,49 @@ export default class BleepAudioCore {
     switch (fx_name) {
       case "stereo_delay":
         fx = new StereoDelay(this.#audio_context, this.#monitor);
+        // test
+        // set immediately to have dry signal only
+        fx.setParams({
+          wetLevel:0,
+          dryLevel:1
+        },this.#audio_context.currentTime);
+        // after 3 seconds set wet level to 0.5
+        fx.setParams({
+          leftDelay: 0.25,
+          rightDelay: 0.5,
+          feedback: 0.2,
+          spread:0.9,
+          wetLevel: 0.5
+        }, this.#audio_context.currentTime+3);
         break;
       case "reverb":
         fx = new Reverb(this.#audio_context, this.#monitor);
         fx.load("large-hall.wav");
+        //test
+        // always have reverb
+        fx.setParams({
+          wetLevel: 0.3
+        }, this.#audio_context.currentTime);
         break;
       case "roland_chorus":
         fx = new RolandChorus(this.#audio_context, this.#monitor);
+        // test
+        // immediately turn the chorus off
+        fx.setParams({
+          rate: 5,
+          depth: 0.8,
+          spread: 0.95,
+          wetLevel: 0,
+          dryLevel:1
+        }, this.#audio_context.currentTime);
+        // after 6 seconds turn the chorus fully on
+        fx.setParams({
+          rate: 5,
+          depth: 0.8,
+          spread: 0.95,
+          wetLevel: 1,
+          dryLevel:0
+        }, this.#audio_context.currentTime+6);
         break;
       default:
         console.log(`unknown FX name ${fx_name}`);

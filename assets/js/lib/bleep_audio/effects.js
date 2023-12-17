@@ -30,15 +30,121 @@ export class DefaultFX {
   }
 }
 
+// Abstract case class (not exported)
+
+class BleepEffect {
+
+  static DEFAULT_WET_LEVEL = 0.2
+  static DEFAULT_DRY_LEVEL = 1
+
+  _context;
+  _monitor;
+  _wetGain
+  _dryGain
+  _in
+  _out
+
+  constructor(ctx, monitor) {
+    this._context = ctx;
+    this._monitor = monitor;
+    this._monitor.retain(this.constructor.name);
+    this._wetGain = new GainNode(ctx, {
+      gain: BleepEffect.DEFAULT_WET_LEVEL
+    });
+    this._dryGain = new GainNode(ctx, {
+      gain: BleepEffect.DEFAULT_DRY_LEVEL
+    });
+    this._in = new GainNode(ctx, {
+      gain: 1
+    });
+    this._out = new GainNode(ctx, {
+      gain: 1
+    });
+    // connect wet and dry signal paths
+    this._in.connect(this._wetGain);
+    this._in.connect(this._dryGain);
+    this._dryGain.connect(this._out);
+  }
+
+  /**
+   * get the input node
+   */
+  get in() {
+    return this._in;
+  }
+
+  /**
+   * get the output node
+   */
+  get out() {
+    return this._out;
+  }
+
+  /**
+   * stop the effect and dispose of objects
+   */
+  stop() {
+    this._monitor.release(this.constructor.name);
+    this._context = null;
+    this._monitor = null;
+    this._in.disconnect();
+    this._in = null;
+    this._out.disconnect();
+    this._out = null;
+    this._wetGain.disconnect();
+    this._wetGain = null;
+    this._dryGain.disconnect();
+    this._dryGain = null;
+  }
+
+  /**
+   * set ths parameters for the effect
+   * @param {*} params - key value list of parameters
+   * @param {*} when - the time at which the change should occur
+   */
+  setParams(params, when) {
+    if (typeof params.wetLevel !== "undefined")
+      this.setWetLevel(params.wetLevel, when);
+    if (typeof params.dryLevel !== "undefined")
+      this.setDryLevel(params.dryLevel, when);
+  }
+
+  /**
+   * set the wet level for the effect
+   * @param {number} wetLevel - the gain of the wet signal pathway in the range [0,1]
+   * @param {*} when - the time at which the change should occur
+   */
+  setWetLevel(wetLevel, when) {
+    this._wetGain.gain.setValueAtTime(wetLevel,when);
+  }
+
+    /**
+   * set the dry level for the effect
+   * @param {number} dryLevel - the gain of the dry signal pathway in the range [0,1]
+   * @param {*} when - the time at which the change should occur
+   */
+  setDryLevel(dryLevel, when) {
+    this._dryGain.gain.setValueAtTime(dryLevel, when);
+  }
+
+  /**
+   * return the time it takes for the effect to fade out - must be overriden
+   */
+  timeToFadeOut() {
+    throw new Error("BleepEffect is abstract, you must implement this");
+  }
+
+}
+
+
 // ----------------------------------------------------------------
 // Reverb - convolutional reverb
 // ----------------------------------------------------------------
 
-export class Reverb {
-  #context;
-  #monitor;
-  #isValid;
-  #convolver;
+export class Reverb extends BleepEffect {
+
+  _isValid;
+  _convolver;
 
   /**
    * Creates an instance of Reverb.
@@ -46,13 +152,13 @@ export class Reverb {
    * @param {Object} monitor - The monitor object to track the reverb effect.
    */
   constructor(ctx, monitor) {
+    super(ctx, monitor);
     if (VERBOSE) console.log("Making a Reverb");
-    this.#context = ctx;
-    this.#monitor = monitor;
-    this.#isValid = false;
-    // monitor
-    this.#monitor.retain("reverb");
-    this.#convolver = ctx.createConvolver();
+    this._isValid = false;
+    this._convolver = new ConvolverNode(ctx);
+    // connect everything up
+    this._wetGain.connect(this._convolver);
+    this._convolver.connect(this._out);
   }
 
   /**
@@ -61,8 +167,8 @@ export class Reverb {
    */
   async load(filename) {
     const impulseResponse = await this.getImpulseResponseFromFile(filename);
-    if (this.#isValid) {
-      this.#convolver.buffer = impulseResponse;
+    if (this._isValid) {
+      this._convolver.buffer = impulseResponse;
     }
   }
 
@@ -74,10 +180,10 @@ export class Reverb {
   async getImpulseResponseFromFile(filename) {
     try {
       let reply = await fetch(`/bleep_audio/impulses/${filename}`);
-      this.#isValid = true;
-      return this.#context.decodeAudioData(await reply.arrayBuffer());
+      this._isValid = true;
+      return this._context.decodeAudioData(await reply.arrayBuffer());
     } catch (err) {
-      this.#isValid = false;
+      this._isValid = false;
       if (VERBOSE)
         console.log(
           "unable to load the impulse response file called " + filename
@@ -92,32 +198,16 @@ export class Reverb {
   timeToFadeOut() {
     // the time an input to this reverb takes to fade out is equal to the duration
     // of the impulse response used
-    return this.#convolver.buffer.duration;
-  }
-
-  /**
-   * Getter for the convolver input node.
-   * @returns {ConvolverNode} The convolver node used as the input.
-   */
-  get in() {
-    return this.#convolver;
-  }
-
-  /**
-   * Getter for the convolver output node.
-   * @returns {ConvolverNode} The convolver node used as the output.
-   */
-  get out() {
-    return this.#convolver;
+    return this._convolver.buffer.duration;
   }
 
   /**
    * Stops the reverb effect and cleans up resources.
    */
   stop() {
-    this.#convolver.disconnect();
-    this.#convolver = null;
-    this.#monitor.release("reverb");
+    super.stop();
+    this._convolver.disconnect();
+    this._convolver = null;
   }
 }
 
@@ -126,25 +216,22 @@ export class Reverb {
 // controls for depth, rate and stereo spread
 // ----------------------------------------------------------------
 
-export class RolandChorus {
-  static DEFAULT_CHORUS_RATE = 0.8;
-  static DEFAULT_STEREO_SPREAD = 0.8;
-  static DEFAULT_CHORUS_DEPTH = 0.001;
-  static DEFAULT_DELAY_TIME = 0.0035;
+export class RolandChorus extends BleepEffect {
 
-  #in;
-  #out;
-  #lfo;
-  #leftDelay;
-  #rightDelay;
-  #leftPan;
-  #rightPan;
-  #leftGain;
-  #rightGain;
-  #leftMix;
-  #rightMix;
-  #monitor;
-  #context;
+   static DEFAULT_CHORUS_RATE = 0.8;
+   static DEFAULT_STEREO_SPREAD = 0.8;
+   static DEFAULT_CHORUS_DEPTH = 0.1;
+   static DEFAULT_DELAY_TIME = 0.0035;
+
+  _lfo;
+  _leftDelay;
+  _rightDelay;
+  _leftPan;
+  _rightPan;
+  _leftGain;
+  _rightGain;
+  _leftMix;
+  _rightMix;
 
   /**
    * Creates an instance of RolandChorus.
@@ -153,44 +240,42 @@ export class RolandChorus {
    */
   constructor(ctx, monitor) {
     if (VERBOSE) console.log("Making a Chorus");
-    this.#context = ctx;
-    this.#monitor = monitor;
-    this.#monitor.retain("chorus");
+    super(ctx, monitor);
     this.#makeGains();
     this.#makeDelayLines();
     this.#makeLFO();
     this.#makeConnections();
-    this.#lfo.start();
+    this._lfo.start();
   }
 
   /**
    * Make various gain stages
    */
   #makeGains() {
-    // input and output gains
-    this.#in = this.#context.createGain();
-    this.#in.gain.value = 1;
-    this.#out = this.#context.createGain();
-    this.#out.gain.value = 1;
     // depth controls
-    this.#leftGain = this.#context.createGain();
-    this.#leftGain.gain.value = RolandChorus.DEFAULT_CHORUS_DEPTH;
-    this.#rightGain = this.#context.createGain();
-    this.#rightGain.gain.value = -RolandChorus.DEFAULT_CHORUS_DEPTH;
+    this._leftGain = new GainNode(this._context, {
+      gain: RolandChorus.DEFAULT_CHORUS_DEPTH/1000
+    });
+    this._rightGain = new GainNode(this._context, {
+      gain: -RolandChorus.DEFAULT_CHORUS_DEPTH/1000
+    });
     // left and right mixers
-    this.#leftMix = this.#context.createGain();
-    this.#leftMix.gain.value = 0.5;
-    this.#rightMix = this.#context.createGain();
-    this.#rightMix.gain.value = 0.5;
+    this._leftMix = new GainNode(this._context,{
+      gain:0.5
+    });
+    this._rightMix = new GainNode(this._context,{
+      gain:0.5
+    });
   }
 
   /**
    * Make the LFO that controls the delay time
    */
   #makeLFO() {
-    this.#lfo = this.#context.createOscillator();
-    this.#lfo.type = "triangle";
-    this.#lfo.frequency.value = RolandChorus.DEFAULT_CHORUS_RATE;
+    this._lfo = new OscillatorNode(this._context, {
+      type: "triangle",
+      frequency: RolandChorus.DEFAULT_CHORUS_RATE,
+    });
   }
 
   /**
@@ -198,15 +283,19 @@ export class RolandChorus {
    */
   #makeDelayLines() {
     // left delay line
-    this.#leftDelay = this.#context.createDelay();
-    this.#leftDelay.delayTime.value = RolandChorus.DEFAULT_DELAY_TIME;
-    this.#leftPan = this.#context.createStereoPanner();
-    this.#leftPan.pan.value = -RolandChorus.DEFAULT_STEREO_SPREAD; // pan left
+    this._leftDelay = new DelayNode(this._context, {
+      delayTime: RolandChorus.DEFAULT_DELAY_TIME
+    });
+    this._leftPan = new StereoPannerNode(this._context, {
+      pan: -RolandChorus.DEFAULT_STEREO_SPREAD
+    });
     // right delay line
-    this.#rightDelay = this.#context.createDelay();
-    this.#rightDelay.delayTime.value = RolandChorus.DEFAULT_DELAY_TIME;
-    this.#rightPan = this.#context.createStereoPanner();
-    this.#rightPan.pan.value = RolandChorus.DEFAULT_STEREO_SPREAD; // pan right
+    this._rightDelay = new DelayNode(this._context, {
+      delayTime: RolandChorus.DEFAULT_DELAY_TIME
+    });
+    this._rightPan = new StereoPannerNode(this._context, {
+      pan: RolandChorus.DEFAULT_STEREO_SPREAD
+    });
   }
 
   /**
@@ -214,22 +303,22 @@ export class RolandChorus {
    */
   #makeConnections() {
     // connect left delay line
-    this.#in.connect(this.#leftDelay);
-    this.#leftDelay.connect(this.#leftMix);
-    this.#in.connect(this.#leftMix);
-    this.#leftMix.connect(this.#leftPan);
-    this.#leftPan.connect(this.#out);
+    this._wetGain.connect(this._leftDelay);
+    this._leftDelay.connect(this._leftMix);
+    this._wetGain.connect(this._leftMix);
+    this._leftMix.connect(this._leftPan);
+    this._leftPan.connect(this._out);
     // connect right delay line
-    this.#in.connect(this.#rightDelay);
-    this.#rightDelay.connect(this.#rightMix);
-    this.#in.connect(this.#rightMix);
-    this.#rightMix.connect(this.#rightPan);
-    this.#rightPan.connect(this.#out);
+    this._wetGain.connect(this._rightDelay);
+    this._rightDelay.connect(this._rightMix);
+    this._wetGain.connect(this._rightMix);
+    this._rightMix.connect(this._rightPan);
+    this._rightPan.connect(this._out);
     // connect gains on LFO to control depth
-    this.#lfo.connect(this.#leftGain);
-    this.#lfo.connect(this.#rightGain);
-    this.#leftGain.connect(this.#leftDelay.delayTime);
-    this.#rightGain.connect(this.#rightDelay.delayTime);
+    this._lfo.connect(this._leftGain);
+    this._lfo.connect(this._rightGain);
+    this._leftGain.connect(this._leftDelay.delayTime);
+    this._rightGain.connect(this._rightDelay.delayTime);
   }
 
   /**
@@ -242,73 +331,74 @@ export class RolandChorus {
   }
 
   /**
-   * Getter for the input gain node.
-   * @returns {GainNode} The input gain node.
-   */
-  get in() {
-    return this.#in;
-  }
-
-  /**
-   * Getter for the output gain node.
-   * @returns {GainNode} The output gain node.
-   */
-  get out() {
-    return this.#out;
-  }
-
-  /**
    * Sets the depth of the chorus effect. Depth controls the intensity of the modulation.
    * @param {number} d - The depth value, typically between 0 and 1.
+   * @param {number} when - the time at which the change should occur
    */
-  set depth(d) {
-    this.#leftGain.gain.value = d / 1000; // normal phase on left ear
-    this.#rightGain.gain.value = -d / 1000; // phase invert on right ear
+  setDepth(d, when) {
+    this._leftGain.gain.setValueAtTime(d / 1000, when); // normal phase on left ear
+    this._rightGain.gain.setValueAtTime(-d / 1000, when); // phase invert on right ear
   }
 
   /**
    * Sets the stereo spread of the chorus effect. Spread controls the stereo separation of the effect.
    * @param {number} s - The spread value, typically between 0 (mono) and 1 (full stereo).
+   * @param {number} when - the time at which the change should occur
    */
-  set spread(s) {
-    this.#leftPan.pan.value = -s;
-    this.#rightPan.pan.value = s;
+  setSpread(s,when) {
+    this._leftPan.pan.setValueAtTime(-s,when);
+    this._rightPan.pan.setValueAtTime(s,when);
   }
 
   /**
-   * Sets the rate of the chorus effect. Rate controls the speed of the modulation.
-   * @param {number} r - The rate value in Hz, between 0.01 and 15.
+  * Sets the rate of the chorus effect. Rate controls the speed of the modulation.
+  * @param {number} r - The rate value in Hz, between 0.01 and 15.
+  * @param {number} when - the time at which the change should occur
+  */
+  setRate(r,when) {
+    this._lfo.frequency.setValueAtTime(Utility.clamp(r, 0.01, 15),when);
+  }
+
+  /**
+   * set ths parameters for the effect
+   * @param {*} params - key value list of parameters
+   * @param {*} when - the time at which the change should occur
    */
-  set rate(r) {
-    this.#lfo.frequency.value = Utility.clamp(r, 0.01, 15);
+  setParams(params, when) {
+    super.setParams(params, when);
+    if (typeof params.depth !== "undefined") {
+      this.setDepth(params.depth, when);
+    }
+    if (typeof params.spread !== "undefined") {
+      this.setSpread(params.spread, when);
+    }
+    if (typeof params.rate !== "undefined") {
+      this.setRate(params.rate, when);
+    }
   }
 
   /**
    * Stops the chorus effect and cleans up resources.
    */
   stop() {
-    this.#lfo.stop();
-    this.#in.disconnect();
-    this.#in = null;
-    this.#out.disconnect();
-    this.#in = null;
-    this.#leftDelay.disconnect();
-    this.#leftDelay = null;
-    this.#rightDelay.disconnect();
-    this.#rightDelay = null;
-    this.#leftPan.disconnect();
-    this.#leftPan = null;
-    this.#rightPan.disconnect();
-    this.#rightPan = null;
-    this.#leftGain.disconnect();
-    this.#leftGain = null;
-    this.#rightGain.disconnect();
-    this.#rightGain = null;
-    this.#leftMix.disconnect();
-    this.#leftMix = null;
-    this.#rightMix.disconnect();
-    this.#rightMix = null;
-    this.#monitor.release("chorus");
+    super.stop();
+    this._lfo.stop();
+    this._leftDelay.disconnect();
+    this._leftDelay = null;
+    this._rightDelay.disconnect();
+    this._rightDelay = null;
+    this._leftPan.disconnect();
+    this._leftPan = null;
+    this._rightPan.disconnect();
+    this._rightPan = null;
+    this._leftGain.disconnect();
+    this._leftGain = null;
+    this._rightGain.disconnect();
+    this._rightGain = null;
+    this._leftMix.disconnect();
+    this._leftMix = null;
+    this._rightMix.disconnect();
+    this._rightMix = null;
   }
 }
 
@@ -318,24 +408,21 @@ export class RolandChorus {
 // you can set different delay times for the left and right channels
 // ----------------------------------------------------------------
 
-export class StereoDelay {
+export class StereoDelay extends BleepEffect {
+
   static LOWEST_AMPLITUDE = 0.05; // used to work out when the effect fades out
   static DEFAULT_SPREAD = 0.95;
   static DEFAULT_LEFT_DELAY = 0.25;
   static DEFAULT_RIGHT_DELAY = 0.5;
   static DEFAULT_FEEDBACK = 0.4;
 
-  #monitor;
-  #in;
-  #out;
-  #leftDelay;
-  #rightDelay;
-  #leftPan;
-  #rightPan;
-  #leftFeedbackGain;
-  #rightFeedbackGain;
-  #feedback;
-  #context;
+  _leftDelay;
+  _rightDelay;
+  _leftPan;
+  _rightPan;
+  _leftFeedbackGain;
+  _rightFeedbackGain;
+  _maxFeedback;
 
   /**
    * Creates an instance of StereoDelay.
@@ -343,24 +430,11 @@ export class StereoDelay {
    * @param {Object} monitor - The monitor object to track the delay effect.
    */
   constructor(ctx, monitor) {
+    super(ctx,monitor);
     if (VERBOSE) console.log("Making a Delay");
-    this.#context = ctx;
-    this.#monitor = monitor;
-    this.#monitor.retain("delay");
-    this.#makeGains();
     this.#makeDelayLines();
     this.#makeFeedbackPath();
     this.#makeConnections();
-  }
-
-  /**
-   * Make the input and output gains
-   */
-  #makeGains() {
-    this.#in = this.#context.createGain();
-    this.#in.gain.value = 1;
-    this.#out = this.#context.createGain();
-    this.#out.gain.value = 1;
   }
 
   /**
@@ -368,28 +442,32 @@ export class StereoDelay {
    */
   #makeDelayLines() {
     // left delay
-    this.#leftDelay = this.#context.createDelay();
-    this.#leftDelay.delayTime.value = StereoDelay.DEFAULT_LEFT_DELAY;
+    this._leftDelay = new DelayNode(this._context, {
+      delayTime: StereoDelay.DEFAULT_LEFT_DELAY
+    });
     // pan it to the left
-    this.#leftPan = this.#context.createStereoPanner();
-    this.#leftPan.pan.value = -StereoDelay.DEFAULT_SPREAD; // pan left (-ve)
+    this._leftPan = new StereoPannerNode(this._context, {
+      pan: -StereoDelay.DEFAULT_SPREAD
+    });
     // right delay
-    this.#rightDelay = this.#context.createDelay();
-    this.#rightDelay.delayTime.value = StereoDelay.DEFAULT_RIGHT_DELAY;
+    this._rightDelay = new DelayNode(this._context, {
+      delayTime: StereoDelay.DEFAULT_RIGHT_DELAY
+    });
     // pan it to the right
-    this.#rightPan = this.#context.createStereoPanner();
-    this.#rightPan.pan.value = StereoDelay.DEFAULT_SPREAD; // pan right (+ve)
+    this._rightPan = new StereoPannerNode(this._context, {
+      pan: StereoDelay.DEFAULT_SPREAD
+    });
   }
 
   /**
    * Make the feedback pathway
    */
   #makeFeedbackPath() {
-    this.#feedback = StereoDelay.DEFAULT_FEEDBACK;
-    this.#leftFeedbackGain = this.#context.createGain();
-    this.#leftFeedbackGain.gain.value = this.#feedback;
-    this.#rightFeedbackGain = this.#context.createGain();
-    this.#rightFeedbackGain.gain.value = this.#feedback;
+    this._maxFeedback = StereoDelay.DEFAULT_FEEDBACK;
+    this._leftFeedbackGain = this._context.createGain();
+    this._leftFeedbackGain.gain.value = StereoDelay.DEFAULT_FEEDBACK;
+    this._rightFeedbackGain = this._context.createGain();
+    this._rightFeedbackGain.gain.value = StereoDelay.DEFAULT_FEEDBACK;
   }
 
   /**
@@ -397,52 +475,61 @@ export class StereoDelay {
    */
   #makeConnections() {
     // connect up left side
-    this.#in.connect(this.#leftDelay);
-    this.#leftDelay.connect(this.#leftFeedbackGain);
-    this.#leftDelay.connect(this.#leftPan);
-    this.#leftPan.connect(this.#out);
-    this.#leftFeedbackGain.connect(this.#leftDelay);
+    this._wetGain.connect(this._leftDelay);
+    this._leftDelay.connect(this._leftFeedbackGain);
+    this._leftDelay.connect(this._leftPan);
+    this._leftPan.connect(this._out);
+    this._leftFeedbackGain.connect(this._leftDelay);
     // connect up right side
-    this.#in.connect(this.#rightDelay);
-    this.#rightDelay.connect(this.#rightFeedbackGain);
-    this.#rightDelay.connect(this.#rightPan);
-    this.#rightPan.connect(this.#out);
-    this.#rightFeedbackGain.connect(this.#rightDelay);
+    this._wetGain.connect(this._rightDelay);
+    this._rightDelay.connect(this._rightFeedbackGain);
+    this._rightDelay.connect(this._rightPan);
+    this._rightPan.connect(this._out);
+    this._rightFeedbackGain.connect(this._rightDelay);
   }
 
   /**
    * Sets the stereo spread of the delay effect.
    * @param {number} s - The spread value, controlling the stereo separation.
+   * @param {*} when - the time at which the change should occur
    */
-  set spread(s) {
-    this.#leftPan.pan.value = -s;
-    this.#rightPan.pan.value = s;
+  setSpread(s,when) {
+    this._leftPan.pan.setValueAtTime(-s,when);
+    this._rightPan.pan.setValueAtTime(s,when);
   }
 
   /**
    * Sets the delay time for the left channel.
    * @param {number} d - The delay time in seconds for the left channel.
+   * @param {*} when - the time at which the change should occur
    */
-  set leftDelay(d) {
-    this.#leftDelay.delayTime.value = d;
+  setLeftDelay(d,when) {
+    this._leftDelay.delayTime.setValueAtTime(d,when);
   }
 
   /**
    * Sets the delay time for the right channel.
    * @param {number} d - The delay time in seconds for the right channel.
+   * @param {*} when - the time at which the change should occur
    */
-  set rightDelay(d) {
-    this.#rightDelay.delayTime.value = d;
+  setRightDelay(d,when) {
+    this._rightDelay.delayTime.setValueAtTime(d,when);
   }
 
   /**
    * Sets the feedback amount for the delay effect.
    * @param {number} f - The feedback level, typically between 0 and 1.
+   * @param {*} when - the time at which the change should occur
    */
-  set feedback(f) {
-    this.#feedback = f;
-    this.#leftFeedbackGain.gain.value = this.#feedback;
-    this.#rightFeedbackGain.gain.value = this.#feedback;
+  setFeedback(f,when) {
+    // a subtle issue here - we could potentially change the feedback to a smaller value
+    // at a future time, which would lead to the echoes being clipped
+    // so keep track of the longest feedback we have ever set and use that for the decay calc
+    if (f>this._maxFeedback) {
+      this._maxFeedback = f;
+    }
+    this._leftFeedbackGain.gain.setValueAtTime(f,when);
+    this._rightFeedbackGain.gain.setValueAtTime(f,when);
   }
 
   /**
@@ -452,49 +539,49 @@ export class StereoDelay {
   timeToFadeOut() {
     // work out how long the delay line will take to fade out (exponential decay)
     const m = Math.max(
-      this.#leftDelay.delayTime.value,
-      this.#rightDelay.delayTime.value
+      this._leftDelay.delayTime.value,
+      this._rightDelay.delayTime.value
     );
-    const n = Math.log(StereoDelay.LOWEST_AMPLITUDE) / Math.log(this.#feedback);
+    const n = Math.log(StereoDelay.LOWEST_AMPLITUDE) / Math.log(this._maxFeedback);
     return m * n;
   }
 
   /**
-   * Getter for the input gain node.
-   * @returns {GainNode} The input gain node.
+   * set ths parameters for the effect
+   * @param {*} params - key value list of parameters
+   * @param {*} when - the time at which the change should occur
    */
-  get in() {
-    return this.#in;
-  }
-
-  /**
-   * Getter for the output gain node.
-   * @returns {GainNode} The output gain node.
-   */
-  get out() {
-    return this.#out;
+  setParams(params, when) {
+    super.setParams(params, when);
+    if (typeof params.leftDelay !== "undefined") {
+      this.setLeftDelay(params.leftDelay, when);
+    }
+    if (typeof params.rightDelay !== "undefined") {
+      this.setRightDelay(params.rightDelay, when);
+    }
+    if (typeof params.spread !== "undefined") {
+      this.setSpread(params.spread, when);
+    }
+    if (typeof params.feedback !== "undefined") {
+      this.setFeedback(params.feedback, when);
+    }
   }
 
   /**
    * Stops the delay and cleans up.
    */
   stop() {
-    this.#in.disconnect();
-    this.#in = null;
-    this.#out.disconnect();
-    this.#out = null;
-    this.#monitor.release("delay");
-    this.#leftDelay.disconnect();
-    this.#leftDelay = null;
-    this.#rightDelay.disconnect();
-    this.#rightDelay = null;
-    this.#leftPan.disconnect();
-    this.#leftPan = null;
-    this.#rightPan.disconnect();
-    this.#rightPan = null;
-    this.#leftFeedbackGain.disconnect();
-    this.#leftFeedbackGain = null;
-    this.#rightFeedbackGain.disconnect();
-    this.#rightFeedbackGain = null;
+    this._leftDelay.disconnect();
+    this._leftDelay = null;
+    this._rightDelay.disconnect();
+    this._rightDelay = null;
+    this._leftPan.disconnect();
+    this._leftPan = null;
+    this._rightPan.disconnect();
+    this._rightPan = null;
+    this._leftFeedbackGain.disconnect();
+    this._leftFeedbackGain = null;
+    this._rightFeedbackGain.disconnect();
+    this._rightFeedbackGain = null;
   }
 }
