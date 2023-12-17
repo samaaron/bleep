@@ -1,6 +1,9 @@
+import Monitor from "./monitor";
 import Utility from "./utility";
 
 const VERBOSE = true;
+
+// Not sure why this is needed - haven't inluded in the inheritance hierarchy below
 
 export class DefaultFX {
   #context;
@@ -44,6 +47,11 @@ class BleepEffect {
   _in
   _out
 
+  /**
+   * Creates an instance of Bleep effect (abstract class)
+   * @param {AudioContext} ctx - The audio context  
+   * @param {Monitor} monitor - The monitor object 
+   */
   constructor(ctx, monitor) {
     this._context = ctx;
     this._monitor = monitor;
@@ -99,8 +107,8 @@ class BleepEffect {
 
   /**
    * set ths parameters for the effect
-   * @param {*} params - key value list of parameters
-   * @param {*} when - the time at which the change should occur
+   * @param {object} params - key value list of parameters
+   * @param {number} when - the time at which the change should occur
    */
   setParams(params, when) {
     if (typeof params.wetLevel !== "undefined")
@@ -112,7 +120,7 @@ class BleepEffect {
   /**
    * set the wet level for the effect
    * @param {number} wetLevel - the gain of the wet signal pathway in the range [0,1]
-   * @param {*} when - the time at which the change should occur
+   * @param {number} when - the time at which the change should occur
    */
   setWetLevel(wetLevel, when) {
     this._wetGain.gain.setValueAtTime(wetLevel,when);
@@ -121,7 +129,7 @@ class BleepEffect {
     /**
    * set the dry level for the effect
    * @param {number} dryLevel - the gain of the dry signal pathway in the range [0,1]
-   * @param {*} when - the time at which the change should occur
+   * @param {number} when - the time at which the change should occur
    */
   setDryLevel(dryLevel, when) {
     this._dryGain.gain.setValueAtTime(dryLevel, when);
@@ -149,7 +157,7 @@ export class Reverb extends BleepEffect {
   /**
    * Creates an instance of Reverb.
    * @param {AudioContext} ctx - The audio context for the reverb effect.
-   * @param {Object} monitor - The monitor object to track the reverb effect.
+   * @param {Monitor} monitor - The monitor object to track the reverb effect.
    */
   constructor(ctx, monitor) {
     super(ctx, monitor);
@@ -236,7 +244,7 @@ export class RolandChorus extends BleepEffect {
   /**
    * Creates an instance of RolandChorus.
    * @param {AudioContext} ctx - The audio context for the chorus effect.
-   * @param {Object} monitor - The monitor object to track the chorus effect.
+   * @param {Monitor} monitor - The monitor object to track the chorus effect.
    */
   constructor(ctx, monitor) {
     if (VERBOSE) console.log("Making a Chorus");
@@ -361,8 +369,8 @@ export class RolandChorus extends BleepEffect {
 
   /**
    * set ths parameters for the effect
-   * @param {*} params - key value list of parameters
-   * @param {*} when - the time at which the change should occur
+   * @param {object} params - key value list of parameters
+   * @param {number} when - the time at which the change should occur
    */
   setParams(params, when) {
     super.setParams(params, when);
@@ -427,7 +435,7 @@ export class StereoDelay extends BleepEffect {
   /**
    * Creates an instance of StereoDelay.
    * @param {AudioContext} ctx - The audio context for the delay effect.
-   * @param {Object} monitor - The monitor object to track the delay effect.
+   * @param {Monitor} monitor - The monitor object to track the delay effect.
    */
   constructor(ctx, monitor) {
     super(ctx,monitor);
@@ -491,7 +499,7 @@ export class StereoDelay extends BleepEffect {
   /**
    * Sets the stereo spread of the delay effect.
    * @param {number} s - The spread value, controlling the stereo separation.
-   * @param {*} when - the time at which the change should occur
+   * @param {number} when - the time at which the change should occur
    */
   setSpread(s,when) {
     this._leftPan.pan.setValueAtTime(-s,when);
@@ -501,7 +509,7 @@ export class StereoDelay extends BleepEffect {
   /**
    * Sets the delay time for the left channel.
    * @param {number} d - The delay time in seconds for the left channel.
-   * @param {*} when - the time at which the change should occur
+   * @param {number} when - the time at which the change should occur
    */
   setLeftDelay(d,when) {
     this._leftDelay.delayTime.setValueAtTime(d,when);
@@ -510,7 +518,7 @@ export class StereoDelay extends BleepEffect {
   /**
    * Sets the delay time for the right channel.
    * @param {number} d - The delay time in seconds for the right channel.
-   * @param {*} when - the time at which the change should occur
+   * @param {number} when - the time at which the change should occur
    */
   setRightDelay(d,when) {
     this._rightDelay.delayTime.setValueAtTime(d,when);
@@ -519,7 +527,7 @@ export class StereoDelay extends BleepEffect {
   /**
    * Sets the feedback amount for the delay effect.
    * @param {number} f - The feedback level, typically between 0 and 1.
-   * @param {*} when - the time at which the change should occur
+   * @param {number} when - the time at which the change should occur
    */
   setFeedback(f,when) {
     // a subtle issue here - we could potentially change the feedback to a smaller value
@@ -548,8 +556,8 @@ export class StereoDelay extends BleepEffect {
 
   /**
    * set ths parameters for the effect
-   * @param {*} params - key value list of parameters
-   * @param {*} when - the time at which the change should occur
+   * @param {object} params - key value list of parameters
+   * @param {number} when - the time at which the change should occur
    */
   setParams(params, when) {
     super.setParams(params, when);
