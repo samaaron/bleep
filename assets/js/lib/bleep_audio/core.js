@@ -128,14 +128,23 @@ export default class BleepAudioCore {
     }
 
     this.#running_fx.set(id, fx);
+    fx.setParams(opts, this.#audio_context.currentTime)
     fx.out.connect(output_node.in);
   }
 
-  releaseFX(id) {
+  releaseFX(time, id) {
     if (this.#running_fx.has(id)) {
       const fx = this.#running_fx.get(id);
       this.#running_fx.delete(id);
       fx.stop();
+    }
+  }
+
+  controlFX(time, id, params) {
+    const audio_context_sched_s = this.#clockTimeToAudioTime(time);
+        if (this.#running_fx.has(id)) {
+      const fx = this.#running_fx.get(id);
+      fx.setParams(params, audio_context_sched_s);
     }
   }
 
@@ -165,10 +174,14 @@ export default class BleepAudioCore {
     return output_node;
   }
 
-  #triggerBuffer(time, buffer, output_node, opts) {
-    const delta_s = time - this.#initial_wallclock_time_s + 0.2;
+  #clockTimeToAudioTime(wallclock_time) {
+    const delta_s = wallclock_time - this.#initial_wallclock_time_s + 0.2;
     const audio_context_sched_s = this.#base_audio_context_time_s + delta_s; //- this.audio_context.baseLatency
+    return audio_context_sched_s;
+  }
 
+  #triggerBuffer(time, buffer, output_node, opts) {
+    const audio_context_sched_s = this.#clockTimeToAudioTime(time);
     let source = this.#audio_context.createBufferSource();
     let gain = this.#audio_context.createGain();
     gain.gain.value = 1;
@@ -255,8 +268,15 @@ export default class BleepAudioCore {
           json.opts
         );
         break;
+      case "controlFX":
+        this.controlFX(
+          json.time,
+          json.uuid,
+          json.opts
+        );
+        break;
       case "releaseFX":
-        this.releaseFX(json.time, json.uuid, json.opts);
+        this.releaseFX(json.time, json.uuid);
         break;
 
       default:

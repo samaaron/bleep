@@ -253,9 +253,13 @@ defmodule BleepWeb.MainLive do
   end
 
   def bleep_core_start_fx(lua, [uuid, fx_id]) do
+    bleep_core_start_fx(lua, [uuid, fx_id, []])
+  end
+
+  def bleep_core_start_fx(lua, [uuid, fx_id, opts_table]) do
     output_id = fetch_current_output_id(lua)
     time = lua_time(lua)
-    opts = %{}
+    opts = lua_table_to_map(opts_table)
 
     BleepWeb.Endpoint.broadcast(
       "room:bleep-audio",
@@ -312,6 +316,25 @@ defmodule BleepWeb.MainLive do
     play(lua, [[{"note", note} | opts_table]])
   end
 
+  def control_fx(lua, [opts_table]) when is_list(opts_table) do
+    control_fx(lua, [fetch_current_output_id(lua), opts_table])
+  end
+
+  def control_fx(lua, [uuid]) when is_binary(uuid) do
+    control_fx(lua, [uuid, []])
+  end
+
+  def control_fx(lua, [uuid, opts_table]) when is_list(opts_table) do
+    time = lua_time(lua)
+    opts = lua_table_to_map(opts_table)
+
+    BleepWeb.Endpoint.broadcast(
+      "room:bleep-audio",
+      "msg",
+      {time, {:core_control_fx, uuid, opts}}
+    )
+  end
+
   @impl true
   def handle_event("eval-code", %{"value" => value}, socket) do
     lua = :luerl_sandbox.init()
@@ -327,10 +350,12 @@ defmodule BleepWeb.MainLive do
   bleep_global_time = bleep_global_time + t
 end
 
-function push_fx(fx_id)
+function push_fx(fx_id, opts_table)
+  opts_table = opts_table or {}
   local uuid = uuid()
-  bleep_core_start_fx(uuid, fx_id)
+  bleep_core_start_fx(uuid, fx_id, opts_table)
   table.insert(bleep_current_fx_stack, uuid)
+  return uuid
 end
 
 function pop_fx()
@@ -376,6 +401,16 @@ end
         [<<"sample">>],
         fn args, state ->
           sample(state, args)
+          {[0], state}
+        end,
+        lua
+      )
+
+    lua =
+      :luerl.set_table(
+        [<<"control_fx">>],
+        fn args, state ->
+          control_fx(state, args)
           {[0], state}
         end,
         lua
@@ -478,6 +513,26 @@ end
          Jason.encode!(%{
            time: time,
            cmd: "releaseFX",
+           uuid: uuid,
+           opts: opts
+         })
+     })}
+  end
+
+  @impl true
+  def handle_info(
+        %{
+          topic: "room:bleep-audio",
+          payload: {time, {:core_control_fx, uuid, opts}}
+        },
+        socket
+      ) do
+    {:noreply,
+     push_event(socket, "bleep-audio", %{
+       msg:
+         Jason.encode!(%{
+           time: time,
+           cmd: "controlFX",
            uuid: uuid,
            opts: opts
          })
