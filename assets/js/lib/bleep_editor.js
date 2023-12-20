@@ -1,16 +1,18 @@
 import * as monaco from "../../vendor/monaco-editor/esm/vs/editor/editor.main";
 
 self.MonacoEnvironment = {
-	getWorkerUrl: function (moduleId, label) {
-    return "assets/monaco-editor/editor.worker.js"
-  }
-}
+  getWorkerUrl: function (moduleId, label) {
+    return "assets/monaco-editor/editor.worker.js";
+  },
+};
 
 const BleepEditor = {
   mounted() {
-    const btn = this.el.querySelector("button");
+    const { path, language, content, runButtonId, cueButtonId } =
+      this.el.dataset;
+    const run_button = this.el.querySelector("#" + this.el.dataset.runButtonId);
+    const cue_button = this.el.querySelector("#" + this.el.dataset.cueButtonId);
     const container = this.el.querySelector("[monaco-code-editor]");
-    const { path, language, content } = this.el.dataset;
 
     this.editor = monaco.editor.create(container, {
       theme: "vs-dark",
@@ -21,9 +23,18 @@ const BleepEditor = {
       },
     });
 
-    btn.addEventListener("click", (e) => {
+    run_button.addEventListener("click", (e) => {
       window.bleep.idempotentInit();
       this.pushEvent("eval-code", {
+        value: this.editor.getValue(),
+        path: path,
+      });
+      console.log(this.editor.getValue());
+    });
+
+    cue_button.addEventListener("click", (e) => {
+      window.bleep.idempotentInit();
+      this.pushEvent("cue-code", {
         value: this.editor.getValue(),
         path: path,
       });

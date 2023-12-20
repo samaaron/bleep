@@ -207,7 +207,8 @@ defmodule BleepWeb.MainLive do
   end
 
   def render_frag(%{kind: :editor} = assigns) do
-    assigns = assign(assigns, :button_id, "button-#{assigns[:uuid]}")
+    assigns = assign(assigns, :run_button_id, "run-button-#{assigns[:uuid]}")
+    assigns = assign(assigns, :cue_button_id, "cue-button-#{assigns[:uuid]}")
     assigns = assign(assigns, :monaco_path, "#{assigns[:uuid]}.lua")
     assigns = assign(assigns, :monaco_id, "monaco-#{assigns[:uuid]}")
 
@@ -221,10 +222,18 @@ defmodule BleepWeb.MainLive do
       data-content={@content}
       data-monaco-id={@monaco_id}
       data-path={@monaco_path}
+      data-run-button-id={@run_button_id}
+      data-cue-button-id={@cue_button_id}
     >
       <button
         class="px-2 py-1 font-bold text-white bg-blue-500 rounded hover:bg-pink-600"
-        id={@button_id}
+        id={@cue_button_id}
+      >
+        Cue
+      </button>
+      <button
+        class="px-2 py-1 font-bold text-white bg-blue-500 rounded hover:bg-pink-600"
+        id={@run_button_id}
       >
         Run
       </button>
@@ -302,9 +311,6 @@ defmodule BleepWeb.MainLive do
     opts = lua_table_to_map(opts_table)
     {[synth | _rest], _lua} = :luerl.do(<<"return bleep_current_synth">>, lua)
 
-    {[fx_id | _rest], _lua} =
-      :luerl.do(<<"return bleep_current_fx_stack[#bleep_current_fx_stack]">>, lua)
-
     BleepWeb.Endpoint.broadcast(
       "room:bleep-audio",
       "msg",
@@ -336,9 +342,23 @@ defmodule BleepWeb.MainLive do
   end
 
   @impl true
-  def handle_event("eval-code", %{"value" => value}, socket) do
-    lua = :luerl_sandbox.init()
+  def handle_event("cue-code", %{"value" => code}, socket) do
+    start_time_ms = :erlang.system_time(:milli_seconds)
+    bar_duration_ms = 4 * 1000
+    offset_ms = bar_duration_ms - rem(start_time_ms, bar_duration_ms)
+    start_time = (start_time_ms + offset_ms) / 1000.0
+    eval_code(start_time, code, socket)
+  end
+
+  @impl true
+  def handle_event("eval-code", %{"value" => code}, socket) do
     start_time = :erlang.system_time(:milli_seconds) / 1000.0
+    eval_code(start_time, code, socket)
+  end
+
+  def eval_code(start_time, code, socket) do
+    lua = :luerl_sandbox.init()
+
     {_, lua} = :luerl.do(<<"bleep_start_time = #{start_time}">>, lua)
     {_, lua} = :luerl.do(<<"bleep_global_time = 0">>, lua)
     {_, lua} = :luerl.do(<<"bleep_current_synth = \"fmbell\"">>, lua)
@@ -447,7 +467,7 @@ end
 
     res_or_exception =
       try do
-        :luerl_new.do_dec(value, lua)
+        :luerl_new.do_dec(code, lua)
       rescue
         e ->
           {:exception, e, __STACKTRACE__}
