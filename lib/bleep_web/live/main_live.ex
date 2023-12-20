@@ -351,7 +351,7 @@ defmodule BleepWeb.MainLive do
 end
 
 function push_fx(fx_id, opts_table)
-  opts_table = opts_table or {}
+  local opts_table = opts_table or {}
   local uuid = uuid()
   bleep_core_start_fx(uuid, fx_id, opts_table)
   table.insert(bleep_current_fx_stack, uuid)
@@ -371,16 +371,16 @@ function use_synth(s)
 end
 
 function shuffle(x)
-shuffled = {}
-for i, v in ipairs(x) do
-	local pos = math.random(1, #shuffled+1)
-	table.insert(shuffled, pos, v)
-end
-return shuffled
+  local shuffled = {}
+  for i, v in ipairs(x) do
+	  local pos = math.random(1, #shuffled+1)
+	  table.insert(shuffled, pos, v)
+  end
+  return shuffled
 end
 
 function pick(x)
-return shuffle(x)[1]
+  return shuffle(x)[1]
 end
 ">>,
         lua
