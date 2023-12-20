@@ -215,7 +215,7 @@ defmodule BleepWeb.MainLive do
     ~H"""
     <div
       id={@uuid}
-      class="flex w-100 h-60"
+      class="flex-col w-100 h-60"
       phx-hook="BleepEditor"
       phx-update="ignore"
       data-language="lua"
