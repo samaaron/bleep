@@ -5,7 +5,7 @@ import Grammar from "./grammar";
 import { DefaultFX } from "./effects";
 import { StereoDelay } from "./delay";
 import { RolandChorus } from "./chorus";
-import { SimplePhaser } from "./phaser";
+import { DeepPhaser, ThickPhaser, PicoPebble } from "./phaser";
 import { Reverb } from "./reverb";
 import Utility from "./utility";
 
@@ -98,9 +98,14 @@ export default class BleepAudioCore {
       //     wetLevel: 0.5
       //   }, this.#audio_context.currentTime+3);
         break;
-      case "phaser":
-        fx = new SimplePhaser(this.#audio_context, this.#monitor);
-        console.log(fx);
+      case "deep_phaser":
+        fx = new DeepPhaser(this.#audio_context, this.#monitor);
+        break;
+      case "thick_phaser":
+        fx = new ThickPhaser(this.#audio_context, this.#monitor);
+        break;
+      case "pico_pebble":
+        fx = new PicoPebble(this.#audio_context, this.#monitor);
         break;
       case "reverb":
         fx = new Reverb(this.#audio_context, this.#monitor);

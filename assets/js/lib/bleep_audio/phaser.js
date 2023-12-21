@@ -5,7 +5,7 @@ import { BleepEffect } from "./effects";
  * Prototype structure for phaser and flanger
  * This is abstract - not exported
  */
-class PhaserFlangerPrototype extends BleepEffect {
+class PhaserPrototype extends BleepEffect {
 
     _leftChannel
     _rightChannel
@@ -198,21 +198,21 @@ class PhaserChannel {
 
 }
 
-// THESE GET EXPORTED
-//constructor(ctx, monitor, phase, depth, rate, spread, feedback, highCutoff, leftFreq, rightFreq, leftQ, rightQ) {
-
-
-export class SimplePhaser extends PhaserFlangerPrototype {
+export class DeepPhaser extends PhaserPrototype {
     constructor(ctx, monitor) {
-        super(ctx, monitor, 0.02, 0.8, 0.3, 0.99, 0.2, 276, "triangle", [613,3733], [620,3730], [0.7,0.9], [0.7,0.9]);
+        super(ctx, monitor, 0.02, 0.8, 0.3, 0.99, 0.4, 120, "triangle", [625,600,1200,1250,3200,3210], [615,620,1210,1220,3215,3205], [0.4,0.4,0.5,0.5,0.6,0.6], [0.4,0.4,0.5,0.5,0.6,0.6]);
     }
 }
 
-/*
-SMALL STONE LOW
-export class SimplePhaser extends PhaserFlangerPrototype {
+export class ThickPhaser extends PhaserPrototype {
     constructor(ctx, monitor) {
-        super(ctx, monitor, 0.05, 0.75, 0.3, 0.99, 0.4, 236, "triangle", [420,2530], [423,2538], [0.9,0.9], [ 0.9, 0.9]);
+        super(ctx, monitor, 0.05, 0.8, 0.3, 0.99, 0.4, 220, "triangle", [625,3200], [615,3200], [0.43,0.75], [0.45,0.74]);
     }
 }
-*/
+
+export class PicoPebble extends PhaserPrototype {
+    constructor(ctx, monitor) {
+        super(ctx, monitor, 0.01, 0.93, 0.2, 0.99, 0.2, 264, "triangle", [3215], [3225], [0.75], [0.75]);
+    }
+}
+
