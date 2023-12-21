@@ -2,7 +2,11 @@ import Monitor from "./monitor";
 import Generator from "./generator";
 import Player from "./player";
 import Grammar from "./grammar";
-import { Reverb, RolandChorus, StereoDelay, DefaultFX } from "./effects";
+import { DefaultFX } from "./effects";
+import { StereoDelay } from "./delay";
+import { RolandChorus } from "./chorus";
+import { SimplePhaser } from "./phaser";
+import { Reverb } from "./reverb";
 import Utility from "./utility";
 
 export default class BleepAudioCore {
@@ -92,6 +96,10 @@ export default class BleepAudioCore {
       //     spread:0.9,
       //     wetLevel: 0.5
       //   }, this.#audio_context.currentTime+3);
+        break;
+      case "phaser":
+        fx = new SimplePhaser(this.#audio_context, this.#monitor);
+        console.log(fx);
         break;
       case "reverb":
         fx = new Reverb(this.#audio_context, this.#monitor);
