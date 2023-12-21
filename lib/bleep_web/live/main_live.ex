@@ -152,11 +152,12 @@ defmodule BleepWeb.MainLive do
         lang: :lua,
         content: """
         -- EFFECTS TESTBED
-        use_synth("ninth")
+        use_synth("supersaw")
         push_fx("reverb")
         push_fx("phaser",{wetLevel=1,dryLevel=0})
         for i=1,10 do
-        play(60,{cutoff=8000})
+        play(50,{cutoff=8000})
+        play(57,{cutoff=8000})
         sleep(0.5)
         end
         """

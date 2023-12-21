@@ -12,7 +12,7 @@ class PhaserFlangerPrototype extends BleepEffect {
     _leftPan
     _rightPan
 
-    constructor(ctx, monitor, phase, depth, rate, spread, feedback, highCutoff, leftFreq, rightFreq, leftQ, rightQ) {
+    constructor(ctx, monitor, phase, depth, rate, spread, feedback, highCutoff, lfoType, leftFreq, rightFreq, leftQ, rightQ) {
         super(ctx, monitor);
         this._leftPan = new StereoPannerNode(ctx, {
             pan: -spread
@@ -21,12 +21,12 @@ class PhaserFlangerPrototype extends BleepEffect {
             pan: spread
         });
         // left channel
-        this._leftChannel = new PhaserChannel(ctx, rate*(1-phase), depth, feedback, highCutoff, leftFreq, leftQ);
+        this._leftChannel = new PhaserChannel(ctx, rate*(1-phase), depth, feedback, lfoType, highCutoff, leftFreq, leftQ);
         this._wetGain.connect(this._leftChannel.in);
         this._leftChannel.out.connect(this._leftPan);
         this._leftPan.connect(this._out);
         // right channel
-        this._rightChannel = new PhaserChannel(ctx, rate*(1+phase), depth, feedback, highCutoff, rightFreq, rightQ);
+        this._rightChannel = new PhaserChannel(ctx, rate*(1+phase), depth, feedback, lfoType, highCutoff, rightFreq, rightQ);
         this._wetGain.connect(this._rightChannel.in);
         this._rightChannel.out.connect(this._rightPan);
         this._rightPan.connect(this._out);
@@ -90,7 +90,7 @@ class PhaserChannel {
     _out
     _highpass
 
-    constructor(ctx, rate, depth, feedback, highCutoff, freqList, qList) {
+    constructor(ctx, rate, depth, feedback, lfoType, highCutoff, freqList, qList) {
         this._context = ctx;
         this._freqList = freqList;
         this._qList = qList;
@@ -103,7 +103,7 @@ class PhaserChannel {
         });
         // lfo
         this._lfo = new OscillatorNode(ctx, {
-            type: "sine",
+            type: lfoType,
             frequency: rate
         });
         // feedback
@@ -150,7 +150,7 @@ class PhaserChannel {
         }
         // feedback loop
         this._notch[this._numStages - 1].connect(this._feedback);
-        this._feedback.connect(this._notch[0]);
+        this._feedback.connect(this._highpass);
         // dry path
         this._in.connect(this._dryGain);
         this._dryGain.connect(this._out);
@@ -199,10 +199,12 @@ class PhaserChannel {
 }
 
 // THESE GET EXPORTED
+//constructor(ctx, monitor, phase, depth, rate, spread, feedback, highCutoff, leftFreq, rightFreq, leftQ, rightQ) {
+
 
 export class SimplePhaser extends PhaserFlangerPrototype {
     constructor(ctx, monitor) {
-        super(ctx, monitor, 0.05, 0.8, 0.3, 0.99, 0.4, 260, [613,3733], [620,3730], [0.8,0.9], [ 0.8,0.9]);
+        super(ctx, monitor, 0.02, 0.8, 0.3, 0.99, 0.2, 276, "triangle", [613,3733], [620,3730], [0.7,0.9], [0.7,0.9]);
     }
 }
 
@@ -210,7 +212,7 @@ export class SimplePhaser extends PhaserFlangerPrototype {
 SMALL STONE LOW
 export class SimplePhaser extends PhaserFlangerPrototype {
     constructor(ctx, monitor) {
-        super(ctx, monitor, 0.05, 0.75, 0.3, 0.99, 0.4, 220, [420,2530], [423,2538], [0.9,0.9], [ 0.9, 0.9]);
+        super(ctx, monitor, 0.05, 0.75, 0.3, 0.99, 0.4, 236, "triangle", [420,2530], [423,2538], [0.9,0.9], [ 0.9, 0.9]);
     }
 }
 */
