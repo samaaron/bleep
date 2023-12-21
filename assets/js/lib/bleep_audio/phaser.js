@@ -11,22 +11,40 @@ class PhaserPrototype extends BleepEffect {
     _rightChannel
     _leftPan
     _rightPan
+    _phase
 
-    constructor(ctx, monitor, phase, depth, rate, spread, feedback, highCutoff, lfoType, leftFreq, rightFreq, leftQ, rightQ) {
+    constructor(ctx, monitor, config) {
         super(ctx, monitor);
+        this._phase = config.phase;
         this._leftPan = new StereoPannerNode(ctx, {
-            pan: -spread
+            pan: -config.spread
         });
         this._rightPan = new StereoPannerNode(ctx, {
-            pan: spread
+            pan: config.spread
         });
         // left channel
-        this._leftChannel = new PhaserChannel(ctx, rate*(1-phase), depth, feedback, lfoType, highCutoff, leftFreq, leftQ);
+        this._leftChannel = new PhaserChannel(ctx, {
+            rate: config.rate * (1 - config.phase),
+            depth: config.depth,
+            feedback: config.feedback,
+            lfoType: config.lfoType,
+            highCutoff: config.highCutoff,
+            freqList: config.leftFreq,
+            qList: config.leftQ
+        });
         this._wetGain.connect(this._leftChannel.in);
         this._leftChannel.out.connect(this._leftPan);
         this._leftPan.connect(this._out);
         // right channel
-        this._rightChannel = new PhaserChannel(ctx, rate*(1+phase), depth, feedback, lfoType, highCutoff, rightFreq, rightQ);
+        this._rightChannel = new PhaserChannel(ctx, {
+            rate: config.rate * (1 + config.phase),
+            depth: config.depth,
+            feedback: config.feedback,
+            lfoType: config.lfoType,
+            highCutoff: config.highCutoff,
+            freqList: config.rightFreq,
+            qList: config.rightQ
+        });
         this._wetGain.connect(this._rightChannel.in);
         this._rightChannel.out.connect(this._rightPan);
         this._rightPan.connect(this._out);
@@ -34,7 +52,21 @@ class PhaserPrototype extends BleepEffect {
 
     setParams(params, when) {
         super.setParams(params, when);
-        // TODO COMPLETE THIS
+        if (typeof params.spread !== "undefined") {
+            this.setSpread(params.spread, when);
+        }
+        if (typeof params.feedback !== "undefined") {
+            this.setFeedback(params.feedback, when);
+        }
+        if (typeof params.depth !== "undefined") {
+            this.setDepth(params.depth, when);
+        }
+        if (typeof params.rate !== "undefined") {
+            this.setRate(params.rate, when);
+        }
+        if (typeof params.resonance !== "undefined") {
+            this.setResonance(params.resonance, when);
+        }
     }
 
     setSpread(s, when) {
@@ -52,8 +84,13 @@ class PhaserPrototype extends BleepEffect {
         this._rightChannel.setDepth(d, when);
     }
     setRate(r, when) {
-        this._leftChannel.setRate(r*(1-this._RATE_TWEAK), when);
-        this._rightChannel.setRate(r*(1+this._RATE_TWEAK), when);
+        this._leftChannel.setRate(r * (1 - this._phase), when);
+        this._rightChannel.setRate(r * (1 + this._phase), when);
+    }
+
+    setResonance(q, when) {
+        this._leftChannel.setResonance(q, when);
+        this._rightChannel.setResonance(q, when);
     }
 
     stop() {
@@ -90,25 +127,25 @@ class PhaserChannel {
     _out
     _highpass
 
-    constructor(ctx, rate, depth, feedback, lfoType, highCutoff, freqList, qList) {
+    constructor(ctx, config) {
         this._context = ctx;
-        this._freqList = freqList;
-        this._qList = qList;
+        this._freqList = config.freqList;
+        this._qList = config.qList;
         this._numStages = this._freqList.length;
         // highpass
         this._highpass = new BiquadFilterNode(ctx, {
             type: "highpass",
-            frequency: highCutoff,
-            Q : 1
+            frequency: config.highCutoff,
+            Q: 1
         });
         // lfo
         this._lfo = new OscillatorNode(ctx, {
-            type: lfoType,
-            frequency: rate
+            type: config.lfoType,
+            frequency: config.rate
         });
         // feedback
         this._feedback = new GainNode(ctx, {
-            gain: feedback
+            gain: config.feedback
         });
         // wet and dry paths
         this._wetGain = new GainNode(ctx, {
@@ -135,7 +172,7 @@ class PhaserChannel {
             this._notch.push(n);
             // lfo gains
             const g = new GainNode(ctx, {
-                gain: this._freqList[i] * depth
+                gain: this._freqList[i] * config.depth
             });
             this._lfogain.push(g);
         }
@@ -175,7 +212,7 @@ class PhaserChannel {
 
     setDepth(d, when) {
         for (let i = 0; i < this._numStages; i++) {
-            this._lfogain.gain.setValueAtTime(this._freqList[i] * d, when);
+            this._lfogain[i].gain.setValueAtTime(this._freqList[i] * d, when);
         }
     }
 
@@ -185,7 +222,26 @@ class PhaserChannel {
 
     stop() {
         this._lfo.stop();
-        // TODO CLEAN UP
+        for (let i = 0; i < this._numStages; i++) {
+            this._notch[i].disconnect();
+            this._notch[i] = null;
+            this._lfogain[i].disconnect();
+            this._lfogain[i] = null;
+        }
+        this._freqList = null;
+        this._qList = null;
+        this._lfo.disconnect();
+        this._lfo = null;
+        this._wetGain.disconnect();
+        this._wetGain = null;
+        this._dryGain.disconnect();
+        this._dryGain = null;
+        this._in.disconnect();
+        this._in = null;
+        this._out.disconnect();
+        this._out = null;
+        this._highpass.disconnect();
+        this._highpass = null;
     }
 
     get in() {
@@ -200,19 +256,55 @@ class PhaserChannel {
 
 export class DeepPhaser extends PhaserPrototype {
     constructor(ctx, monitor) {
-        super(ctx, monitor, 0.02, 0.8, 0.3, 0.99, 0.4, 120, "triangle", [625,600,1200,1250,3200,3210], [615,620,1210,1220,3215,3205], [0.4,0.4,0.5,0.5,0.6,0.6], [0.4,0.4,0.5,0.5,0.6,0.6]);
+        super(ctx, monitor, {
+            phase: 0.02,
+            depth: 0.8,
+            rate: 0.3,
+            spread: 0.99,
+            feedback: 0.4,
+            highCutoff: 120,
+            lfoType: "triangle",
+            leftFreq: [625, 600, 1200, 1250, 3200, 3210],
+            rightFreq: [615, 620, 1210, 1220, 3215, 3205],
+            leftQ: [0.4, 0.4, 0.5, 0.5, 0.6, 0.6],
+            rightQ: [0.4, 0.4, 0.5, 0.5, 0.6, 0.6]
+        });
     }
 }
 
 export class ThickPhaser extends PhaserPrototype {
     constructor(ctx, monitor) {
-        super(ctx, monitor, 0.05, 0.8, 0.3, 0.99, 0.4, 220, "triangle", [625,3200], [615,3200], [0.43,0.75], [0.45,0.74]);
+        super(ctx, monitor, {
+            phase: 0.05,
+            depth: 0.8,
+            rate: 0.3,
+            spread: 0.99,
+            feedback: 0.4,
+            highCutoff: 220,
+            lfoType: "triangle",
+            leftFreq: [625, 3200],
+            rightFreq: [615, 3200],
+            leftQ: [0.43, 0.75],
+            rightQ: [0.45, 0.74]
+        });
     }
 }
 
 export class PicoPebble extends PhaserPrototype {
     constructor(ctx, monitor) {
-        super(ctx, monitor, 0.01, 0.93, 0.2, 0.99, 0.2, 264, "triangle", [3215], [3225], [0.75], [0.75]);
+        super(ctx, monitor, {
+            phase: 0.01,
+            depth: 0.93,
+            rate: 0.2,
+            spread: 0.99,
+            feedback: 0.2,
+            highCutoff: 264,
+            lfoType: "triangle",
+            leftFreq: [3215],
+            rightFreq: [3225],
+            leftQ: [0.75],
+            rightQ: [0.75]
+        });
     }
 }
 
