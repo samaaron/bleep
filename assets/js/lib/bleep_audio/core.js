@@ -39,6 +39,7 @@ export default class BleepAudioCore {
       "/bleep_audio/synthdefs/funkybass.txt",
       "/bleep_audio/synthdefs/hammond.txt",
       "/bleep_audio/synthdefs/ninth.txt",
+      "/bleep_audio/synthdefs/noise.txt",
       "/bleep_audio/synthdefs/pantest.txt",
       "/bleep_audio/synthdefs/randomblips.txt",
       "/bleep_audio/synthdefs/rolandtb.txt",
