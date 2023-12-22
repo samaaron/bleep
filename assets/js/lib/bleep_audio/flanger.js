@@ -72,6 +72,12 @@ export class Flanger extends BleepEffect {
         this._lfo.start();
     }
 
+    /**
+     * Make a s-shaped saturating nonlinearity
+     * @param {number} k - controls the shape, 0 is linear and posititve values are increasingly sigmoidal
+     * @param {number} numSamples - number of elements in the lookup table
+     * @returns array of curve values
+     */
     #makeSaturatingCurve(k, numSamples) {
         const curve = new Float32Array(numSamples);
         for (let i = 0; i < numSamples; i++) {
@@ -81,21 +87,41 @@ export class Flanger extends BleepEffect {
         return curve;
     }
 
+    /**
+     * Set the amount of feedback, higher numbers give a more pronounced flanging effect
+     * @param {number} k - feedback in the range [0,1]
+     * @param {number} when - the time at which the change should occur
+     */
     setFeedback(k, when) {
         k = Utility.clamp(k, 0, 1);
         this._feedback.gain.setValueAtTime(-k, when);
     }
 
+    /**
+     * Set the depth, which is the maximum deviation from the delay in ms
+     * @param {number} d - depth in ms
+     * @param {number} when - the time at which the change should occur
+     */
     setDepth(d, when) {
         d = Utility.clamp(d, 0, 10) / 1000;
         this._modgain.gain.setValueAtTime(d, when);
     }
 
+    /**
+     * Set the delay of the flanger
+     * @param {number} d - delay in msec
+     * @param {number} when - the time at which the change should occur
+     */
     setDelay(d, when) {
         const delayMs = Utility.clamp(d, 0.1, 10) / 1000;
         this._delay.delayTime.setValueAtTime(delayMs, when);
     }
 
+    /**
+     * Set the rate of the flanging effet
+     * @param {number} r - rate in HZ
+     * @param {number} when - the time at which the change should occur
+     */
     setRate(r, when) {
         r = Utility.clamp(r, 0.01, 100);
         this._lfo.frequency.setValueAtTime(r, when);
@@ -131,10 +157,30 @@ export class Flanger extends BleepEffect {
         }
     }
 
+    /**
+     * Stops the flanger effect and cleans up resources.
+     */
     stop() {
         super.stop();
         this._lfo.stop();
-        // TODO CLEAN UP
+        this._lfo.disconnect();
+        this._lfo = null;
+        this._delay.disconnect();
+        this._delay = null;
+        this._direct.disconnect();
+        this._direct = null;
+        this._delayed.disconnect();
+        this._delayed = null;
+        this._mixin.disconnect();
+        this._mixin = null;
+        this._mixout.disconnect();
+        this._mixout = null;
+        this._feedback.disconnect();
+        this._feedback = null;
+        this._modgain.disconnect();
+        this._modgain = null;
+        this._saturator.disconnect();
+        this._saturator = null;
     }
 }
 
