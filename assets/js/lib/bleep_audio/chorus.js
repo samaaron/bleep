@@ -1,6 +1,7 @@
 import { VERBOSE } from "./constants";
 import Utility from "./utility";
 import { BleepEffect } from "./effects";
+import Monitor from "./monitor";
 
 // ----------------------------------------------------------------
 // RolandChorus - chorus unit based on Roland Juno circuit
@@ -14,20 +15,20 @@ export class RolandChorus extends BleepEffect {
   static DEFAULT_CHORUS_DEPTH = 0.1;
   static DEFAULT_DELAY_TIME = 0.0035;
 
-  _lfo;
-  _leftDelay;
-  _rightDelay;
-  _leftPan;
-  _rightPan;
-  _leftGain;
-  _rightGain;
-  _leftMix;
-  _rightMix;
+  _lfo
+  _leftDelay
+  _rightDelay
+  _leftPan
+  _rightPan
+  _leftGain
+  _rightGain
+  _leftMix
+  _rightMix
 
   /**
    * Creates an instance of RolandChorus.
-   * @param {AudioContext} ctx - The audio context for the chorus effect.
-   * @param {Monitor} monitor - The monitor object to track the chorus effect.
+   * @param {AudioContext} ctx - The audio context 
+   * @param {Monitor} monitor - The monitor object to track the chorus effect
    */
   constructor(ctx, monitor) {
     if (VERBOSE) console.log("Making a Chorus");

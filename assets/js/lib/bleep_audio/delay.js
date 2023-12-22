@@ -1,5 +1,6 @@
 import { VERBOSE } from "./constants";
 import { BleepEffect } from "./effects";
+import Monitor from "./monitor";
 
 // ----------------------------------------------------------------
 // StereoDelay

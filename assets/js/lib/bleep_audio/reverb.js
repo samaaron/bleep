@@ -1,5 +1,6 @@
 import { BleepEffect } from "./effects";
 import { VERBOSE } from "./constants";
+import Monitor from "./monitor";
 
 // ----------------------------------------------------------------
 // Reverb - convolutional reverb

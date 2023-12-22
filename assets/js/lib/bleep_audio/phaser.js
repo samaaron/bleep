@@ -1,9 +1,12 @@
 import { VERBOSE } from "./constants";
 import { BleepEffect } from "./effects";
+import Monitor from "./monitor";
 
 /**
- * Prototype structure for phaser and flanger
+ * ----------------------------------------------------------------
+ * Prototype structure for phaser 
  * This is abstract - not exported
+ * ----------------------------------------------------------------
  */
 class PhaserPrototype extends BleepEffect {
 
@@ -13,6 +16,12 @@ class PhaserPrototype extends BleepEffect {
     _rightPan
     _phase
 
+    /**
+     * Make a phaser prototype 
+     * @param {AudioContext} ctx - the audio context
+     * @param {Monitor} monitor - the monitor object to track this effect
+     * @param {object} config - configuration parameters
+     */
     constructor(ctx, monitor, config) {
         super(ctx, monitor);
         this._phase = config.phase;
@@ -50,6 +59,11 @@ class PhaserPrototype extends BleepEffect {
         this._rightPan.connect(this._out);
     }
 
+    /**
+     * set ths parameters for the effect
+     * @param {object} params - key value list of parameters
+     * @param {number} when - the time at which the change should occur
+     */
     setParams(params, when) {
         super.setParams(params, when);
         if (typeof params.spread !== "undefined") {
@@ -69,30 +83,68 @@ class PhaserPrototype extends BleepEffect {
         }
     }
 
+    /**
+     * Set the stereo spread 
+     * @param {number} s - stereo spread in the range [0,1]
+     * @param {number} when - the time at which the change should occur
+     */
     setSpread(s, when) {
         this._leftPan.pan.setValueAtTime(-s, when);
         this._rightPan.pan.setValueAtTime(s, when);
     }
 
+    /**
+     * Set the feedback in the phaser network
+     * @param {number} k - the feedback in the range [0,1]
+     * @param {number} when - the time at which the change should occur
+     */
     setFeedback(k, when) {
         this._leftChannel.setFeedback(k, when);
         this._rightChannel.setFeedback(k, when);
     }
 
+    /**
+     * Set the depth of the phaser effect
+     * @param {number} d - depth in the range [0,1]
+     * @param {number} when - the time at which the change should occur 
+     */
     setDepth(d, when) {
         this._leftChannel.setDepth(d, when);
         this._rightChannel.setDepth(d, when);
     }
+
+    /**
+     * Set the rate of the phaser
+     * @param {number} r - the rate of the phaser in Hz
+     * @param {number} when - the time at which the change should occur 
+     */
     setRate(r, when) {
         this._leftChannel.setRate(r * (1 - this._phase), when);
         this._rightChannel.setRate(r * (1 + this._phase), when);
     }
 
+    /**
+     * Set the resonance, numbers close to 1 give a stronger effect
+     * @param {number} q - the resonance of the allpass filters in the range [0,1]
+     * @param {number} when - the time at which the change should occur 
+     */
     setResonance(q, when) {
         this._leftChannel.setResonance(q, when);
         this._rightChannel.setResonance(q, when);
     }
 
+    /**
+     * Calculates the time it takes for the chorus effect to fade out.
+     * @returns {number} The estimated fade out time.
+     */
+    timeToFadeOut() {
+        // delay line is very short for a phaser, this will cover it
+        return 0.05;
+    }
+
+    /**
+     * Stops the phaser effect and cleans up resources.
+     */
     stop() {
         super.stop();
         this._leftChannel.stop();
@@ -109,8 +161,9 @@ class PhaserPrototype extends BleepEffect {
 
 }
 
-// single phaser channel
-
+/**
+ * A phaser network for a single audio channel
+ */
 class PhaserChannel {
 
     _context
@@ -127,6 +180,11 @@ class PhaserChannel {
     _out
     _highpass
 
+    /**
+     * Make a phaser channel
+     * @param {AudioContext} ctx - the audio context
+     * @param {object} config - configuration parameters
+     */
     constructor(ctx, config) {
         this._context = ctx;
         this._freqList = config.freqList;
@@ -200,26 +258,49 @@ class PhaserChannel {
         this._lfo.start();
     }
 
+    /**
+     * Set the rate of the phaser
+     * @param {number} r - the rate of the phaser in Hz
+     * @param {number} when - the time at which the change should occur 
+     */
     setRate(r, when) {
         this._lfo.frequency.setValueAtTime(r, when);
     }
 
+    /**
+     * Set the resonance, numbers close to 1 give a stronger effect
+     * @param {number} q - the resonance of the allpass filters in the range [0,1]
+     * @param {number} when - the time at which the change should occur 
+     */
     setResonance(q, when) {
         for (let i = 0; i < this._numStages; i++) {
             this._notch[i].Q.setValueAtTime(q, when);
         }
     }
 
+    /**
+     * Set the depth of the phaser effect
+     * @param {number} d - depth in the range [0,1]
+     * @param {number} when - the time at which the change should occur 
+     */
     setDepth(d, when) {
         for (let i = 0; i < this._numStages; i++) {
             this._lfogain[i].gain.setValueAtTime(this._freqList[i] * d, when);
         }
     }
 
+    /**
+     * Set the feedback in the phaser network
+     * @param {number} k - the feedback in the range [0,1]
+     * @param {number} when - the time at which the change should occur
+     */
     setFeedback(k, when) {
         this._feedback.gain.setValueAtTime(k, when);
     }
 
+    /**
+     * Stops the phaser effect and cleans up resources.
+     */
     stop() {
         this._lfo.stop();
         for (let i = 0; i < this._numStages; i++) {
@@ -244,16 +325,25 @@ class PhaserChannel {
         this._highpass = null;
     }
 
+    /**
+     * Get the input node
+     */
     get in() {
         return this._in;
     }
 
+    /**
+     * Get the output node
+     */
     get out() {
         return this._out;
     }
 
 }
 
+/**
+ * Nice deep phasing effect based on 6 stages with a fair amount of feedback
+ */
 export class DeepPhaser extends PhaserPrototype {
     constructor(ctx, monitor) {
         super(ctx, monitor, {
@@ -272,6 +362,11 @@ export class DeepPhaser extends PhaserPrototype {
     }
 }
 
+/**
+ * ----------------------------------------------------------------
+ * A thick phasing sound based on two stages plus feedback
+ * ----------------------------------------------------------------
+ */
 export class ThickPhaser extends PhaserPrototype {
     constructor(ctx, monitor) {
         super(ctx, monitor, {
@@ -290,6 +385,12 @@ export class ThickPhaser extends PhaserPrototype {
     }
 }
 
+/**
+ * ----------------------------------------------------------------
+ * A resonable approximation of the Electroharmonix Small Stone phaser
+ * Parameters suggested by the "kleinstein" patch in Reaktor
+ * ----------------------------------------------------------------
+ */
 export class PicoPebble extends PhaserPrototype {
     constructor(ctx, monitor) {
         super(ctx, monitor, {

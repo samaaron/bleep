@@ -8,6 +8,7 @@ import { RolandChorus } from "./chorus";
 import { DeepPhaser, ThickPhaser, PicoPebble } from "./phaser";
 import { Reverb } from "./reverb";
 import Utility from "./utility";
+import { Flanger } from "./flanger";
 
 export default class BleepAudioCore {
   #audio_context;
@@ -83,20 +84,9 @@ export default class BleepAudioCore {
     switch (fx_name) {
       case "stereo_delay":
         fx = new StereoDelay(this.#audio_context, this.#monitor);
-      //   // test
-      //   // set immediately to have dry signal only
-      //   fx.setParams({
-      //     wetLevel:0,
-      //     dryLevel:1
-      //   },this.#audio_context.currentTime);
-      //   // after 3 seconds set wet level to 0.5
-      //   fx.setParams({
-      //     leftDelay: 0.25,
-      //     rightDelay: 0.5,
-      //     feedback: 0.2,
-      //     spread:0.9,
-      //     wetLevel: 0.5
-      //   }, this.#audio_context.currentTime+3);
+        break;
+      case "flanger":
+        fx = new Flanger(this.#audio_context, this.#monitor);
         break;
       case "deep_phaser":
         fx = new DeepPhaser(this.#audio_context, this.#monitor);
@@ -125,7 +115,7 @@ export default class BleepAudioCore {
           depth: 0.8,
           spread: 0.95,
           wetLevel: 1,
-          dryLevel:0
+          dryLevel: 0
         }, this.#audio_context.currentTime);
         // // after 6 seconds turn the chorus fully on
         // fx.setParams({
@@ -156,7 +146,7 @@ export default class BleepAudioCore {
 
   controlFX(time, id, params) {
     const audio_context_sched_s = this.#clockTimeToAudioTime(time);
-        if (this.#running_fx.has(id)) {
+    if (this.#running_fx.has(id)) {
       const fx = this.#running_fx.get(id);
       fx.setParams(params, audio_context_sched_s);
     }
