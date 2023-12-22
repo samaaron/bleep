@@ -1,6 +1,6 @@
 import { BleepEffect } from "./effects";
-import { VERBOSE } from "./constants";
 import Monitor from "./monitor";
+import { DEBUG_EFFECTS } from "./flags";
 
 // ----------------------------------------------------------------
 // Reverb - convolutional reverb
@@ -18,7 +18,6 @@ export class Reverb extends BleepEffect {
    */
   constructor(ctx, monitor) {
     super(ctx, monitor);
-    if (VERBOSE) console.log("Making a Reverb");
     this._isValid = false;
     this._convolver = new ConvolverNode(ctx);
     // connect everything up
@@ -49,7 +48,7 @@ export class Reverb extends BleepEffect {
       return this._context.decodeAudioData(await reply.arrayBuffer());
     } catch (err) {
       this._isValid = false;
-      if (VERBOSE)
+      if (DEBUG_EFFECTS)
         console.log(
           "unable to load the impulse response file called " + filename
         );

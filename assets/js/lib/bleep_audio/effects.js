@@ -1,4 +1,5 @@
 import Monitor from "./monitor";
+import { DEBUG_EFFECTS } from "./flags";
 
 // Not sure why this is needed - haven't inluded in the inheritance hierarchy below
 
@@ -69,6 +70,9 @@ export class BleepEffect {
     this._in.connect(this._wetGain);
     this._in.connect(this._dryGain);
     this._dryGain.connect(this._out);
+    if (DEBUG_EFFECTS) {
+      console.log(`starting an effect: ${this.constructor.name}`);
+    }
   }
 
   /**
@@ -89,6 +93,9 @@ export class BleepEffect {
    * stop the effect and dispose of objects
    */
   stop() {
+    if (DEBUG_EFFECTS) {
+      console.log(`stopping an effect: ${this.constructor.name}`);
+    }
     this._monitor.release(this.constructor.name);
     this._context = null;
     this._monitor = null;

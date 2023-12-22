@@ -1,4 +1,3 @@
-import { VERBOSE } from "./constants";
 import Utility from "./utility";
 import { BleepEffect } from "./effects";
 import Monitor from "./monitor";
@@ -31,7 +30,6 @@ export class RolandChorus extends BleepEffect {
    * @param {Monitor} monitor - The monitor object to track the chorus effect
    */
   constructor(ctx, monitor) {
-    if (VERBOSE) console.log("Making a Chorus");
     super(ctx, monitor);
     this.#makeGains();
     this.#makeDelayLines();

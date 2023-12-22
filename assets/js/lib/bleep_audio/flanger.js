@@ -1,4 +1,3 @@
-import { VERBOSE } from "./constants";
 import { BleepEffect } from "./effects";
 import Monitor from "./monitor";
 import Utility from "./utility";
@@ -28,7 +27,6 @@ export class Flanger extends BleepEffect {
      * @param {Monitor} monitor - the monitor to track this effect
      */
     constructor(ctx, monitor) {
-        if (VERBOSE) console.log("Making a Flanger");
         super(ctx, monitor);
         this._lfo = new OscillatorNode(ctx, {
             type: "sine",

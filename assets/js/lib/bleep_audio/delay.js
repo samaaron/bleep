@@ -1,4 +1,3 @@
-import { VERBOSE } from "./constants";
 import { BleepEffect } from "./effects";
 import Monitor from "./monitor";
 
@@ -31,7 +30,6 @@ export class StereoDelay extends BleepEffect {
    */
   constructor(ctx, monitor) {
     super(ctx, monitor);
-    if (VERBOSE) console.log("Making a Delay");
     this.#makeDelayLines();
     this.#makeFeedbackPath();
     this.#makeConnections();
