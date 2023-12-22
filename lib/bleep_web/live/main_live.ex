@@ -151,11 +151,23 @@ defmodule BleepWeb.MainLive do
         kind: :editor,
         lang: :lua,
         content: """
-        -- EFFECTS TESTBED
-        use_synth("supersaw")
-        push_fx("flanger",{wetLevel=1,dryLevel=0})
-        play(50,{cutoff=1,duration=5})
-        play(57,{cutoff=1,duration=5})
+        -- EFFECTS DEMO
+        -- You must always demonstrate phasers with Jean Michel Jarre, it's the law
+        use_synth("sawlead")
+        push_fx("reverb",{wetLevel=0.4})
+        push_fx("stereo_delay",{wetLevel=0.4})
+        push_fx("pico_pebble",{wetLevel=1,dryLevel=0})
+        -- push_fx("deep_phaser",{wetLevel=1,dryLevel=0})
+        -- push_fx("thick_phaser",{wetLevel=1,dryLevel=0})
+        -- push_fx("flanger",{wetLevel=1,dryLevel=0,delay=2,depth=1.95,feedback=0.94,rate=0.2})
+        p = {62,67,69,70,74,70,69,62,67,69,70,69}
+        for i=1,4 do
+        play(43,{cutoff=0.2,duration=1})
+        for _, note in ipairs(p) do
+        play(note,{cutoff=2,duration=0.18})
+        sleep(0.2)
+        end
+        end
         """
       },
       %{
