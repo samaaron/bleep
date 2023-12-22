@@ -1,0 +1,31 @@
+@synth noise
+longname : random noise
+type : synth
+author : Guy J Brown
+version : 1.0
+doc : A random noise patch for testing
+@end
+
+# parameters
+
+@param volume
+type : float
+mutable: yes
+step : 0.01
+min : 0
+max : 1
+default : 0.7
+doc : volume
+@end
+
+# modules
+
+NOISE : noise
+VCA : vca
+
+# patch
+
+noise.out -> vca.in
+vca.out -> audio.in
+
+# end

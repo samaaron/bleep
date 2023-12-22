@@ -2,8 +2,14 @@ import Monitor from "./monitor";
 import Generator from "./generator";
 import Player from "./player";
 import Grammar from "./grammar";
-import { Reverb, RolandChorus, StereoDelay, DefaultFX } from "./effects";
+import { DefaultFX } from "./effects";
+import { MonoDelay, StereoDelay } from "./delay";
+import { RolandChorus } from "./chorus";
+import { DeepPhaser, ThickPhaser, PicoPebble } from "./phaser";
+import { Reverb } from "./reverb";
 import Utility from "./utility";
+import { Flanger } from "./flanger";
+import { AutoPan } from "./autopan";
 
 export default class BleepAudioCore {
   #audio_context;
@@ -35,6 +41,7 @@ export default class BleepAudioCore {
       "/bleep_audio/synthdefs/funkybass.txt",
       "/bleep_audio/synthdefs/hammond.txt",
       "/bleep_audio/synthdefs/ninth.txt",
+      "/bleep_audio/synthdefs/noise.txt",
       "/bleep_audio/synthdefs/pantest.txt",
       "/bleep_audio/synthdefs/randomblips.txt",
       "/bleep_audio/synthdefs/rolandtb.txt",
@@ -76,22 +83,26 @@ export default class BleepAudioCore {
     // I think we need to be able to trigger at a specific time not just 'now'
     // Obvs also need to change fx here..
     switch (fx_name) {
+      case "auto_pan":
+        fx = new AutoPan(this.#audio_context, this.#monitor);
+        break;
+      case "mono_delay":
+        fx = new MonoDelay(this.#audio_context, this.#monitor);
+        break;
       case "stereo_delay":
         fx = new StereoDelay(this.#audio_context, this.#monitor);
-      //   // test
-      //   // set immediately to have dry signal only
-      //   fx.setParams({
-      //     wetLevel:0,
-      //     dryLevel:1
-      //   },this.#audio_context.currentTime);
-      //   // after 3 seconds set wet level to 0.5
-      //   fx.setParams({
-      //     leftDelay: 0.25,
-      //     rightDelay: 0.5,
-      //     feedback: 0.2,
-      //     spread:0.9,
-      //     wetLevel: 0.5
-      //   }, this.#audio_context.currentTime+3);
+        break;
+      case "flanger":
+        fx = new Flanger(this.#audio_context, this.#monitor);
+        break;
+      case "deep_phaser":
+        fx = new DeepPhaser(this.#audio_context, this.#monitor);
+        break;
+      case "thick_phaser":
+        fx = new ThickPhaser(this.#audio_context, this.#monitor);
+        break;
+      case "pico_pebble":
+        fx = new PicoPebble(this.#audio_context, this.#monitor);
         break;
       case "reverb":
         fx = new Reverb(this.#audio_context, this.#monitor);
@@ -111,7 +122,7 @@ export default class BleepAudioCore {
           depth: 0.8,
           spread: 0.95,
           wetLevel: 1,
-          dryLevel:0
+          dryLevel: 0
         }, this.#audio_context.currentTime);
         // // after 6 seconds turn the chorus fully on
         // fx.setParams({
@@ -142,7 +153,7 @@ export default class BleepAudioCore {
 
   controlFX(time, id, params) {
     const audio_context_sched_s = this.#clockTimeToAudioTime(time);
-        if (this.#running_fx.has(id)) {
+    if (this.#running_fx.has(id)) {
       const fx = this.#running_fx.get(id);
       fx.setParams(params, audio_context_sched_s);
     }

@@ -38,3 +38,5 @@ bleep-*.tar
 npm-debug.log
 /assets/node_modules/
 
+# mac detritus
+.DS_Store
