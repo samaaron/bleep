@@ -151,16 +151,21 @@ defmodule BleepWeb.MainLive do
         kind: :editor,
         lang: :lua,
         content: """
-        -- EFFECTS DEMO
+        -- EFFECTS CHRISTMAS HAMPER!
         -- You must always demonstrate phasers with Jean Michel Jarre, it's the law
+        -- Ho Ho Ho
         use_synth("sawlead")
+        -- new feature! autopanning with variable stereo spread
+        push_fx("auto_pan",{wetLevel=0.5,dryLevel=0.5,rate=0.1,spread=0.9})
         push_fx("reverb",{wetLevel=0.4})
-        push_fx("stereo_delay",{wetLevel=0.4})
+        -- new feature! mono delay which can be panned left-right
+        push_fx("mono_delay",{wetLevel=0.3,delay=0.4,pan=0.9})
+        -- various phasers and flangers to try
         push_fx("pico_pebble",{wetLevel=1,dryLevel=0})
         -- push_fx("deep_phaser",{wetLevel=1,dryLevel=0})
         -- push_fx("thick_phaser",{wetLevel=1,dryLevel=0})
         -- push_fx("flanger",{wetLevel=1,dryLevel=0,delay=2,depth=1.95,feedback=0.94,rate=0.2})
-        p = {62,67,69,70,74,70,69,62,67,69,70,69}
+        p = {62,67,69,70,74,70,69,62,67,69,70,69,67,69,67,62,67,55}
         for i=1,4 do
         play(43,{cutoff=0.2,duration=1})
         for _, note in ipairs(p) do

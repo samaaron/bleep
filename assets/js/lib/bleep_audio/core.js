@@ -3,12 +3,13 @@ import Generator from "./generator";
 import Player from "./player";
 import Grammar from "./grammar";
 import { DefaultFX } from "./effects";
-import { StereoDelay } from "./delay";
+import { MonoDelay, StereoDelay } from "./delay";
 import { RolandChorus } from "./chorus";
 import { DeepPhaser, ThickPhaser, PicoPebble } from "./phaser";
 import { Reverb } from "./reverb";
 import Utility from "./utility";
 import { Flanger } from "./flanger";
+import { AutoPan } from "./autopan";
 
 export default class BleepAudioCore {
   #audio_context;
@@ -82,6 +83,12 @@ export default class BleepAudioCore {
     // I think we need to be able to trigger at a specific time not just 'now'
     // Obvs also need to change fx here..
     switch (fx_name) {
+      case "auto_pan":
+        fx = new AutoPan(this.#audio_context, this.#monitor);
+        break;
+      case "mono_delay":
+        fx = new MonoDelay(this.#audio_context, this.#monitor);
+        break;
       case "stereo_delay":
         fx = new StereoDelay(this.#audio_context, this.#monitor);
         break;
