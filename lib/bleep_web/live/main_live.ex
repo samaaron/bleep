@@ -151,8 +151,7 @@ defmodule BleepWeb.MainLive do
         kind: :editor,
         lang: :lua,
         content: """
-        -- EFFECTS CHRISTMAS HAMPER!
-        -- You must always demonstrate phasers with Jean Michel Jarre, it's the law
+        -- CHRISTMAS EFFECTS HAMPER!
         -- Ho Ho Ho
         use_synth("sawlead")
         -- new feature! autopanning with variable stereo spread
@@ -165,6 +164,7 @@ defmodule BleepWeb.MainLive do
         -- push_fx("deep_phaser",{wetLevel=1,dryLevel=0})
         -- push_fx("thick_phaser",{wetLevel=1,dryLevel=0})
         -- push_fx("flanger",{wetLevel=1,dryLevel=0,delay=2,depth=1.95,feedback=0.94,rate=0.2})
+        -- You must always demonstrate phasers with Jean Michel Jarre, it's the law
         p = {62,67,69,70,74,70,69,62,67,69,70,69,67,69,67,62,67,55}
         for i=1,4 do
         play(43,{cutoff=0.2,duration=1})
