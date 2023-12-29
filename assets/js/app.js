@@ -44,6 +44,9 @@ let liveSocket = new LiveSocket("/live", Socket, {
   params: { _csrf_token: csrfToken },
 });
 
+const bleep_init_button = document.getElementById("bleep-init-button");
+const bleep_init_modal = document.getElementById("bleep-init-modal");
+
 // Show progress bar on live navigation and form submits
 topbar.config({ barColors: { 0: "#29d" }, shadowColor: "rgba(0, 0, 0, .3)" });
 window.addEventListener("phx:page-loading-start", (_info) => topbar.show(300));
@@ -72,3 +75,26 @@ window.addEventListener(`phx:bleep-audio`, (e) => {
     console.log(ex);
   }
 });
+
+function bleep_modal_clicked() {
+  document.removeEventListener("keydown", bleep_modal_clicked);
+  bleep.idempotentInit();
+  bleep_init_modal.style.display = "none";
+}
+
+bleep_init_button.addEventListener("click", (e) => {
+  bleep_modal_clicked();
+});
+bleep_init_modal.addEventListener("click", (e) => {
+  bleep_modal_clicked();
+});
+
+document.addEventListener("keydown", function (event) {
+  if (event.key === "Enter" || event.code === "Enter") {
+    // Your code to handle the Enter key press goes here
+    bleep_modal_clicked();
+    console.log("Enter key pressed");
+  }
+});
+
+

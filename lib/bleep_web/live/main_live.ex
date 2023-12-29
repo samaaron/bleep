@@ -256,6 +256,36 @@ defmodule BleepWeb.MainLive do
   @impl true
   def render(assigns) do
     ~H"""
+    <div id="bleep-init-modal" class="fixed top-0 left-0 z-50 w-full h-full">
+      <div class="flex flex-col justify-center p-4 text-left text-white bg-gray-800 ">
+        <div class="flex flex-col pb-2 bg-gray-700">
+          <%!-- <img src={~p"/images/bleep_logo.png"} width="150" /> --%>
+          <div></div>
+          <div></div>
+        </div>
+
+        <div class="p-1 text-center bg-gray-700">
+          <p class="text-2xl font-bold">Welcome to Bleep</p>
+          <p>Code your future....</p>
+          <button
+            id="bleep-init-button"
+            class="p-3 px-10 m-3 text-white bg-orange-700 rounded-lg modal-close hover:bg-indigo-400"
+          >
+            Start
+          </button>
+        </div>
+        <div class="flex flex-row justify-center bg-gray-700">
+          <div>
+            <p class="p-5 text-xs">Created by <br /> Sam Aaron &#38; Guy Brown</p>
+          </div>
+          <div class="flex-grow"></div>
+          <div class="flex justify-right">
+            <img src={~p"/images/UOSLogo_Primary_White_RGB.svg"} width="150" class="p-5" />
+          </div>
+        </div>
+      </div>
+    </div>
+
     <%= for frag <- @data do %>
       <div class="p-2 ">
         <.render_frag {frag} />
