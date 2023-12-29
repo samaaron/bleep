@@ -14,8 +14,18 @@ defmodule BleepWeb.MainLive do
         uuid: "84325588-5b8e-11ee-a06c-d2957a874c38",
         kind: :markdown,
         content: """
-        ## Introduction
-        This is bleep. You code - it bleeps.
+        ### Patterns
+        Two functions for playing patterns:
+
+        **pattern(s)** takes a string **s** in x-xx form. Each time you call **next()**, true is returned
+        if the current step in the pattern is an x and false otherwise, and the pattern moves to the next
+        step. Spaces in the pattern are ignored (so you can group into fours or bars etc). Patterns are rings; 
+        when the end of the pattern is reached the current step returns to the start. 
+        You can force a return to the first step by calling **reset()**.
+
+        **euclidean(h,n,p)** makes a euclidean pattern given the number of hits **h**, length of the sequence **n** and (optionally) 
+        the phase **p**. A phase of p right-shifts the pattern to the right by p steps. As above, use the **next()** method to 
+        step through the pattern. You can also call **reset()** to restart the pattern.
         """
       },
       %{
@@ -23,94 +33,26 @@ defmodule BleepWeb.MainLive do
         kind: :editor,
         lang: :lua,
         content: """
-
-        -- this is the neatest way of playing patterns I can come up with
-        -- we need an approach that works for samples and for synths
-        -- here we pass a funtion name and argument:
-        -- (sample, samplename) to play a sample or
-        -- (play, notenumer) to play a synth
-
-        function pattern(seq,interval,funcName,funcArg)
-          for i=1, #seq do
-            local char = seq:sub(i,i)
-            if char=="x" then
-              funcName(funcArg)
-              sleep(interval)
-            elseif char >="1" and char <="9" then
-              local prob = tonumber(char)*10
-              if math.random(100) <= prob then
-                funcName(funcArg)
-              end
-              sleep(interval)
-            elseif char== "-" then
-              sleep(interval)
+        sd = pattern("---- x--- ---- x---")
+        hh = euclidean(9,16)
+        bd = pattern("x--- --x- x--- ----")
+        for k=1,4 do
+          for i=1,16 do
+            if (sd:next()) then
+              sample("bishi_snare")
+            end
+            if (bd:next()) then
+              sample("drum_bass_hard")
+            end
+            if (hh:next()) then
+              sample("hat_bdu")
+            end
+            sleep(0.125)
+            if (math.random()<0.2) then
+              hh:reset()
             end
           end
         end
-
-        -- ooh we can make euclidean patterns too!
-        -- hits is the number of hits in the pattern
-        -- steps is the length of the pattern
-        -- phase is an optional parameter that offsets the pattern start
-
-        function euclidean(hits,steps,phase)
-          phase = phase or 0
-          local pattern = {}
-          local slope = hits/steps
-          local previous = -1
-          for i=0,steps-1 do
-            current = math.floor(i*slope)
-            pattern[1+(i+phase)%steps] = current~=previous and "x" or "-"
-            previous = current
-          end
-          -- concatenate the table into a string
-          return table.concat(pattern)
-        end
-
-        -- play a pattern from snare samples
-
-        pattern("xx-- x-xx -x-x --xx",0.25,sample,"bishi_snare")
-
-        sleep(1)
-
-        -- we can use integers 1-9 to represent probability of a note
-        -- 1 = 10%, 2 = 20% and so on
-
-        for i=1,5 do
-          pattern("x5-- x1-- x5-- x1--",0.125,sample,"bishi_bass_drum")
-        end
-
-        sleep(1)
-
-        -- play a pattern of synth notes
-
-        use_synth("fmbell")
-        pattern("xx-- x-xx -x-x --xx",0.25,play,84)
-
-        -- make a euclidean pattern
-
-        sleep(1)
-
-        p = euclidean(5,16)
-        pattern(p,0.25,sample,"hat_gnu")
-
-        sleep(1)
-
-        p = euclidean(11,16)
-        pattern(p,0.25,sample,"hat_gnu")
-
-        sleep(1)
-
-        p = euclidean(16,16)
-        pattern(p,0.25,sample,"hat_gnu")
-
-        sleep(1)
-
-        -- optional phase parameter, in this case right shift by 3 places
-
-        p = euclidean(5,16,3)
-        pattern(p,0.25,sample,"hat_gnu")
-
         """
       },
       # %{
@@ -118,32 +60,40 @@ defmodule BleepWeb.MainLive do
       #   kind: :video,
       #   src: "movies/bishi_movie.mov"
       # },
-      %{
-        uuid: "9869face-5b8e-11ee-bd22-d2957a874c38",
-        kind: :mermaid,
+      #%{
+      #  uuid: "9869face-5b8e-11ee-bd22-d2957a874c38",
+      #  kind: :mermaid,
+      #  content: """
+      #  flowchart LR
+      #  oscillator["`**oscillator**
+      #  +pitch
+      #  +tune
+      #  +waveform_mix
+      #  `"]
+      #  filter["`**filter**
+      #  +cutoff
+      #  +resonance
+      #  `"]
+      #  vca["`**VCA**`"]
+      #  accent["accent"]
+      #  envmod["`**env mod**
+      #  `"]
+      #  envelope["`**envelope**
+      #  +decay`"]
+      #      oscillator --> filter --> vca
+      #      envelope --> envmod
+      #      envmod --> filter
+      #      envelope --> vca
+      #      accent --> vca & filter
+      #      vca --> out
+      #  """
+      #},
+        %{
+        uuid: "af94a406-5b8e-11ee-8e3a-d2957a874c38",
+        kind: :markdown,
         content: """
-        flowchart LR
-        oscillator["`**oscillator**
-        +pitch
-        +tune
-        +waveform_mix
-        `"]
-        filter["`**filter**
-        +cutoff
-        +resonance
-        `"]
-        vca["`**VCA**`"]
-        accent["accent"]
-        envmod["`**env mod**
-        `"]
-        envelope["`**envelope**
-        +decay`"]
-            oscillator --> filter --> vca
-            envelope --> envmod
-            envmod --> filter
-            envelope --> vca
-            accent --> vca & filter
-            vca --> out
+        ### Scales
+        I have added some functions for scales.
         """
       },
       %{
@@ -174,16 +124,6 @@ defmodule BleepWeb.MainLive do
         end
         end
         """
-      },
-      %{
-        uuid: "af94a406-5b8e-11ee-8e3a-d2957a874c38",
-        kind: :markdown,
-        content: """
-        ### Notes
-
-        To do:
-        * At the moment the distortion and delay effects are hardwired - need to factor them out into separate module so that they can be used more generally.
-        """
       }
     ]
   end
@@ -201,7 +141,7 @@ defmodule BleepWeb.MainLive do
     assigns = assign(assigns, :markdown, md)
 
     ~H"""
-    <div class="p-8 bg-blue-100 border border-gray-600 bottom-9 rounded-xl dark:bg-slate-100">
+    <div class="mt-8 text-sm p-6 my-12 bg-gray-100 border border-gray-600 bottom-9 rounded dark:bg-slate-100">
       <%= Phoenix.HTML.raw(@markdown) %>
     </div>
     """
@@ -226,7 +166,7 @@ defmodule BleepWeb.MainLive do
     ~H"""
     <div
       id={@uuid}
-      class="flex-col w-100 h-60"
+      class="-mt-12 flex-col w-100 h-60"
       phx-hook="BleepEditor"
       phx-update="ignore"
       data-language="lua"
