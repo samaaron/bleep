@@ -36,6 +36,7 @@ defmodule BleepWeb.MainLive do
         sd = pattern("---- x--- ---- x---")
         hh = euclidean(9,16)
         bd = pattern("x--- --x- x--- ----")
+        push_fx("reverb",{wetLevel=0.1})
         for k=1,4 do
           for i=1,16 do
             if (sd:next()) then
@@ -55,45 +56,48 @@ defmodule BleepWeb.MainLive do
         end
         """
       },
-      # %{
-      #   uuid: "8ga337ca-5b8e-11ee-a06c-d2957a874c38",
-      #   kind: :video,
-      #   src: "movies/bishi_movie.mov"
-      # },
-      #%{
-      #  uuid: "9869face-5b8e-11ee-bd22-d2957a874c38",
-      #  kind: :mermaid,
-      #  content: """
-      #  flowchart LR
-      #  oscillator["`**oscillator**
-      #  +pitch
-      #  +tune
-      #  +waveform_mix
-      #  `"]
-      #  filter["`**filter**
-      #  +cutoff
-      #  +resonance
-      #  `"]
-      #  vca["`**VCA**`"]
-      #  accent["accent"]
-      #  envmod["`**env mod**
-      #  `"]
-      #  envelope["`**envelope**
-      #  +decay`"]
-      #      oscillator --> filter --> vca
-      #      envelope --> envmod
-      #      envmod --> filter
-      #      envelope --> vca
-      #      accent --> vca & filter
-      #      vca --> out
-      #  """
-      #},
         %{
         uuid: "af94a406-5b8e-11ee-8e3a-d2957a874c38",
         kind: :markdown,
         content: """
-        ### Scales
-        I have added some functions for scales.
+        ### Note names
+        MIDI names are now defined as globals in Lua. Transposition is easy, e.g. you can write play(G3+2).
+        """
+      },
+            %{
+        uuid: "8e5a73a6-5b8e-11ee-8e4c-d2957a874c38",
+        kind: :editor,
+        lang: :lua,
+        content: """
+        use_synth("sawlead")
+        push_fx("stereo_delay",{leftDelay=0.3,rightDelay=0.6,feedback=0.2,wetLevel=0.2})
+        push_fx("reverb",{wetLevel=0.2})
+        play(D4,{duration=0.25})
+        sleep(0.3)
+        play(G4,{duration=0.25})
+        sleep(0.3)
+        play(G4,{duration=0.12})
+        sleep(0.15)
+        play(A4,{duration=0.12})
+        sleep(0.15)
+        play(G4,{duration=0.12})
+        sleep(0.15)
+        play(Fs4,{duration=0.12})
+        sleep(0.15)
+        play(E4,{duration=0.25})
+        sleep(0.3)
+        play(E4,{duration=0.25})
+        sleep(0.3)
+        play(E4,{duration=0.25})
+        sleep(0.3)
+        """
+      },
+             %{
+        uuid: "af94a406-5b8e-11ee-8e3a-d2957a874c38",
+        kind: :markdown,
+        content: """
+        ### Effects
+        The next box shows how to use auto pan, reverb, delay, phaser and flanger.
         """
       },
       %{
@@ -101,8 +105,6 @@ defmodule BleepWeb.MainLive do
         kind: :editor,
         lang: :lua,
         content: """
-        -- CHRISTMAS EFFECTS HAMPER!
-        -- Ho Ho Ho
         use_synth("sawlead")
         -- new feature! autopanning with variable stereo spread
         push_fx("auto_pan",{wetLevel=0.5,dryLevel=0.5,rate=0.1,spread=0.9})

@@ -36,6 +36,27 @@ function pick(x)
 end
 
 -- =============================================================================
+-- Make a global variable for each MIDI note name
+-- =============================================================================
+
+function make_note_names()
+  local note_names = { "C", "Cs", "D", "Ds", "E", "F", "Fs", "G", "Gs", "A", "As", "B" }
+  local note_ptr = 10
+  local octave = 0
+  for n = 21, 127 do
+      note_id = note_names[note_ptr] .. octave
+      _G[note_id] = n -- _G is the table of globals
+      note_ptr = note_ptr + 1
+      if (note_ptr > 12) then
+          note_ptr = 1
+          octave = octave + 1
+      end
+  end
+end
+
+make_note_names()
+
+-- =============================================================================
 -- Pattern - represents a x-xx-xx- style pattern
 -- =============================================================================
 
