@@ -29,7 +29,7 @@ defmodule BleepWeb.MainLive do
         """
       },
       %{
-        uuid: "8e5a73a6-5b8e-11ee-8e4c-d2957a874c38",
+        uuid: "8e5a73a6-5b8e-11ee-8e4c-d2942a874c38",
         kind: :editor,
         lang: :lua,
         content: """
@@ -57,7 +57,7 @@ defmodule BleepWeb.MainLive do
         """
       },
         %{
-        uuid: "af94a406-5b8e-11ee-8e3a-d2957a874c38",
+        uuid: "af94a406-5b8e-11ff-8e3a-d2957a874c38",
         kind: :markdown,
         content: """
         ### Note names
@@ -65,7 +65,7 @@ defmodule BleepWeb.MainLive do
         """
       },
             %{
-        uuid: "8e5a73a6-5b8e-11ee-8e4c-d2957a874c38",
+        uuid: "8e5a73a6-5b8e-2432-8e4c-d2957a874c38",
         kind: :editor,
         lang: :lua,
         content: """
@@ -90,7 +90,7 @@ defmodule BleepWeb.MainLive do
         """
       },
       %{
-        uuid: "af94a406-5b8e-11ee-8e3a-d2957a874c38",
+        uuid: "af94a406-5b8e-19af-8e3a-d2957a874c38",
         kind: :markdown,
         content: """
         ### Rings
@@ -111,13 +111,17 @@ defmodule BleepWeb.MainLive do
         * **reflect()** - returns a mirror with the duplicate middle element removed
         * **sort()** - return a sorted ring
         ### chaining
-        Lua syntax is quite nice for chaining - just a sequence of method calls separated by colons, e.g.
-        my_ring:tail(4):add(7):mirror()
+        As in Sonic Pi I have written all these so that rings are immutable and operations return a copy,
+        so you can chain operations together
         ### get and set
+        In theory we should be able to use array index notation with a custom class in lua, e.g. myring[3] 
+        instead of myring:get(3). I have this working in a lua 5.3 installation but it doesn't work in luerl 
+        (I note that the docs for luerl say that metatables are not correctly implemented). I have commented
+        that code out for the time being.
         """
       },
       %{
-        uuid: "9f458afc-5b8e-11ee-bd76-d2957a874c38",
+        uuid: "9f458afc-5b8e-2a4b-bd76-d2957a874c38",
         kind: :editor,
         lang: :lua,
         content: """
@@ -173,8 +177,25 @@ defmodule BleepWeb.MainLive do
         end
         """
       },
-             %{
-        uuid: "af94a406-5b8e-11ee-8e3a-d2957a874c38",
+      %{
+        uuid: "aca5a604-1432-11ee-8e3a-d2957a874c38",
+        kind: :markdown,
+        content: """
+        ### Scales
+        An implementation of scales
+        """
+      },
+      %{
+        uuid: "96d5fafc-5cda-11ee-bd76-d2957a874c38",
+        kind: :editor,
+        lang: :lua,
+        content: """
+        use_synth("sawlead")
+        play(G3)
+        """
+      },
+          %{
+        uuid: "af94a406-1432-11ee-8e3a-d2957a874c38",
         kind: :markdown,
         content: """
         ### Effects
@@ -182,7 +203,7 @@ defmodule BleepWeb.MainLive do
         """
       },
       %{
-        uuid: "9f458afc-5b8e-11ee-bd76-d2957a874c38",
+        uuid: "9f458afc-5cda-11ee-bd76-d2957a874c38",
         kind: :editor,
         lang: :lua,
         content: """

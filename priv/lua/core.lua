@@ -359,3 +359,29 @@ end
 function ring(array)
     return Ring.new(array)
 end
+
+--[[
+
+-- define table indexing operator for reading from a ring 
+function Ring:__index(key)
+    if type(key) == "number" then
+        local index = self.mapIndex(self, key)
+        return self.array[index]
+    else
+        return Ring[key]
+    end
+end
+
+-- define table indexing operator for writing to a ring 
+
+function Ring:__newindex(key, value)
+    print("hello")
+    if type(key) == "number" then
+        local index = self.mapIndex(self, key)
+        self.array[index] = value
+    else
+        rawset(self,key,value)
+    end
+end
+
+]]
