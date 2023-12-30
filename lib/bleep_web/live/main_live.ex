@@ -86,10 +86,7 @@ defmodule BleepWeb.MainLive do
         sleep(0.15)
         play(E4,{duration=0.25})
         sleep(0.3)
-        play(E4,{duration=0.25})
-        sleep(0.3)
-        play(E4,{duration=0.25})
-        sleep(0.3)
+        play(E4,{duration=0.5})
         """
       },
              %{
