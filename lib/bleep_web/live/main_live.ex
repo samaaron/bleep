@@ -89,6 +89,90 @@ defmodule BleepWeb.MainLive do
         play(E4,{duration=0.5})
         """
       },
+      %{
+        uuid: "af94a406-5b8e-11ee-8e3a-d2957a874c38",
+        kind: :markdown,
+        content: """
+        ### Rings
+        Closely based on the approach in Sonic Pi, with the following implemented:
+        * **pick(n)** - selects n values in a new ring
+        * **clone(n)** - like repeat in Sonic Pi (repeat is a Lua keyword so we cant use it), returns a new ring that contains n copies
+        * **shuffle()** - returns a new ring that is random shuffle
+        * **reverse()** - returns a new ring that is time-reversed
+        * **stretch(n)** - duplicates each value n times, makes a new ring
+        * **length()** - get the length of the ring
+        * **head(n)** - makes a new ring from the first n elements
+        * **tail(n)** - makes a new ring from the last n elements
+        * **slice(a,b)** - returns a new ring sliced from a to b (first element is zero)
+        * **concat(r)** - concatenates the current ring with r, returns a new ring
+        * **multiply(s)** - returns a new ring, each element multiplied by s
+        * **add(s)** - return a new ring, each element summed with s
+        * **mirror()** - returns a mirror of the ring
+        * **reflect()** - returns a mirror with the duplicate middle element removed
+        * **sort()** - return a sorted ring
+        ### chaining
+        Lua syntax is quite nice for chaining - just a sequence of method calls separated by colons, e.g.
+        my_ring:tail(4):add(7):mirror()
+        ### get and set
+        """
+      },
+      %{
+        uuid: "9f458afc-5b8e-11ee-bd76-d2957a874c38",
+        kind: :editor,
+        lang: :lua,
+        content: """
+        use_synth("sawlead")
+        push_fx("stereo_delay",{leftDelay=0.5,rightDelay=0.25,wetLevel=0.1})
+        notes = ring({G3,B3,C4,E4})
+        for i=0,16 do
+          play(notes:get(i),{duration=0.1})
+          sleep(0.125)
+        end
+        -- reversing
+        for i=0,16 do
+          play(notes:reverse():get(i),{duration=0.1})
+          sleep(0.125)
+        end
+        -- adding a scalar
+        for i=0,16 do
+          play(notes:add(5):get(i),{duration=0.1})
+          sleep(0.125)
+        end
+        -- shuffling
+        for i=0,16 do
+          play(notes:shuffle():get(i),{duration=0.1})
+          sleep(0.125)
+        end
+        -- pick and clone
+        for i=0,16 do
+          play(notes:pick(2):clone(2):get(i),{duration=0.1})
+          sleep(0.125)
+        end
+        -- stretch
+        for i=0,16 do
+          play(notes:stretch(4):get(i),{duration=0.1})
+          sleep(0.125)
+        end
+        -- concatenation 
+        part1 = ring({C3,C3,D3,C3,Ds3,C3,F3,Ds3})
+        part2 = ring({F3,F3,G3,F3,Gs3,F3,As3,Gs3})
+        gunn = part1:clone(2):concat(part2:clone(2))
+        for i=0,64 do
+          play(gunn:get(i),{duration=0.1})
+          sleep(0.125)
+        end
+        -- sorting
+        for i=0,64 do
+          play(gunn:sort():get(i),{duration=0.1})
+          sleep(0.125)
+        end
+        -- lots of chaining
+        for i=0,16 do
+          play(gunn:tail(4):add(-12):mirror():get(i),{duration=0.1})
+          sleep(0.125)
+        end
+        """
+      },
              %{
         uuid: "af94a406-5b8e-11ee-8e3a-d2957a874c38",
         kind: :markdown,
