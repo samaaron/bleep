@@ -385,3 +385,94 @@ function Ring:__newindex(key, value)
 end
 
 ]]
+
+-- ===============================================================
+-- Scales
+-- ===============================================================
+
+-- modes
+
+aeolian = { 2, 1, 2, 2, 1, 2, 2 }
+dorian = { 2, 1, 2, 2, 2, 1, 2 }
+ionian = { 2, 2, 1, 2, 2, 2, 1 }
+locrian = { 1, 2, 2, 1, 2, 2, 2 }
+lydian = { 2, 2, 2, 1, 2, 2, 1 }
+mixolydian = { 2, 2, 1, 2, 2, 1, 2 }
+phrygian = { 1, 2, 2, 2, 1, 2, 2 }
+
+-- common scales
+
+ascending_melodic_minor = { 2, 1, 2, 2, 2, 2, 1 }
+blues = { 3, 2, 1, 1, 3, 2 }
+harmonic_minor = { 2, 1, 2, 2, 1, 3, 1 }
+major = ionian
+major_pentatonic = { 2, 2, 3, 2, 3 }
+minor_pentatonic = { 3, 2, 2, 3, 2 }
+natural_minor = aeolian
+whole_tone = { 2, 2, 2, 2, 2, 2 }
+
+-- altered scales
+
+altered = { 1, 2, 1, 2, 2, 2, 2 }
+bebop_dominant = { 2, 2, 1, 2, 2, 1, 1, 1 }
+freygish = phrygian_dominant
+half_whole_diminished = { 1, 2, 1, 2, 1, 2, 1, 2 }
+lydian_augmented = { 2, 2, 2, 2, 1, 2, 1 }
+lydian_dominant = { 2, 2, 2, 1, 2, 1, 2 }
+phrygian_dominant = { 1, 3, 1, 2, 1, 2, 2 }
+whole_half_diminished = { 2, 1, 2, 1, 2, 1, 2, 1 }
+
+-- Indian scales
+
+raga_bhairav = { 1, 3, 1, 2, 1, 3, 1 }
+raga_bhairavi = half_whole_diminished
+raga_hamsadhwani = lydian
+raga_malkauns = minor_pentatonic
+raga_marwa = { 3, 1, 2, 2, 1, 3, 1 }
+raga_yaman = ionian
+
+-- Middle Eastern
+
+byzantine = raga_bhairav
+double_harmonic = raga_bhairav
+maqam_hijaz = phrygian_dominant
+
+-- Other world and exotic scales
+
+enigmatic = { 1, 3, 2, 2, 2, 1, 1 }
+hirajoshi = { 2, 1, 4, 1, 4 }
+hungarian_major_scale = { 3, 1, 2, 1, 2, 1, 2 }
+hungarian_minor = { 2, 1, 3, 1, 1, 3, 1 }
+neapolitan_major = { 1, 2, 2, 2, 2, 2, 1 }
+neapolitan_minor = { 1, 2, 2, 2, 1, 3, 1 }
+prometheus = { 2, 2, 2, 3, 1, 2 }
+
+-- Gamelan scales
+-- https://www.youtube.com/watch?v=_7ltggbNGZ8
+-- https://www.youtube.com/watch?v=-44PKBHPQG4
+-- divide cents by 100 and then subtract sucessive values to get MIDI note intervals
+
+pelog_begbeg = { 1.2, 1.14, 4.32, 0.81, 4.53 }
+pelog_sedeng = { 1.36, 1.55, 3.79, 1.34, 3.96 }
+pelog_tirus = { 1.97, 1.8, 3.47, 1.04, 3.72 }
+
+slendro_manisrenga = { 2.195, 2.665, 2.27, 2.335, 2.585 }
+slendro_rarasrum = { 2.295, 2.275, 2.53, 2.32, 2.615 }
+slendro_surak = { 2.06, 2.315, 2.385, 2.65, 2.645 }
+
+-- Make a scale, which is returned as a Ring as in Sonic Pi
+-- intervals : table of intervals, passed directly or one of the defined scales
+-- root : the root note (MIDI number, note name or even a float, it doesn't matter)
+-- octaves : the number of octaves (optional, defaults to 1)
+function scale(intervals, root, octaves)
+    local num_octaves = octaves or 1
+    local n = 1 + num_octaves * #intervals
+    local array = {}
+    local note = root
+    for i = 1, n do
+        table.insert(array, note)
+        local k = (i - 1) % #intervals + 1
+        note = note + intervals[k]
+    end
+    return Ring.new(array)
+end

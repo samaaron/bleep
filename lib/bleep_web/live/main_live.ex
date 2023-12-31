@@ -132,49 +132,53 @@ defmodule BleepWeb.MainLive do
           play(notes:get(i),{duration=0.1})
           sleep(0.125)
         end
+        sleep(0.5)
         -- reversing
         for i=0,16 do
           play(notes:reverse():get(i),{duration=0.1})
           sleep(0.125)
         end
+        sleep(0.5)
         -- adding a scalar
         for i=0,16 do
           play(notes:add(5):get(i),{duration=0.1})
           sleep(0.125)
         end
+        sleep(0.5)
         -- shuffling
         for i=0,16 do
           play(notes:shuffle():get(i),{duration=0.1})
           sleep(0.125)
         end
+        sleep(0.5)
         -- pick and clone
         for i=0,16 do
           play(notes:pick(2):clone(2):get(i),{duration=0.1})
           sleep(0.125)
         end
+        sleep(0.5)
         -- stretch
         for i=0,16 do
           play(notes:stretch(4):get(i),{duration=0.1})
           sleep(0.125)
         end
+        sleep(0.5)
         -- concatenation 
+        use_synth("rolandtb")
         part1 = ring({C3,C3,D3,C3,Ds3,C3,F3,Ds3})
         part2 = ring({F3,F3,G3,F3,Gs3,F3,As3,Gs3})
         gunn = part1:clone(2):concat(part2:clone(2))
-        for i=0,64 do
-          play(gunn:get(i),{duration=0.1})
+        for i=0,32 do
+          play(gunn:get(i),{duration=0.1,cutoff=0.4, resonance=0.3, env_mod=0.8,decay=0.2})
           sleep(0.125)
         end
+        sleep(0.5)
         -- sorting
-        for i=0,64 do
-          play(gunn:sort():get(i),{duration=0.1})
+        for i=0,32 do
+          play(gunn:sort():get(i),{duration=0.1,cutoff=0.5, resonance=0.4, env_mod=0.8,decay=0.2})
           sleep(0.125)
         end
-        -- lots of chaining
-        for i=0,16 do
-          play(gunn:tail(4):add(-12):mirror():get(i),{duration=0.1})
-          sleep(0.125)
-        end
+        sleep(0.5)
         """
       },
       %{
@@ -182,7 +186,10 @@ defmodule BleepWeb.MainLive do
         kind: :markdown,
         content: """
         ### Scales
-        An implementation of scales
+        An implementation of scales, again very similar to Sonic Pi. A lot of scales are predefined which
+        are just Lua tables of MIDI note intervals such as {1,2,1,1,2,1} etc. These can be fractional for 
+        microtonal scales. As in Sonic Pi, a scale is a Ring - so any of the functions above can be invoked
+        on a scale.
         """
       },
       %{
@@ -190,8 +197,32 @@ defmodule BleepWeb.MainLive do
         kind: :editor,
         lang: :lua,
         content: """
-        use_synth("sawlead")
-        play(G3)
+        -- simple major scale demo
+
+        use_synth("elpiano")
+        notes = scale(major,C3,2)
+        for i=0,14 do
+            play(notes:get(i),{duration=0.19})
+            sleep(0.2)
+        end
+
+        sleep(2)
+
+        -- random gamelan
+        -- scales can be microtonal!
+
+        use_synth("fmbell")
+        push_fx("stereo_delay",{wetLevel=0.1,leftDelay=0.4,rightDelay=0.6})
+        push_fx("reverb",{wetLevel=0.2})
+        upper = scale(pelog_sedeng,D4,2):shuffle()
+        lower = scale(pelog_sedeng,D3):shuffle()
+        for i=0,32 do
+            play(upper:get(i),{duration=0.15})
+            if (i%3==0) then
+            play(lower:get(i),{duration=0.15})
+            end
+            sleep(0.2)
+        end
         """
       },
           %{
