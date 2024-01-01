@@ -8,4 +8,8 @@ Source:
 
 https://www.housecallfm.com/download-gns-personal-lexicon-480l
 
-We renamed the files for consistency and saved them in FLAC format.
+We renamed the files for consistency and saved them in FLAC format 16 bit, 44.1 kHz, 2 channel and trimmed the low-amplitude tail (below 0.01%) to make them more compact:
+
+```
+for file in *.aif; do sox $file -r 44100 -b 16 -c 2 -t flac ./FLAC/${file%.*}.flc -V reverse silence 1 0.1 0.01% reverse; done
+```
