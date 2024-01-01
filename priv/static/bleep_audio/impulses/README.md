@@ -8,4 +8,4 @@ Source:
 
 https://www.housecallfm.com/download-gns-personal-lexicon-480l
 
-We renamed the files for consistency and saved in FLAC format.
+We renamed the files for consistency and saved them in FLAC format.
