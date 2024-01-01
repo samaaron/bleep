@@ -56,75 +56,6 @@ end
 
 make_note_names()
 
--- =============================================================================
--- Pattern - represents a x-xx-xx- style pattern
--- =============================================================================
-
-local Pattern = {}
-Pattern.__index = Pattern
-
--- constructor
--- seq - string of the form x-xx-x
-function Pattern.new(seq)
-    local self = setmetatable({}, Pattern)
-    self.seq = seq:gsub("%s","") -- remove any spaces
-    self.ptr = 1
-    return self
-end
-
--- return true if the next element of the pattern is a hit ("x")
-function Pattern:next()
-    local b = self.seq:sub(self.ptr, self.ptr) == "x"
-    self.ptr = self.ptr + 1
-    if (self.ptr > #self.seq) then
-        self.ptr = 1
-    end
-    return b
-end
-
--- go back to the start of the pattern
-function Pattern:reset()
-    self.ptr = 1
-end
-
--- get the string repesentation of this pattern
-function Pattern.__tostring(self)
-    return self.seq
-end
-
--- convenience function to make a pattern
-function pattern(seq)
-    return Pattern.new(seq)
-end
-
--- =============================================================================
--- Euclidean patterns
--- =============================================================================
-
--- hits - the number of steps that are drum hits
--- steps - the total number of steps in the sequence 
--- phase (optional) - the phase offset (e.g. for phase=2 the pattern is right-shifted by two spaces)
--- returns a string of the form x--x-x- in which the hits are equally spaced in time
-function euclideanPattern(hits, steps, phase)
-    phase = phase or 0
-    local pattern = {}
-    local slope = hits / steps
-    local previous = -1
-    for i = 0, steps - 1 do
-        local current = math.floor(i * slope)
-        pattern[1 + (i + phase) % steps] = current ~= previous and "x" or "-"
-        previous = current
-    end
-    -- concatenate the table into a string
-    return table.concat(pattern)
-end
-
--- convenience function to make a euclidean pattern
-function euclidean(hits, steps, phase)
-    local seq = euclideanPattern(hits, steps, phase)
-    return Pattern.new(seq)
-end
-
 -- ===============================================================
 -- Ring abstraction strongly based on Sonic Pi
 -- ===============================================================
@@ -475,4 +406,57 @@ function scale(intervals, root, octaves)
         note = note + intervals[k]
     end
     return Ring.new(array)
+end
+
+-- ===============================================================
+-- Pattern in x-xx or x-12 form 
+-- ===============================================================
+
+-- make a Ring from a string pattern
+-- seq : a string pattern containing "-" (rest), "x" hit or 1-9 
+-- "x" is mapped to 1 and "-" is mapped to 0
+-- Elements in the range 1-9 are mapped into velocities in the range 0.1 to 0.9
+function pattern(seq)
+    local array = {}
+    seq = seq:gsub("%s", "") -- remove any spaces
+    for i = 1, #seq do
+        local char = seq:sub(i, i)
+        if (char == "x") then
+            table.insert(array, 1)
+        elseif char >= "1" and char <= "9" then
+            table.insert(array, (string.byte(char)-string.byte("0"))/10)
+        else
+            table.insert(array, 0)
+        end
+    end
+    return Ring.new(array)
+end
+
+-- ===============================================================
+-- Euclidean rhythms 
+-- ===============================================================
+
+-- hits - the number of steps that are drum hits
+-- steps - the total number of steps in the sequence 
+-- phase (optional) - the phase offset (e.g. for phase=2 the pattern is right-shifted by two spaces)
+-- returns a string of the form x--x-x- in which the hits are equally spaced in time
+function euclideanPattern(hits, steps, phase)
+    phase = phase or 0
+    local pattern = {}
+    local slope = hits / steps
+    local previous = -1
+    for i = 0, steps - 1 do
+        local current = math.floor(i * slope)
+        pattern[1 + (i + phase) % steps] = current ~= previous and "x" or "-"
+        previous = current
+    end
+    -- concatenate the table into a string
+    return table.concat(pattern)
+end
+
+-- make a Euclidean rhythm 
+-- returns a Ring containing the pattern, with ones for hits and zeros for rests
+function euclidean(hits,steps,phase)
+    local seq = euclideanPattern(hits,steps,phase)
+    return pattern(seq)
 end

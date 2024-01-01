@@ -10,52 +10,6 @@ defmodule BleepWeb.MainLive do
 
   def data() do
     [
-      %{
-        uuid: "84325588-5b8e-11ee-a06c-d2957a874c38",
-        kind: :markdown,
-        content: """
-        ### Patterns
-        Two functions for playing patterns:
-
-        **pattern(s)** takes a string **s** in x-xx form. Each time you call **next()**, true is returned
-        if the current step in the pattern is an x and false otherwise, and the pattern moves to the next
-        step. Spaces in the pattern are ignored (so you can group into fours or bars etc). Patterns are rings; 
-        when the end of the pattern is reached the current step returns to the start. 
-        You can force a return to the first step by calling **reset()**.
-
-        **euclidean(h,n,p)** makes a euclidean pattern given the number of hits **h**, length of the sequence **n** and (optionally) 
-        the phase **p**. A phase of p right-shifts the pattern to the right by p steps. As above, use the **next()** method to 
-        step through the pattern. You can also call **reset()** to restart the pattern.
-        """
-      },
-      %{
-        uuid: "8e5a73a6-5b8e-11ee-8e4c-d2942a874c38",
-        kind: :editor,
-        lang: :lua,
-        content: """
-        sd = pattern("---- x--- ---- x---")
-        hh = euclidean(9,16)
-        bd = pattern("x--- --x- x--- ----")
-        push_fx("reverb",{wetLevel=0.1})
-        for k=1,4 do
-          for i=1,16 do
-            if (sd:next()) then
-              sample("bishi_snare")
-            end
-            if (bd:next()) then
-              sample("drum_bass_hard")
-            end
-            if (hh:next()) then
-              sample("hat_bdu")
-            end
-            sleep(0.125)
-            if (math.random()<0.2) then
-              hh:reset()
-            end
-          end
-        end
-        """
-      },
         %{
         uuid: "af94a406-5b8e-11ff-8e3a-d2957a874c38",
         kind: :markdown,
@@ -225,6 +179,64 @@ defmodule BleepWeb.MainLive do
         end
         """
       },
+      %{
+        uuid: "84325588-5b8e-11ee-a06c-d2957a874c38",
+        kind: :markdown,
+        content: """
+        ### Patterns
+        Two functions for playing patterns:
+
+        **pattern(s)** takes a string **s** in x-xx form and returns a ring containing numerical values. "x" is
+        mapped to 1 and "-" is mapped to zero. Digits 1-9 are mapped to 0.1 to 0.9. So the pattern can be used 
+        to represent sound level (velocity) as well as note ons. 
+
+        **euclidean(h,n,p)** makes a euclidean pattern given the number of hits **h**, length of the sequence **n** and (optionally) 
+        the phase **p**. A phase of p right-shifts the pattern to the right by p steps. A ring is returned with 0,1 values. 
+        """
+      },
+      %{
+        uuid: "8e5a73a6-5b8e-11ee-8e4c-d2942a874c38",
+        kind: :editor,
+        lang: :lua,
+        content: """
+        sd = pattern("---- x--- ---- x---")
+        hh = euclidean(9,16)
+        bd = pattern("x--- --x- x--- ----")
+        push_fx("reverb",{wetLevel=0.1})
+        for i=0,31 do
+          if (sd:get(i)>0) then
+            sample("bishi_snare")
+          end
+          if (bd:get(i)>0) then
+            sample("drum_bass_hard")
+          end
+          if (hh:get(i)>0) then
+            sample("hat_bdu")
+          end
+          sleep(0.125)
+        end
+
+        sleep(0.5)
+
+        use_synth("noisehat")
+        sd = pattern("---- x--- ---- x---")
+        hh = pattern("xx4- 5-3- x-4- x-51")
+        bd = pattern("x--- --x- x--- ----")
+        push_fx("reverb",{wetLevel=0.1})
+        for i=0,31 do
+          if (sd:get(i)>0) then
+            sample("bishi_snare")
+          end
+          if (bd:get(i)>0) then
+            sample("bishi_bass_drum")
+          end
+          if (hh:get(i)>0) then
+            play(G6,{level=hh:get(i),decay=0.19})
+          end
+          sleep(0.125)
+        end
+        """
+      },
           %{
         uuid: "af94a406-1432-11ee-8e3a-d2957a874c38",
         kind: :markdown,
@@ -257,6 +269,34 @@ defmodule BleepWeb.MainLive do
         play(note,{cutoff=2,duration=0.18})
         sleep(0.2)
         end
+        end
+        """
+      },
+       %{
+        uuid: "af94c406-1432-11ee-8e3a-d2c57a361c38",
+        kind: :markdown,
+        content: """
+        ### Putting it all together
+        Techno track
+        """
+      },
+      %{
+        uuid: "9f258afc-5c45-11ef-bd76-d29a7ff74c38",
+        kind: :editor,
+        lang: :lua,
+        content: """
+        use_synth("noise")
+        play(C3,{duration=4,cutoff=100})
+        bd = pattern("x-- x-- x- x-- --- x-")
+        lt = pattern("--- --x -- --- --x --")
+        for i=0,31 do
+          if (bd:get(i)>0) then
+            sample("bishi_bass_drum")
+          end
+            if (lt:get(i)>0) then
+            sample("elec_flip")
+          end
+          sleep(0.125)
         end
         """
       }

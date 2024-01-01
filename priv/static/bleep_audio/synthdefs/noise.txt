@@ -8,24 +8,35 @@ doc : A random noise patch for testing
 
 # parameters
 
-@param volume
+@param cutoff
 type : float
 mutable: yes
 step : 0.01
-min : 0
-max : 1
-default : 0.7
-doc : volume
+min : 10
+max : 14000
+default : 500
+doc : cutoff
 @end
 
 # modules
 
 NOISE : noise
+LPF : lowpass
 VCA : vca
+ADSR : env
 
 # patch
 
-noise.out -> vca.in
-vca.out -> audio.in
+noise.out -> lowpass.in
+lowpass.out -> audio.in
+
+lowpass.cutoff = param.cutoff
+env.attack = 0.1
+env.release = 0.1
+env.decay = 0.1
+env.sustain = param.level
+env.level = param.level
+
+env.out -> vca.levelCV
 
 # end
