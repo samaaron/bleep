@@ -19,6 +19,7 @@ defmodule BleepWeb.MainLive do
         microphone impulse responses - so now if you want to listen to Bishi
         singing into a Sovet Lomo microphone in an abandoned nuclear
         reactor chamber, you can! Mics and reverbs can be chained together of course. 
+        See the README file in the impulses folder. 
         """
       },
             %{
