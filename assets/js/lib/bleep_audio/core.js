@@ -119,6 +119,7 @@ export default class BleepAudioCore {
       case "ambience-large":
       case "ambience-medium":
       case "ambience-small":
+      case "mic-reslo":
         fx = new Reverb(this.#audio_context, this.#monitor);
         fx.load(REVERB_FILENAME[fx_name]);
         break;
