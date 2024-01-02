@@ -11,148 +11,268 @@ defmodule BleepWeb.MainLive do
   def data() do
     [
       %{
+        uuid: "af94a406-5b8e-11ff-8e3a-d2957a874c38",
+        kind: :markdown,
+        content: """
+        ### Microphones and more reverbs
+        I have added more reverbs and a small number of
+        microphone impulse responses - so now if you want to listen to Bishi
+        singing into a Sovet Lomo microphone in an abandoned nuclear
+        reactor chamber, you can! Mics and reverbs can be chained together of course. 
+        See the README file in the impulses folder. 
+        """
+      },
+            %{
+        uuid: "8e5f23a6-5b8e-2432-8e4c-d2957b474c38",
+        kind: :editor,
+        lang: :lua,
+        content: """
+        push_fx("mic-lomo",{wetLevel=1.2,dryLevel=0})
+        push_fx("reverb-massive",{wetLevel=0.25,dryLevel=1})
+        sample("bishi_verse")
+        """
+      },
+        %{
+        uuid: "af94a406-5b8e-76aa-8e3a-d29aca874ca8",
+        kind: :markdown,
+        content: """
+        ### Note names
+        MIDI names are now defined as globals in Lua. Transposition is easy, e.g. you can write play(G3+2).
+        """
+      },
+            %{
+        uuid: "8e5a73a6-5b8e-2432-8e4c-d2957a874c38",
+        kind: :editor,
+        lang: :lua,
+        content: """
+        use_synth("sawlead")
+        push_fx("stereo_delay",{leftDelay=0.3,rightDelay=0.6,feedback=0.2,wetLevel=0.2})
+        push_fx("reverb",{wetLevel=0.2})
+        play(D4,{duration=0.25})
+        sleep(0.3)
+        play(G4,{duration=0.25})
+        sleep(0.3)
+        play(G4,{duration=0.12})
+        sleep(0.15)
+        play(A4,{duration=0.12})
+        sleep(0.15)
+        play(G4,{duration=0.12})
+        sleep(0.15)
+        play(Fs4,{duration=0.12})
+        sleep(0.15)
+        play(E4,{duration=0.25})
+        sleep(0.3)
+        play(E4,{duration=0.5})
+        """
+      },
+      %{
+        uuid: "af94a406-5b8e-19af-8e3a-d2957a874c38",
+        kind: :markdown,
+        content: """
+        ### Rings
+        Closely based on the approach in Sonic Pi, with the following implemented:
+        * **pick(n)** - selects n values in a new ring
+        * **clone(n)** - like repeat in Sonic Pi (repeat is a Lua keyword so we cant use it), returns a new ring that contains n copies
+        * **shuffle()** - returns a new ring that is random shuffle
+        * **reverse()** - returns a new ring that is time-reversed
+        * **stretch(n)** - duplicates each value n times, makes a new ring
+        * **length()** - get the length of the ring
+        * **head(n)** - makes a new ring from the first n elements
+        * **tail(n)** - makes a new ring from the last n elements
+        * **slice(a,b)** - returns a new ring sliced from a to b (first element is zero)
+        * **concat(r)** - concatenates the current ring with r, returns a new ring
+        * **multiply(s)** - returns a new ring, each element multiplied by s
+        * **add(s)** - return a new ring, each element summed with s
+        * **mirror()** - returns a mirror of the ring
+        * **reflect()** - returns a mirror with the duplicate middle element removed
+        * **sort()** - return a sorted ring
+        ### chaining
+        As in Sonic Pi I have written all these so that rings are immutable and operations return a copy,
+        so you can chain operations together
+        ### get and set
+        In theory we should be able to use array index notation with a custom class in lua, e.g. myring[3] 
+        instead of myring:get(3). I have this working in a lua 5.3 installation but it doesn't work in luerl 
+        (I note that the docs for luerl say that metatables are not correctly implemented). I have commented
+        that code out for the time being.
+        """
+      },
+      %{
+        uuid: "9f458afc-5b8e-2a4b-bd76-d2957a874c38",
+        kind: :editor,
+        lang: :lua,
+        content: """
+        use_synth("sawlead")
+        push_fx("stereo_delay",{leftDelay=0.5,rightDelay=0.25,wetLevel=0.1})
+        notes = ring({G3,B3,C4,E4})
+        for i=0,16 do
+          play(notes:get(i),{duration=0.1})
+          sleep(0.125)
+        end
+        sleep(0.5)
+        -- reversing
+        for i=0,16 do
+          play(notes:reverse():get(i),{duration=0.1})
+          sleep(0.125)
+        end
+        sleep(0.5)
+        -- adding a scalar
+        for i=0,16 do
+          play(notes:add(5):get(i),{duration=0.1})
+          sleep(0.125)
+        end
+        sleep(0.5)
+        -- shuffling
+        for i=0,16 do
+          play(notes:shuffle():get(i),{duration=0.1})
+          sleep(0.125)
+        end
+        sleep(0.5)
+        -- pick and clone
+        for i=0,16 do
+          play(notes:pick(2):clone(2):get(i),{duration=0.1})
+          sleep(0.125)
+        end
+        sleep(0.5)
+        -- stretch
+        for i=0,16 do
+          play(notes:stretch(4):get(i),{duration=0.1})
+          sleep(0.125)
+        end
+        sleep(0.5)
+        -- concatenation 
+        use_synth("rolandtb")
+        part1 = ring({C3,C3,D3,C3,Ds3,C3,F3,Ds3})
+        part2 = ring({F3,F3,G3,F3,Gs3,F3,As3,Gs3})
+        gunn = part1:clone(2):concat(part2:clone(2))
+        for i=0,32 do
+          play(gunn:get(i),{duration=0.1,cutoff=0.4, resonance=0.3, env_mod=0.8,decay=0.2})
+          sleep(0.125)
+        end
+        sleep(0.5)
+        -- sorting
+        for i=0,32 do
+          play(gunn:sort():get(i),{duration=0.1,cutoff=0.5, resonance=0.4, env_mod=0.8,decay=0.2})
+          sleep(0.125)
+        end
+        sleep(0.5)
+        """
+      },
+      %{
+        uuid: "aca5a604-1432-11ee-8e3a-d2957a874c38",
+        kind: :markdown,
+        content: """
+        ### Scales
+        An implementation of scales, again very similar to Sonic Pi. A lot of scales are predefined which
+        are just Lua tables of MIDI note intervals such as {1,2,1,1,2,1} etc. These can be fractional for 
+        microtonal scales. As in Sonic Pi, a scale is a Ring - so any of the functions above can be invoked
+        on a scale.
+        """
+      },
+      %{
+        uuid: "96d5fafc-5cda-11ee-bd76-d2957a874c38",
+        kind: :editor,
+        lang: :lua,
+        content: """
+        -- simple major scale demo
+
+        use_synth("elpiano")
+        notes = scale(major,C3,2)
+        for i=0,14 do
+            play(notes:get(i),{duration=0.19})
+            sleep(0.2)
+        end
+
+        sleep(2)
+
+        -- random gamelan
+        -- scales can be microtonal!
+
+        use_synth("fmbell")
+        push_fx("stereo_delay",{wetLevel=0.1,leftDelay=0.4,rightDelay=0.6})
+        -- new reverb impulse responses!
+        push_fx("plate-large",{wetLevel=0.2})
+        upper = scale(pelog_sedeng,D4,2):shuffle()
+        lower = scale(pelog_sedeng,D3):shuffle()
+        for i=0,32 do
+            play(upper:get(i),{duration=0.15})
+            if (i%3==0) then
+            play(lower:get(i),{duration=0.15})
+            end
+            sleep(0.2)
+        end
+        """
+      },
+      %{
         uuid: "84325588-5b8e-11ee-a06c-d2957a874c38",
         kind: :markdown,
         content: """
-        ## Introduction
-        This is bleep. You code - it bleeps.
+        ### Patterns
+        Two functions for playing patterns:
+
+        **pattern(s)** takes a string **s** in x-xx form and returns a ring containing numerical values. "x" is
+        mapped to 1 and "-" is mapped to zero. Digits 1-9 are mapped to 0.1 to 0.9. So the pattern can be used 
+        to represent sound level (velocity) as well as note ons. 
+
+        **euclidean(h,n,p)** makes a euclidean pattern given the number of hits **h**, length of the sequence **n** and (optionally) 
+        the phase **p**. A phase of p right-shifts the pattern to the right by p steps. A ring is returned with 0,1 values. 
         """
       },
       %{
-        uuid: "8e5a73a6-5b8e-11ee-8e4c-d2957a874c38",
+        uuid: "8e5a73a6-5b8e-11ee-8e4c-d2942a874c38",
         kind: :editor,
         lang: :lua,
         content: """
-
-        -- this is the neatest way of playing patterns I can come up with
-        -- we need an approach that works for samples and for synths
-        -- here we pass a funtion name and argument:
-        -- (sample, samplename) to play a sample or
-        -- (play, notenumer) to play a synth
-
-        function pattern(seq,interval,funcName,funcArg)
-          for i=1, #seq do
-            local char = seq:sub(i,i)
-            if char=="x" then
-              funcName(funcArg)
-              sleep(interval)
-            elseif char >="1" and char <="9" then
-              local prob = tonumber(char)*10
-              if math.random(100) <= prob then
-                funcName(funcArg)
-              end
-              sleep(interval)
-            elseif char== "-" then
-              sleep(interval)
-            end
+        sd = pattern("---- x--- ---- x---")
+        hh = euclidean(9,16)
+        bd = pattern("x--- --x- x--- ----")
+        -- lots of new impulse responses to try!
+        push_fx("plate-drums",{wetLevel=0.1})
+        for i=0,31 do
+          if (sd:get(i)>0) then
+            sample("bishi_snare")
           end
-        end
-
-        -- ooh we can make euclidean patterns too!
-        -- hits is the number of hits in the pattern
-        -- steps is the length of the pattern
-        -- phase is an optional parameter that offsets the pattern start
-
-        function euclidean(hits,steps,phase)
-          phase = phase or 0
-          local pattern = {}
-          local slope = hits/steps
-          local previous = -1
-          for i=0,steps-1 do
-            current = math.floor(i*slope)
-            pattern[1+(i+phase)%steps] = current~=previous and "x" or "-"
-            previous = current
+          if (bd:get(i)>0) then
+            sample("drum_bass_hard")
           end
-          -- concatenate the table into a string
-          return table.concat(pattern)
+          if (hh:get(i)>0) then
+            sample("hat_bdu")
+          end
+          sleep(0.125)
         end
 
-        -- play a pattern from snare samples
+        sleep(0.5)
 
-        pattern("xx-- x-xx -x-x --xx",0.25,sample,"bishi_snare")
-
-        sleep(1)
-
-        -- we can use integers 1-9 to represent probability of a note
-        -- 1 = 10%, 2 = 20% and so on
-
-        for i=1,5 do
-          pattern("x5-- x1-- x5-- x1--",0.125,sample,"bishi_bass_drum")
+        use_synth("noisehat")
+        sd = pattern("---- x--- ---- x---")
+        hh = pattern("xx4- 5-3- x-4- x-51")
+        bd = pattern("x--- --x- x--- ----")
+        for i=0,31 do
+          if (sd:get(i)>0) then
+            sample("bishi_snare")
+          end
+          if (bd:get(i)>0) then
+            sample("bishi_bass_drum")
+          end
+          if (hh:get(i)>0) then
+            play(G6,{level=hh:get(i),decay=0.19})
+          end
+          sleep(0.125)
         end
-
-        sleep(1)
-
-        -- play a pattern of synth notes
-
-        use_synth("fmbell")
-        pattern("xx-- x-xx -x-x --xx",0.25,play,84)
-
-        -- make a euclidean pattern
-
-        sleep(1)
-
-        p = euclidean(5,16)
-        pattern(p,0.25,sample,"hat_gnu")
-
-        sleep(1)
-
-        p = euclidean(11,16)
-        pattern(p,0.25,sample,"hat_gnu")
-
-        sleep(1)
-
-        p = euclidean(16,16)
-        pattern(p,0.25,sample,"hat_gnu")
-
-        sleep(1)
-
-        -- optional phase parameter, in this case right shift by 3 places
-
-        p = euclidean(5,16,3)
-        pattern(p,0.25,sample,"hat_gnu")
-
         """
       },
-      # %{
-      #   uuid: "8ga337ca-5b8e-11ee-a06c-d2957a874c38",
-      #   kind: :video,
-      #   src: "movies/bishi_movie.mov"
-      # },
-      %{
-        uuid: "9869face-5b8e-11ee-bd22-d2957a874c38",
-        kind: :mermaid,
+          %{
+        uuid: "af94a406-1432-11ee-8e3a-d2957a874c38",
+        kind: :markdown,
         content: """
-        flowchart LR
-        oscillator["`**oscillator**
-        +pitch
-        +tune
-        +waveform_mix
-        `"]
-        filter["`**filter**
-        +cutoff
-        +resonance
-        `"]
-        vca["`**VCA**`"]
-        accent["accent"]
-        envmod["`**env mod**
-        `"]
-        envelope["`**envelope**
-        +decay`"]
-            oscillator --> filter --> vca
-            envelope --> envmod
-            envmod --> filter
-            envelope --> vca
-            accent --> vca & filter
-            vca --> out
+        ### Effects
+        The next box shows how to use auto pan, reverb, delay, phaser and flanger.
         """
       },
       %{
-        uuid: "9f458afc-5b8e-11ee-bd76-d2957a874c38",
+        uuid: "9f458afc-5cda-11ee-bd76-d2957a874c38",
         kind: :editor,
         lang: :lua,
         content: """
-        -- CHRISTMAS EFFECTS HAMPER!
-        -- Ho Ho Ho
         use_synth("sawlead")
         -- new feature! autopanning with variable stereo spread
         push_fx("auto_pan",{wetLevel=0.5,dryLevel=0.5,rate=0.1,spread=0.9})
@@ -175,16 +295,80 @@ defmodule BleepWeb.MainLive do
         end
         """
       },
-      %{
-        uuid: "af94a406-5b8e-11ee-8e3a-d2957a874c38",
+       %{
+        uuid: "af94c406-1432-11ee-8e3a-d2c57a361c38",
         kind: :markdown,
         content: """
-        ### Notes
-
-        To do:
-        * At the moment the distortion and delay effects are hardwired - need to factor them out into separate module so that they can be used more generally.
+        ### Putting it all together
+        Techno track - the first part of The Black Dog's "Let's all make brutalism"
         """
+      },
+      %{
+        uuid: "9f258afc-5c45-11ef-bd76-d29a7ff74c38",
+        kind: :editor,
+        lang: :lua,
+        content: """
+        bar=16
+        use_synth("dognoise")
+        push_fx("reverb-medium",{wetLevel=0.3})
+        play(C3,{duration=16,cutoff=100,rate=0.1,level=0.2})
+        play(C3,{duration=16,cutoff=400,rate=0.05,level=0.1, resonance=25})
+        bd = pattern("x-- x-- x- x-- --- x-")
+        lt = pattern("--- --x -- --- --x --")
+        bass = pattern("xx-- --x- --x- ----")
+        hh = pattern("--x-")
+        for i=0,bar*4-1 do
+          if (bd:get(i)>0) then
+            sample("bishi_bass_drum")
+          end
+          if (lt:get(i)>0) then
+            sample("elec_flip")
+          end
+          sleep(0.12)
+        end
+        for i=0,bar*4-1 do
+          if (bd:get(i)>0) then
+            sample("bishi_bass_drum")
+          end
+          if (lt:get(i)>0) then
+            sample("elec_flip")
+          end
+          if (bass:get(i)>0) then
+            use_synth("dogbass")
+            play(A2,{volume=2,cutoff=800})
+          end
+          if (hh:get(i)>0) then
+            use_synth("noisehat")
+            play(G6,{level=0.1})
+          end
+          sleep(0.12)
+        end
+        """
+      },
+      %{
+        uuid: "af94c406-1432-11ee-c3c3-d2c57a361c38",
+        kind: :markdown,
+        content: """
+        Percussion line - not syncing properly
+        """
+      },
+      %{
+      uuid: "9f258afc-5c45-11ef-r2d2-d29a7ff74c38",
+      kind: :editor,
+      lang: :lua,
+      content: """
+      use_synth("noisehat")
+      push_fx("reverb-medium")
+      hh = pattern("842-")
+      for i=0,31 do
+        if (hh:get(i)>0) then
+          play(G6,{level=hh:get(i),decay=0.19,volume=0.2})
+        end
+        sleep(0.12)
+      end  
+      """
       }
+
     ]
   end
 
@@ -201,7 +385,7 @@ defmodule BleepWeb.MainLive do
     assigns = assign(assigns, :markdown, md)
 
     ~H"""
-    <div class="p-8 bg-blue-100 border border-gray-600 bottom-9 rounded-xl dark:bg-slate-100">
+    <div class="mt-8 text-sm p-6 my-12 bg-gray-100 border border-gray-600 bottom-9 rounded dark:bg-slate-100">
       <%= Phoenix.HTML.raw(@markdown) %>
     </div>
     """
@@ -226,7 +410,7 @@ defmodule BleepWeb.MainLive do
     ~H"""
     <div
       id={@uuid}
-      class="flex-col w-100 h-60"
+      class="-mt-12 flex-col w-100 h-60"
       phx-hook="BleepEditor"
       phx-update="ignore"
       data-language="lua"

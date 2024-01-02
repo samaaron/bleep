@@ -3,10 +3,37 @@ import Monitor from "./monitor";
 import { DEBUG_EFFECTS } from "./flags";
 
 // ----------------------------------------------------------------
+// Mapping from bleep reverb names to filenames
+// ----------------------------------------------------------------
+
+export const REVERB_FILENAME = {
+  "reverb": "hall-medium.flac",
+  "reverb-massive": "reactor-hall.flac",
+  "reverb-large": "hall-large-church.flac",
+  "reverb-medium": "hall-medium.flac",
+  "reverb-small": "hall-small.flac",
+  "room-large": "room-large.flac",
+  "room-small": "room-small-bright.flac",
+  "plate-drums": "plate-snare.flac",
+  "plate-vocal": "rich-plate-vocal-2.flac",
+  "plate-large": "plate-large.flac",
+  "plate-small": "plate-small.flac",
+  "ambience-large": "ambience-large.flac",
+  "ambience-medium": "ambience-medium.flac",
+  "ambience-small": "ambience-small.flac",
+  "mic-reslo": "IR_ResloURA.flac",
+  "mic-beyer": "IR_BeyerM500Stock.flac",
+  "mic-foster": "IR_FosterDynamicDF1.flac",
+  "mic-lomo": "IR_Lomo52A5M.flac"
+}
+
+// ----------------------------------------------------------------
 // Reverb - convolutional reverb
 // ----------------------------------------------------------------
 
 export class Reverb extends BleepEffect {
+
+  static REVERB_WET_LEVEL = 0.1
 
   _isValid;
   _convolver;
@@ -23,6 +50,7 @@ export class Reverb extends BleepEffect {
     // connect everything up
     this._wetGain.connect(this._convolver);
     this._convolver.connect(this._out);
+    this.setWetLevel(Reverb.REVERB_WET_LEVEL,ctx.currentTime);
   }
 
   /**

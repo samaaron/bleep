@@ -1,0 +1,52 @@
+@synth noisehat
+longname : simple noise-based hi hat
+type : synth
+author : Guy J Brown
+version : 1.0
+doc : simple noise-based hi hat
+@end
+
+# parameters
+
+@param decay
+type : float
+mutable: yes
+step : 0.01
+min : 0.05
+max : 1
+default : 0.15
+doc : decay
+@end
+
+@param volume
+type : float
+mutable: yes
+step : 0.01
+min : 0
+max : 1
+default : 0.8
+doc : master volume control
+@end
+
+# modules
+
+NOISE : noise
+HPF : highpass
+VCA : vca
+VCA : volume
+DECAY : env
+
+noise.out -> highpass.in
+highpass.out -> vca.in
+vca.out -> volume.in
+volume.out -> audio.in
+volume.level = param.volume
+
+env.out -> vca.levelCV
+env.level = 1
+env.decay = param.decay
+env.attack = 0.01
+
+highpass.cutoff = map(param.level,14000,4000)
+
+# end

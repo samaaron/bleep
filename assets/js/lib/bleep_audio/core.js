@@ -6,7 +6,7 @@ import { DefaultFX } from "./effects";
 import { MonoDelay, StereoDelay } from "./delay";
 import { RolandChorus } from "./chorus";
 import { DeepPhaser, ThickPhaser, PicoPebble } from "./phaser";
-import { Reverb } from "./reverb";
+import { Reverb, REVERB_FILENAME } from "./reverb";
 import Utility from "./utility";
 import { Flanger } from "./flanger";
 import { AutoPan } from "./autopan";
@@ -35,6 +35,8 @@ export default class BleepAudioCore {
       "/bleep_audio/synthdefs/catholicstyle.txt",
       "/bleep_audio/synthdefs/choir.txt",
       "/bleep_audio/synthdefs/default.txt",
+      "/bleep_audio/synthdefs/dogbass.txt",
+      "/bleep_audio/synthdefs/dognoise.txt",
       "/bleep_audio/synthdefs/elpiano.txt",
       "/bleep_audio/synthdefs/filterwobble.txt",
       "/bleep_audio/synthdefs/fmbell.txt",
@@ -42,6 +44,7 @@ export default class BleepAudioCore {
       "/bleep_audio/synthdefs/hammond.txt",
       "/bleep_audio/synthdefs/ninth.txt",
       "/bleep_audio/synthdefs/noise.txt",
+      "/bleep_audio/synthdefs/noisehat.txt",
       "/bleep_audio/synthdefs/pantest.txt",
       "/bleep_audio/synthdefs/randomblips.txt",
       "/bleep_audio/synthdefs/rolandtb.txt",
@@ -105,33 +108,28 @@ export default class BleepAudioCore {
         fx = new PicoPebble(this.#audio_context, this.#monitor);
         break;
       case "reverb":
+      case "reverb-massive":
+      case "reverb-large":
+      case "reverb-medium":
+      case "reverb-small":
+      case "room-large":
+      case "room-small":
+      case "plate-drums":
+      case "plate-vocal":
+      case "plate-large":
+      case "plate-small":
+      case "ambience-large":
+      case "ambience-medium":
+      case "ambience-small":
+      case "mic-reslo":
+      case "mic-beyer":
+      case "mic-foster":
+      case "mic-lomo": 
         fx = new Reverb(this.#audio_context, this.#monitor);
-        fx.load("large-hall.wav");
-        //test
-        // always have reverb
-        fx.setParams({
-          wetLevel: 0.3
-        }, this.#audio_context.currentTime);
+        fx.load(REVERB_FILENAME[fx_name]);
         break;
       case "roland_chorus":
         fx = new RolandChorus(this.#audio_context, this.#monitor);
-        // test
-        // immediately turn the chorus off
-        fx.setParams({
-          rate: 5,
-          depth: 0.8,
-          spread: 0.95,
-          wetLevel: 1,
-          dryLevel: 0
-        }, this.#audio_context.currentTime);
-        // // after 6 seconds turn the chorus fully on
-        // fx.setParams({
-        //   rate: 5,
-        //   depth: 0.8,
-        //   spread: 0.95,
-        //   wetLevel: 1,
-        //   dryLevel:0
-        // }, this.#audio_context.currentTime+6);
         break;
       default:
         console.log(`unknown FX name ${fx_name}`);
