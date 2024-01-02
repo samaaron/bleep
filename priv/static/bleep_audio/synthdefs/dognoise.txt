@@ -1,0 +1,74 @@
+@synth dognoise
+longname : random noise with drifting filter
+type : synth
+author : Guy J Brown
+version : 1.0
+doc : random noise with drifting filter
+@end
+
+# parameters
+
+@param cutoff
+type : float
+mutable: yes
+step : 0.01
+min : 10
+max : 14000
+default : 500
+doc : filter cutoff
+@end
+
+@param rate
+type : float
+mutable: yes
+step : 0.01
+min : 0
+max : 10
+default : 0.1
+doc : LFO rate
+@end
+
+@param resonance
+type : float
+mutable : yes
+step : 0.01
+min : 0
+max : 20
+default : 17
+doc : filter resonance
+@end
+
+# modules
+
+NOISE : noise
+SIN-OSC : lfo
+LPF : lowpass
+LPF : smooth
+VCA : vca
+VCA : gain
+ADSR : env
+
+# patch
+
+lfo.pitch=param.rate
+gain.level=param.cutoff*0.2
+
+lfo.out -> gain.in
+gain.out -> lowpass.cutoffCV
+
+noise.out -> lowpass.in
+lowpass.out -> vca.in
+vca.out -> audio.in
+
+lowpass.cutoff = param.cutoff
+lowpass.resonance = param.resonance
+
+env.attack = 0.1
+env.release = 0.1
+env.decay = 0.1
+env.sustain = param.level
+env.level = param.level
+
+env.out -> vca.levelCV
+
+# end

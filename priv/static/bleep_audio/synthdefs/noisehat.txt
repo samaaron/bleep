@@ -40,6 +40,7 @@ noise.out -> highpass.in
 highpass.out -> vca.in
 vca.out -> volume.in
 volume.out -> audio.in
+volume.level = param.volume
 
 env.out -> vca.levelCV
 env.level = 1

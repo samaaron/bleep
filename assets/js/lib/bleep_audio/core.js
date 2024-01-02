@@ -35,6 +35,8 @@ export default class BleepAudioCore {
       "/bleep_audio/synthdefs/catholicstyle.txt",
       "/bleep_audio/synthdefs/choir.txt",
       "/bleep_audio/synthdefs/default.txt",
+      "/bleep_audio/synthdefs/dogbass.txt",
+      "/bleep_audio/synthdefs/dognoise.txt",
       "/bleep_audio/synthdefs/elpiano.txt",
       "/bleep_audio/synthdefs/filterwobble.txt",
       "/bleep_audio/synthdefs/fmbell.txt",
@@ -120,6 +122,9 @@ export default class BleepAudioCore {
       case "ambience-medium":
       case "ambience-small":
       case "mic-reslo":
+      case "mic-beyer":
+      case "mic-foster":
+      case "mic-lomo": 
         fx = new Reverb(this.#audio_context, this.#monitor);
         fx.load(REVERB_FILENAME[fx_name]);
         break;

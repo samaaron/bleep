@@ -10,8 +10,29 @@ defmodule BleepWeb.MainLive do
 
   def data() do
     [
-        %{
+      %{
         uuid: "af94a406-5b8e-11ff-8e3a-d2957a874c38",
+        kind: :markdown,
+        content: """
+        ### Microphones and more reverbs
+        I have added more reverbs and a small number of
+        microphone impulse responses - so now if you want to listen to Bishi
+        singing into a Sovet Lomo microphone in an abandoned nuclear
+        reactor chamber, you can! Mics and reverbs can be chained together of course. 
+        """
+      },
+            %{
+        uuid: "8e5f23a6-5b8e-2432-8e4c-d2957b474c38",
+        kind: :editor,
+        lang: :lua,
+        content: """
+        push_fx("mic-lomo",{wetLevel=1.2,dryLevel=0})
+        push_fx("reverb-massive",{wetLevel=0.25,dryLevel=1})
+        sample("bishi_verse")
+        """
+      },
+        %{
+        uuid: "af94a406-5b8e-76aa-8e3a-d29aca874ca8",
         kind: :markdown,
         content: """
         ### Note names
@@ -278,7 +299,7 @@ defmodule BleepWeb.MainLive do
         kind: :markdown,
         content: """
         ### Putting it all together
-        Techno track
+        Techno track - the first part of The Black Dogs "Let's all make brutalism"
         """
       },
       %{
@@ -286,21 +307,67 @@ defmodule BleepWeb.MainLive do
         kind: :editor,
         lang: :lua,
         content: """
-        use_synth("noise")
-        play(C3,{duration=4,cutoff=100})
+        bar=16
+        use_synth("dognoise")
+        push_fx("reverb-medium",{wetLevel=0.3})
+        play(C3,{duration=16,cutoff=100,rate=0.1,level=0.2})
+        play(C3,{duration=16,cutoff=400,rate=0.05,level=0.1, resonance=25})
         bd = pattern("x-- x-- x- x-- --- x-")
         lt = pattern("--- --x -- --- --x --")
-        for i=0,31 do
+        bass = pattern("xx-- --x- --x- ----")
+        hh = pattern("--x-")
+        for i=0,bar*4-1 do
           if (bd:get(i)>0) then
             sample("bishi_bass_drum")
           end
-            if (lt:get(i)>0) then
+          if (lt:get(i)>0) then
             sample("elec_flip")
           end
-          sleep(0.125)
+          sleep(0.12)
+        end
+        for i=0,bar*4-1 do
+          if (bd:get(i)>0) then
+            sample("bishi_bass_drum")
+          end
+          if (lt:get(i)>0) then
+            sample("elec_flip")
+          end
+          if (bass:get(i)>0) then
+            use_synth("dogbass")
+            play(A2,{volume=2,cutoff=800})
+          end
+          if (hh:get(i)>0) then
+            use_synth("noisehat")
+            play(G6,{level=0.1})
+          end
+          sleep(0.12)
         end
         """
+      },
+      %{
+        uuid: "af94c406-1432-11ee-c3c3-d2c57a361c38",
+        kind: :markdown,
+        content: """
+        Percussion line - not syncing properly
+        """
+      },
+      %{
+      uuid: "9f258afc-5c45-11ef-r2d2-d29a7ff74c38",
+      kind: :editor,
+      lang: :lua,
+      content: """
+      use_synth("noisehat")
+      push_fx("reverb-medium")
+      hh = pattern("842-")
+      for i=0,31 do
+        if (hh:get(i)>0) then
+          play(G6,{level=hh:get(i),decay=0.19,volume=0.2})
+        end
+        sleep(0.12)
+      end  
+      """
       }
+
     ]
   end
 
