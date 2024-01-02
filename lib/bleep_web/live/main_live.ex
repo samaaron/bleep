@@ -299,7 +299,7 @@ defmodule BleepWeb.MainLive do
         kind: :markdown,
         content: """
         ### Putting it all together
-        Techno track - the first part of The Black Dogs "Let's all make brutalism"
+        Techno track - the first part of The Black Dog's "Let's all make brutalism"
         """
       },
       %{
