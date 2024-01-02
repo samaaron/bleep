@@ -107,7 +107,10 @@ export default class BleepAudioCore {
         break;
       case "reverb":
         fx = new Reverb(this.#audio_context, this.#monitor);
-        fx.load("hall-medium.flc");
+        fx.load("st_albans.flc");
+        //fx.load("hall-medium.flc");
+        //fx.load("hall-medium.flc");
+        //fx.load("hall-medium.flc");
         //test
         // always have reverb
         fx.setParams({

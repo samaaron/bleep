@@ -1,7 +1,7 @@
-# Lexicon 480L Impulse Responses
+# Lexicon 480L impulse responses
 
 These impulse responses were recorded from a Lexicon 480L by Big Gee and are
-widely available on internet file sharing sites. We believe these files are in
+widely available on internet file sharing sites. These files are in
 the public domain and have been made available without any licence restrictions.
 
 Source:
@@ -13,3 +13,16 @@ We renamed the files for consistency and saved them in FLAC format 16 bit, 44.1 
 ```
 for file in *.aif; do sox $file -r 44100 -b 16 -c 2 -t flac ./FLAC/${file%.*}.flc -V reverse silence 1 0.1 0.01% reverse; done
 ```
+
+# OpenAIR impulses responses
+
+Obtained from https://www.openair.hosted.york.ac.uk/ at the University of York
+Distributed under CC4.0 https://creativecommons.org/licenses/by/4.0/
+
+We converted these to FLAC 16 bit 44.1 kHz but otherwise didn't mess with them.
+
+| filename | description | link |
+| -------- | --------- | ------------ |
+| reactor_hall.flc | R1 Nuclear Reactor Hall | https://www.openair.hosted.york.ac.uk/?page_id=626 |
+| st_albans.flc | Lady Chapel, St Albans Cathedral | https://www.openair.hosted.york.ac.uk/?page_id=595 |
+
