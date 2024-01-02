@@ -190,10 +190,14 @@ export default class BleepAudioCore {
   }
 
   #triggerBuffer(time, buffer, output_node, opts) {
+    // TODO : opts is always undefined @samaaron
     const audio_context_sched_s = this.#clockTimeToAudioTime(time);
     let source = this.#audio_context.createBufferSource();
+    // untested since opts isnt working yet - should set sample playback rate
+    source.playbackRate.value = opts.rate !== undefined ? opts.rate : 1; // untested
     let gain = this.#audio_context.createGain();
-    gain.gain.value = 1;
+    // untested since opts isn't working yet - should set the playback level of the sample
+    gain.gain.value = opts.level !== undefined ? opts.level : 1; // untested
     source.connect(gain);
     source.buffer = buffer;
 
@@ -210,6 +214,10 @@ export default class BleepAudioCore {
   }
 
   triggerOneshotSynth(time, synthdef_id, output_id, opts) {
+
+    console.log("OPTIONS");
+    console.log(opts);
+
     let output_node = this.#resolveOutputId(output_id);
     const delta_s = time - this.#initial_wallclock_time_s + 0.2;
     const audio_context_sched_s = this.#base_audio_context_time_s + delta_s; //- this.audio_context.baseLatency
