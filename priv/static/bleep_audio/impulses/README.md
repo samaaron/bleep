@@ -21,8 +21,22 @@ Distributed under CC4.0 https://creativecommons.org/licenses/by/4.0/
 
 We converted these to FLAC 16 bit 44.1 kHz but otherwise didn't mess with them.
 
-| filename | description | link |
-| -------- | --------- | ------------ |
-| reactor_hall.flc | R1 Nuclear Reactor Hall | https://www.openair.hosted.york.ac.uk/?page_id=626 |
-| st_albans.flc | Lady Chapel, St Albans Cathedral | https://www.openair.hosted.york.ac.uk/?page_id=595 |
+# Selected impulse responses
+
+| bleep name | filename | description | source |
+| ---------- | -------- | ----------- | ------ |
+| reverb | hall-medium.flc | Medium hall | Lexicon |
+| reverb-massive | reactor-hall.flc | R1 nuclear reactor hall | OpenAIR |
+| reverb-large | hall-large-church.flc | Large church | Lexicon |
+| reverb-medium | hall-medium.flc | Medium hall | Lexicon |
+| reverb-small | hall-small.flc | Small hall | Lexicon |
+| room-large | room-large.flc | Large room | Lexicon |
+| room-small | room-small-bright.flc | Small room | Lexicon |
+| plate-drums | plate-snare.flc | Plate reverb suitable for drums | Lexicon |
+| plate-vocal | rich-plate-vocal-2.flc | Plate reverb suitable for vocals | Lexicon |
+| plate-large | plate-large.flc | Large plate reverb | Lexicon |
+| plate-small | plate-small.flc | Small plate reverb | Lexicon |
+| ambience-large | ambience-large.flc | Large ambience | Lexicon | 
+| ambience-medium | ambience-medium.flc | Medium ambience | Lexicon | 
+| ambience-small |ambience-small.flc | Small ambience | Lexicon | 
 

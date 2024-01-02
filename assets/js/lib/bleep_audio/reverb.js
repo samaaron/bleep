@@ -3,10 +3,33 @@ import Monitor from "./monitor";
 import { DEBUG_EFFECTS } from "./flags";
 
 // ----------------------------------------------------------------
+// Mapping from bleep reverb names to filenames
+// ----------------------------------------------------------------
+
+export const REVERB_FILENAME = {
+  "reverb": "hall-medium.flc",
+  "reverb-massive": "reactor-hall.flc",
+  "reverb-large": "hall-large-church.flc",
+  "reverb-medium": "hall-medium.flc",
+  "reverb-small": "hall-small.flc",
+  "room-large": "room-large.flc",
+  "room-small": "room-small-bright.flc",
+  "plate-drums": "plate-snare.flc",
+  "plate-vocal": "rich-plate-vocal-2.flc",
+  "plate-large": "plate-large.flc",
+  "plate-small": "plate-small.flc",
+  "ambience-large": "ambience-large.flc",
+  "ambience-medium": "ambience-medium.flc",
+  "ambience-small": "ambience-small.flc"
+}
+
+// ----------------------------------------------------------------
 // Reverb - convolutional reverb
 // ----------------------------------------------------------------
 
 export class Reverb extends BleepEffect {
+
+  static REVERB_WET_LEVEL = 0.1
 
   _isValid;
   _convolver;
@@ -23,6 +46,7 @@ export class Reverb extends BleepEffect {
     // connect everything up
     this._wetGain.connect(this._convolver);
     this._convolver.connect(this._out);
+    this.setWetLevel(Reverb.REVERB_WET_LEVEL,ctx.currentTime);
   }
 
   /**

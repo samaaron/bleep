@@ -167,7 +167,8 @@ defmodule BleepWeb.MainLive do
 
         use_synth("fmbell")
         push_fx("stereo_delay",{wetLevel=0.1,leftDelay=0.4,rightDelay=0.6})
-        push_fx("reverb",{wetLevel=0.2})
+        -- new reverb impulse responses!
+        push_fx("plate-large",{wetLevel=0.2})
         upper = scale(pelog_sedeng,D4,2):shuffle()
         lower = scale(pelog_sedeng,D3):shuffle()
         for i=0,32 do
@@ -202,7 +203,8 @@ defmodule BleepWeb.MainLive do
         sd = pattern("---- x--- ---- x---")
         hh = euclidean(9,16)
         bd = pattern("x--- --x- x--- ----")
-        push_fx("reverb",{wetLevel=0.1})
+        -- lots of new impulse responses to try!
+        push_fx("plate-drums",{wetLevel=0.1})
         for i=0,31 do
           if (sd:get(i)>0) then
             sample("bishi_snare")
@@ -222,7 +224,6 @@ defmodule BleepWeb.MainLive do
         sd = pattern("---- x--- ---- x---")
         hh = pattern("xx4- 5-3- x-4- x-51")
         bd = pattern("x--- --x- x--- ----")
-        push_fx("reverb",{wetLevel=0.1})
         for i=0,31 do
           if (sd:get(i)>0) then
             sample("bishi_snare")
