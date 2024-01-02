@@ -432,6 +432,12 @@ function pattern(seq)
     return Ring.new(array)
 end
 
+-- helper function
+
+function hasBeat(ptn,index)
+    return ptn:get(index)>0
+end
+
 -- ===============================================================
 -- Euclidean rhythms 
 -- ===============================================================

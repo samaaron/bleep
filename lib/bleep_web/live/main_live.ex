@@ -313,31 +313,31 @@ defmodule BleepWeb.MainLive do
         push_fx("reverb-medium",{wetLevel=0.3})
         play(C3,{duration=16,cutoff=100,rate=0.1,level=0.2})
         play(C3,{duration=16,cutoff=400,rate=0.05,level=0.1, resonance=25})
-        bd = pattern("x-- x-- x- x-- --- x-")
-        lt = pattern("--- --x -- --- --x --")
-        bass = pattern("xx-- --x- --x- ----")
-        hh = pattern("--x-")
+        bass_drum = pattern("x-- x-- x- x-- --- x-")
+        low_tom = pattern("--- --x -- --- --x --")
+        bass_synth = pattern("xx-- --x- --x- ----")
+        hi_hat = pattern("--x-")
         for i=0,bar*4-1 do
-          if (bd:get(i)>0) then
+          if hasBeat(bass_drum,i) then
             sample("bishi_bass_drum")
           end
-          if (lt:get(i)>0) then
+          if hasBeat(low_tom,i) then
             sample("elec_flip")
           end
           sleep(0.12)
         end
         for i=0,bar*4-1 do
-          if (bd:get(i)>0) then
+          if hasBeat(bass_drum,i) then
             sample("bishi_bass_drum")
           end
-          if (lt:get(i)>0) then
+          if hasBeat(low_tom,i) then
             sample("elec_flip")
           end
-          if (bass:get(i)>0) then
+          if hasBeat(bass_synth,i) then
             use_synth("dogbass")
             play(A2,{volume=2,cutoff=800})
           end
-          if (hh:get(i)>0) then
+          if hasBeat(hi_hat,i) then
             use_synth("noisehat")
             play(G6,{level=0.1})
           end
