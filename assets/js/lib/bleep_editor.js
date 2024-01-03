@@ -6,6 +6,30 @@ self.MonacoEnvironment = {
   },
 };
 
+monaco.editor.defineTheme("bleep-dark", {
+  base: "vs-dark",
+  inherit: true,
+  rules: [
+    { token: "", foreground: "#ededed" },
+    { token: "keyword", foreground: "#939bA2" },
+    { token: "comment", foreground: "#808080" },
+    { token: "number", foreground: "#82AAFF" },
+    { token: "string", foreground: "#61CE3C" },
+    { token: "keyword", foreground: "#ff1493" },
+    { token: "identifier", foreground: "#d3ded3" },
+  ],
+  colors: {
+    "editor.background": "#000000", // RGBA for transparency
+    "editor.selectionBackground": "#FF8C0090",
+    "editorBracketMatch.background": "#FF8C0050",
+    "editorBracketMatch.border": "#FF8C0050",
+    "editorLineNumber.foreground": "#808080",
+    "editorBracketHighlight.foreground1": "#808080",
+    "editorBracketHighlight.foreground2": "#707070",
+    "editorBracketHighlight.foreground3": "#808080",
+  },
+});
+
 const BleepEditor = {
   mounted() {
     const { path, language, content, runButtonId, cueButtonId } =
@@ -15,9 +39,12 @@ const BleepEditor = {
     const container = this.el.querySelector("[monaco-code-editor]");
 
     this.editor = monaco.editor.create(container, {
-      theme: "vs-dark",
+      theme: "bleep-dark",
       value: content,
       language: language,
+      matchBrackets: true,
+      bracketPairColorization: { enabled: true },
+
       minimap: {
         enabled: false,
       },
