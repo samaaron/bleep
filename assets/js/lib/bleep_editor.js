@@ -25,8 +25,16 @@ const BleepEditor = {
 
     run_button.addEventListener("click", (e) => {
       window.bleep.idempotentInit();
+      const code = this.editor.getValue();
+      const formatted = luamin.Beautify(code, {
+        RenameVariables: false,
+        RenameGlobals: false,
+        SolveMath: false,
+      });
+
+      this.editor.setValue(formatted);
       this.pushEvent("eval-code", {
-        value: this.editor.getValue(),
+        value: formatted,
         path: path,
       });
       console.log(this.editor.getValue());

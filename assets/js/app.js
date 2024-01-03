@@ -24,6 +24,8 @@ import { LiveSocket } from "phoenix_live_view";
 // Vendored libs
 import topbar from "../vendor/topbar";
 import mermaid from "../vendor/mermaid";
+import luamin from "../vendor/luamin";
+window.luamin = luamin;
 
 // Internal libs
 import BleepEditor from "./lib/bleep_editor";
