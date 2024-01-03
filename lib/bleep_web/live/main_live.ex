@@ -36,7 +36,7 @@ defmodule BleepWeb.MainLive do
         uuid: "af94a406-5b8e-76aa-8e3a-d29aca874ca8",
         kind: :markdown,
         content: """
-        ### Note names
+        ### Note names and playing timed patterns
         MIDI names are now defined as globals in Lua. Transposition is easy, e.g. you can write play(G3+2).
         """
       },
@@ -48,21 +48,13 @@ defmodule BleepWeb.MainLive do
         use_synth("sawlead")
         push_fx("stereo_delay",{leftDelay=0.3,rightDelay=0.6,feedback=0.2,wetLevel=0.2})
         push_fx("reverb",{wetLevel=0.2})
-        play(D4,{duration=0.25})
-        sleep(0.3)
-        play(G4,{duration=0.25})
-        sleep(0.3)
-        play(G4,{duration=0.12})
-        sleep(0.15)
-        play(A4,{duration=0.12})
-        sleep(0.15)
-        play(G4,{duration=0.12})
-        sleep(0.15)
-        play(Fs4,{duration=0.12})
-        sleep(0.15)
-        play(E4,{duration=0.25})
-        sleep(0.3)
-        play(E4,{duration=0.5})
+        -- now have a play_pattern function mostly like Sonic Pi but with tweaks
+        notes = {D4,G4,G4,A4,G4,Fs4,E4,E4}
+        durs = {0.3,0.3,0.15,0.15,0.15,0.15,0.3,0.5}
+        -- the last parameter is the gate length
+        play_pattern(notes,durs,0.4)
+        sleep(0.5)
+        play_pattern(notes,durs,0.95)
         """
       },
       %{
@@ -315,8 +307,9 @@ defmodule BleepWeb.MainLive do
         play(C3,{duration=16,cutoff=400,rate=0.05,level=0.1, resonance=25})
         bass_drum = pattern("x-- x-- x- x-- --- x-")
         low_tom = pattern("--- --x -- --- --x --")
-        bass_synth = pattern("xx-- --x- --x- ----")
+        bass_synth = pattern("xx-2 --x- -x2- ----")
         hi_hat = pattern("--x-")
+        -- now have a convenience function for deciding if there is a beat
         for i=0,bar*4-1 do
           if hasBeat(bass_drum,i) then
             sample("bishi_bass_drum")
@@ -335,11 +328,15 @@ defmodule BleepWeb.MainLive do
           end
           if hasBeat(bass_synth,i) then
             use_synth("dogbass")
-            play(A2,{volume=2,cutoff=800})
+            if bass_synth:get(i)<0.5 then
+                play(A2,{volume=0.7,cutoff=800,bend=A7})
+            else
+                play(A2,{volume=2,cutoff=800})
+            end
           end
           if hasBeat(hi_hat,i) then
             use_synth("noisehat")
-            play(G6,{level=0.1})
+            play(G6,{volume=0.2})
           end
           sleep(0.12)
         end
@@ -367,8 +364,32 @@ defmodule BleepWeb.MainLive do
         sleep(0.12)
       end  
       """
+      },
+      %{
+        uuid: "ac242406-1432-11ee-c3c3-d2c57b817c38",
+        kind: :markdown,
+        content: """
+        Sliding notes - essential for doggy techno
+        """
+      },
+      %{
+      uuid: "9f258afc-5c45-44ef-r2d2-d29a7aa43c38",
+      kind: :editor,
+      lang: :lua,
+      content: """
+      use_synth("dogbass")
+      push_fx("reverb-medium")
+      t=0.12
+      for i=1,4 do
+      play(C3,{duration=0.1})
+      sleep(t)
+      play(C3,{duration=0.1})
+      sleep(t*3)
+      play(C3,{duration=t*3,bend=C4})
+      sleep(t*4)
+      end
+      """
       }
-
     ]
   end
 

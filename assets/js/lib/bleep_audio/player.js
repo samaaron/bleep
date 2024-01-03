@@ -1,4 +1,5 @@
 import { getModuleInstance } from "./modules";
+import Utility from "./utility";
 
 const VERBOSE = false;
 
@@ -57,7 +58,6 @@ export default Player = class {
   #applyTweaks() {
     for (let t of this.#generator.tweaks) {
       let obj = this.#node[t.id];
-
       let val = this.#evaluatePostfix(t.expression);
       obj[t.param] = val;
     }
@@ -94,13 +94,27 @@ export default Player = class {
       }
       env.apply(obj[e.to.param], when, this.#params.duration);
     }
+    // stop time
+    const stopTime = when + this.#params.duration + longestRelease;
+    // was there a pitch bend? b
+    if (this.#params.bend!==undefined) {
+      // work out the target frequency to bend to
+      const targetFreq = Utility.midiNoteToHz(this.#params.bend);
+      // only oscillators have a bend function
+      // note that this doesn't work for the pulse oscillator currently
+      Object.values(this.#node).forEach((m) => {
+        if (typeof m.bend==="function") {
+          m.bend(this.#params.pitch,when,targetFreq,stopTime);
+          }
+        });
+    }
     // start all the nodes that have a start function
     Object.values(this.#node).forEach((m) => {
       m.start?.(when);
     });
     // stop all the nodes after duration + longest release
     Object.values(this.#node).forEach((m) => {
-      m.stop?.(when + this.#params.duration + longestRelease);
+      m.stop?.(stopTime);
     });
   }
 
