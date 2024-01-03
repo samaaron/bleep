@@ -432,10 +432,10 @@ function pattern(seq)
     return Ring.new(array)
 end
 
--- helper function
+-- helper functions
 
-function hasBeat(ptn,index)
-    return ptn:get(index)>0
+function hasBeat(pattern_name,index)
+    return pattern_name:get(index)>0
 end
 
 -- ===============================================================
