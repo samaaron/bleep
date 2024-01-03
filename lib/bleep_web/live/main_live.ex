@@ -18,11 +18,11 @@ defmodule BleepWeb.MainLive do
         I have added more reverbs and a small number of
         microphone impulse responses - so now if you want to listen to Bishi
         singing into a Sovet Lomo microphone in an abandoned nuclear
-        reactor chamber, you can! Mics and reverbs can be chained together of course. 
-        See the README file in the impulses folder. 
+        reactor chamber, you can! Mics and reverbs can be chained together of course.
+        See the README file in the impulses folder.
         """
       },
-            %{
+      %{
         uuid: "8e5f23a6-5b8e-2432-8e4c-d2957b474c38",
         kind: :editor,
         lang: :lua,
@@ -32,7 +32,7 @@ defmodule BleepWeb.MainLive do
         sample("bishi_verse")
         """
       },
-        %{
+      %{
         uuid: "af94a406-5b8e-76aa-8e3a-d29aca874ca8",
         kind: :markdown,
         content: """
@@ -40,7 +40,7 @@ defmodule BleepWeb.MainLive do
         MIDI names are now defined as globals in Lua. Transposition is easy, e.g. you can write play(G3+2).
         """
       },
-            %{
+      %{
         uuid: "8e5a73a6-5b8e-2432-8e4c-d2957a874c38",
         kind: :editor,
         lang: :lua,
@@ -71,27 +71,27 @@ defmodule BleepWeb.MainLive do
         content: """
         ### Rings
         Closely based on the approach in Sonic Pi, with the following implemented:
-        * **pick(n)** - selects n values in a new ring
-        * **clone(n)** - like repeat in Sonic Pi (repeat is a Lua keyword so we cant use it), returns a new ring that contains n copies
-        * **shuffle()** - returns a new ring that is random shuffle
-        * **reverse()** - returns a new ring that is time-reversed
-        * **stretch(n)** - duplicates each value n times, makes a new ring
-        * **length()** - get the length of the ring
-        * **head(n)** - makes a new ring from the first n elements
-        * **tail(n)** - makes a new ring from the last n elements
-        * **slice(a,b)** - returns a new ring sliced from a to b (first element is zero)
-        * **concat(r)** - concatenates the current ring with r, returns a new ring
-        * **multiply(s)** - returns a new ring, each element multiplied by s
-        * **add(s)** - return a new ring, each element summed with s
-        * **mirror()** - returns a mirror of the ring
-        * **reflect()** - returns a mirror with the duplicate middle element removed
-        * **sort()** - return a sorted ring
+        * `pick(n)` - selects n values in a new ring
+        * `clone(n)` - like repeat in Sonic Pi (repeat is a Lua keyword so we cant use it), returns a new ring that contains n copies
+        * `shuffle()` - returns a new ring that is random shuffle
+        * `reverse()` - returns a new ring that is time-reversed
+        * `stretch(n)` - duplicates each value n times, makes a new ring
+        * `length()` - get the length of the ring
+        * `head(n)` - makes a new ring from the first n elements
+        * `tail(n)` - makes a new ring from the last n elements
+        * `slice(a,b)` - returns a new ring sliced from a to b (first element is zero)
+        * `concat(r)` - concatenates the current ring with r, returns a new ring
+        * `multiply(s)` - returns a new ring, each element multiplied by s
+        * `add(s)` - return a new ring, each element summed with s
+        * `mirror()` - returns a mirror of the ring
+        * `reflect()` - returns a mirror with the duplicate middle element removed
+        * `sort()` - return a sorted ring
         ### chaining
         As in Sonic Pi I have written all these so that rings are immutable and operations return a copy,
         so you can chain operations together
         ### get and set
-        In theory we should be able to use array index notation with a custom class in lua, e.g. myring[3] 
-        instead of myring:get(3). I have this working in a lua 5.3 installation but it doesn't work in luerl 
+        In theory we should be able to use array index notation with a custom class in lua, e.g. myring[3]
+        instead of myring:get(3). I have this working in a lua 5.3 installation but it doesn't work in luerl
         (I note that the docs for luerl say that metatables are not correctly implemented). I have commented
         that code out for the time being.
         """
@@ -139,7 +139,7 @@ defmodule BleepWeb.MainLive do
           sleep(0.125)
         end
         sleep(0.5)
-        -- concatenation 
+        -- concatenation
         use_synth("rolandtb")
         part1 = ring({C3,C3,D3,C3,Ds3,C3,F3,Ds3})
         part2 = ring({F3,F3,G3,F3,Gs3,F3,As3,Gs3})
@@ -163,7 +163,7 @@ defmodule BleepWeb.MainLive do
         content: """
         ### Scales
         An implementation of scales, again very similar to Sonic Pi. A lot of scales are predefined which
-        are just Lua tables of MIDI note intervals such as {1,2,1,1,2,1} etc. These can be fractional for 
+        are just Lua tables of MIDI note intervals such as {1,2,1,1,2,1} etc. These can be fractional for
         microtonal scales. As in Sonic Pi, a scale is a Ring - so any of the functions above can be invoked
         on a scale.
         """
@@ -210,11 +210,11 @@ defmodule BleepWeb.MainLive do
         Two functions for playing patterns:
 
         **pattern(s)** takes a string **s** in x-xx form and returns a ring containing numerical values. "x" is
-        mapped to 1 and "-" is mapped to zero. Digits 1-9 are mapped to 0.1 to 0.9. So the pattern can be used 
-        to represent sound level (velocity) as well as note ons. 
+        mapped to 1 and "-" is mapped to zero. Digits 1-9 are mapped to 0.1 to 0.9. So the pattern can be used
+        to represent sound level (velocity) as well as note ons.
 
-        **euclidean(h,n,p)** makes a euclidean pattern given the number of hits **h**, length of the sequence **n** and (optionally) 
-        the phase **p**. A phase of p right-shifts the pattern to the right by p steps. A ring is returned with 0,1 values. 
+        **euclidean(h,n,p)** makes a euclidean pattern given the number of hits **h**, length of the sequence **n** and (optionally)
+        the phase **p**. A phase of p right-shifts the pattern to the right by p steps. A ring is returned with 0,1 values.
         """
       },
       %{
@@ -260,7 +260,7 @@ defmodule BleepWeb.MainLive do
         end
         """
       },
-          %{
+      %{
         uuid: "af94a406-1432-11ee-8e3a-d2957a874c38",
         kind: :markdown,
         content: """
@@ -295,7 +295,7 @@ defmodule BleepWeb.MainLive do
         end
         """
       },
-       %{
+      %{
         uuid: "af94c406-1432-11ee-8e3a-d2c57a361c38",
         kind: :markdown,
         content: """
@@ -353,22 +353,21 @@ defmodule BleepWeb.MainLive do
         """
       },
       %{
-      uuid: "9f258afc-5c45-11ef-r2d2-d29a7ff74c38",
-      kind: :editor,
-      lang: :lua,
-      content: """
-      use_synth("noisehat")
-      push_fx("reverb-medium")
-      hh = pattern("842-")
-      for i=0,31 do
-        if (hh:get(i)>0) then
-          play(G6,{level=hh:get(i),decay=0.19,volume=0.2})
+        uuid: "9f258afc-5c45-11ef-r2d2-d29a7ff74c38",
+        kind: :editor,
+        lang: :lua,
+        content: """
+        use_synth("noisehat")
+        push_fx("reverb-medium")
+        hh = pattern("842-")
+        for i=0,31 do
+          if (hh:get(i)>0) then
+            play(G6,{level=hh:get(i),decay=0.19,volume=0.2})
+          end
+          sleep(0.12)
         end
-        sleep(0.12)
-      end  
-      """
+        """
       }
-
     ]
   end
 
@@ -385,7 +384,7 @@ defmodule BleepWeb.MainLive do
     assigns = assign(assigns, :markdown, md)
 
     ~H"""
-    <div class="mt-8 text-sm p-6 my-12 bg-gray-100 border border-gray-600 bottom-9 rounded dark:bg-slate-100">
+    <div class="p-6 my-12 mt-8 text-sm border rounded border-zinc-600 text-zinc-200 bg-zinc-500 bottom-9 dark:bg-zinc-700">
       <%= Phoenix.HTML.raw(@markdown) %>
     </div>
     """
@@ -393,7 +392,7 @@ defmodule BleepWeb.MainLive do
 
   def render_frag(%{kind: :mermaid} = assigns) do
     ~H"""
-    <div class="p-8 bg-blue-100 border border-gray-600 rounded-xl dark:bg-slate-100">
+    <div class="p-8 bg-blue-100 border border-zinc-600 rounded-xl dark:bg-slate-100">
       <div class="mermaid" phx-update="ignore" id={@uuid}>
         <%= @content %>
       </div>
@@ -410,7 +409,7 @@ defmodule BleepWeb.MainLive do
     ~H"""
     <div
       id={@uuid}
-      class="-mt-12 flex-col w-100 h-60"
+      class="flex-col -mt-12 w-100 h-60"
       phx-hook="BleepEditor"
       phx-update="ignore"
       data-language="lua"
@@ -421,16 +420,16 @@ defmodule BleepWeb.MainLive do
       data-cue-button-id={@cue_button_id}
     >
       <button
-        class="px-2 py-1 font-bold text-white bg-blue-500 rounded hover:bg-pink-600"
-        id={@cue_button_id}
-      >
-        Cue
-      </button>
-      <button
-        class="px-2 py-1 font-bold text-white bg-blue-500 rounded hover:bg-pink-600"
+        class="px-2 py-1 font-bold text-white bg-orange-600 rounded hover:bg-orange-800"
         id={@run_button_id}
       >
         Run
+      </button>
+      <button
+        class="px-2 py-1 font-bold text-white bg-orange-600 rounded hover:bg-orange-800"
+        id={@cue_button_id}
+      >
+        Cue
       </button>
       <div class="w-full h-full" id={@monaco_id} monaco-code-editor></div>
     </div>
@@ -440,36 +439,6 @@ defmodule BleepWeb.MainLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div id="bleep-init-modal" class="fixed top-0 left-0 z-50 w-full h-full">
-      <div class="flex flex-col justify-center p-4 text-left text-white bg-gray-800 ">
-        <div class="flex flex-col pb-2 bg-gray-700">
-          <%!-- <img src={~p"/images/bleep_logo.png"} width="150" /> --%>
-          <div></div>
-          <div></div>
-        </div>
-
-        <div class="p-1 text-center bg-gray-700">
-          <p class="text-2xl font-bold">Welcome to Bleep</p>
-          <p>Code your future....</p>
-          <button
-            id="bleep-init-button"
-            class="p-3 px-10 m-3 text-white bg-orange-700 rounded-lg modal-close hover:bg-indigo-400"
-          >
-            Start
-          </button>
-        </div>
-        <div class="flex flex-row justify-center bg-gray-700">
-          <div>
-            <p class="p-5 text-xs">Created by <br /> Sam Aaron &#38; Guy Brown</p>
-          </div>
-          <div class="flex-grow"></div>
-          <div class="flex justify-right">
-            <img src={~p"/images/UOSLogo_Primary_White_RGB.svg"} width="150" class="p-5" />
-          </div>
-        </div>
-      </div>
-    </div>
-
     <%= for frag <- @data do %>
       <div class="p-2 ">
         <.render_frag {frag} />

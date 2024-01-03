@@ -5,20 +5,31 @@
 @layer base {
   h1 {
     @apply text-2xl;
-    @apply text-pink-600;
+    @apply text-orange-600;
+    @apply pb-2;
+    @apply pt-4;
   }
   h2 {
     @apply text-xl;
-    @apply text-pink-600;
+    @apply text-orange-600;
+    @apply pb-2;
+    @apply pt-4;
   }
   h3 {
     @apply text-xl;
-    @apply text-pink-600;
+    @apply text-orange-600;
+    @apply pb-2;
+    @apply pt-4;
   }
   ol {
     @apply list-disc;
+    @apply list-inside;
   }
   ul {
     @apply list-disc;
+    @apply list-inside;
+  }
+  code {
+    @apply text-zinc-400;
   }
 }

@@ -8,9 +8,8 @@
         v0.0.1
       </p>
     </div>
-    <div class="flex items-center gap-4 font-semibold leading-6 text-zinc-900">
-
-      <a href="https://github.com/samaaron/bleep" class="hover:text-zinc-700">
+    <div class="flex items-center gap-4 font-semibold leading-6 text-zinc-400">
+      <a href="https://github.com/samaaron/bleep" class="hover:text-zinc-400">
         GitHub
       </a>
       <a
@@ -26,5 +25,38 @@
   <div class="max-w-2xl mx-auto">
     <.flash_group flash={@flash} />
     <%= @inner_content %>
+  </div>
+
+  <div
+    id="bleep-init-modal"
+    class="fixed top-0 left-0 z-50 w-full h-full backdrop-grayscale backdrop-brightness-50 backdrop-contrast-50 backdrop-blur-sm"
+  >
+    <div class="flex flex-col justify-center p-4 text-left text-white backgrop-blur">
+      <div class="flex flex-col pb-2 bg-zinc-800">
+        <%!-- <img src={~p"/images/bleep_logo.png"} width="150" /> --%>
+        <div></div>
+        <div></div>
+      </div>
+
+      <div class="p-1 text-center bg-zinc-800">
+        <p class="text-2xl font-bold">Welcome to Bleep</p>
+        <p>Code your future....</p>
+        <button
+          id="bleep-init-button"
+          class="p-2 px-10 m-3 text-white bg-orange-800 rounded-sm modal-close hover:bg-orange-900 animate-pulse"
+        >
+          Start
+        </button>
+      </div>
+      <div class="flex flex-row justify-center bg-orange-800">
+        <div>
+          <p class="p-5 text-xs">Created by <br /> Sam Aaron &#38; Guy Brown</p>
+        </div>
+        <div class="flex-grow"></div>
+        <div class="flex justify-right">
+          <img src={~p"/images/UOSLogo_Primary_White_RGB.svg"} width="150" class="p-5" />
+        </div>
+      </div>
+    </div>
   </div>
 </main>

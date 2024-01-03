@@ -46,7 +46,7 @@ const BleepEditor = {
       bracketPairColorization: { enabled: true },
 
       minimap: {
-        enabled: false,
+        enabled: true,
       },
     });
 

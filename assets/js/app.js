@@ -79,9 +79,16 @@ window.addEventListener(`phx:bleep-audio`, (e) => {
 });
 
 function bleep_modal_clicked() {
+  bleep_init_modal.classList.add('transition', 'ease-out', 'duration-1000', 'opacity-100');
+
   document.removeEventListener("keydown", bleep_modal_clicked);
   bleep.idempotentInit();
-  bleep_init_modal.style.display = "none";
+    bleep_init_modal.classList.remove('opacity-100');
+    bleep_init_modal.classList.add('opacity-0');
+
+    setTimeout(() => {
+        bleep_init_modal.style.display = 'none';
+    }, 1000);
 }
 
 bleep_init_button.addEventListener("click", (e) => {
