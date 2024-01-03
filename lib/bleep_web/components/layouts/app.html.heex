@@ -16,7 +16,8 @@
         href="https://hexdocs.pm/phoenix/overview.html"
         class="px-2 py-1 rounded-lg bg-zinc-100 hover:bg-zinc-200/80"
       >
-        Help <n aria-hidden="true">&rarr;</n>
+        Help
+        <n aria-hidden="true">&rarr;</n>
       </a>
     </div>
   </div>
@@ -32,29 +33,26 @@
     class="fixed top-0 left-0 z-50 w-full h-full backdrop-grayscale backdrop-brightness-50 backdrop-contrast-50 backdrop-blur-sm"
   >
     <div class="flex flex-col justify-center p-4 text-left text-white backgrop-blur">
-      <div class="flex flex-col pb-2 bg-zinc-800">
-        <%!-- <img src={~p"/images/bleep_logo.png"} width="150" /> --%>
-        <div></div>
-        <div></div>
-      </div>
+      <div class="bg-[url('/images/bleep-splash.png')]  bg-cover text-center pt-5 bg-opacity-10 bg-">
+        <div class="p-1 text-center]">
+          <p class="text-2xl font-bold">Welcome to Bleep</p>
+          <p>Code your future....</p>
 
-      <div class="p-1 text-center bg-zinc-800">
-        <p class="text-2xl font-bold">Welcome to Bleep</p>
-        <p>Code your future....</p>
-        <button
-          id="bleep-init-button"
-          class="p-2 px-10 m-3 text-white bg-orange-800 rounded-sm modal-close hover:bg-orange-900 animate-pulse"
-        >
-          Start
-        </button>
-      </div>
-      <div class="flex flex-row justify-center bg-orange-800">
-        <div>
-          <p class="p-5 text-xs">Created by <br /> Sam Aaron &#38; Guy Brown</p>
+          <button
+            id="bleep-init-button"
+            class="p-2 px-10 m-3 text-orange-800 rounded-sm bg-zinc-100 modal-close hover:text-white hover:bg-orange-900 animate-pulse"
+          >
+            Start
+          </button>
         </div>
-        <div class="flex-grow"></div>
-        <div class="flex justify-right">
-          <img src={~p"/images/UOSLogo_Primary_White_RGB.svg"} width="150" class="p-5" />
+        <div class="flex flex-row justify-center bg-orange-800 bg-opacity-30">
+          <div>
+            <p class="p-5 text-xs">Created by <br /> Sam Aaron &#38; Guy Brown</p>
+          </div>
+          <div class="flex-grow"></div>
+          <div class="flex justify-right">
+            <img src={~p"/images/UOSLogo_Primary_White_RGB.svg"} width="150" class="p-5" />
+          </div>
         </div>
       </div>
     </div>
