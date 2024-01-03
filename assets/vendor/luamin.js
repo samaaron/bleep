@@ -1,3 +1,7 @@
+// https://cdn.jsdelivr.net/npm/lua-format@1.4.1/src/luamin.js
+
+// With minor modifications by Sam Aaron (also released under an ISC license)
+
 /*
     discord.gg/boronide
 
@@ -2424,7 +2428,7 @@ function PrintAst(ast) {
     }
     printStat(ast)
 
-    return buffer
+    return buffer.trim()
 }
 
 function FormatAst(ast) {
@@ -2432,7 +2436,7 @@ function FormatAst(ast) {
     let formatExpr
     let currentIndent = 0
     function applyIndent(token) {
-        let indentString = `\n${"\t".repeat(currentIndent)}`
+        let indentString = `\n${"  ".repeat(currentIndent)}`
         if (token.LeadingWhite == '' || (token.LeadingWhite.substr(-indentString.length, indentString.length) != indentString)) {
             //token.LeadingWhite = token.LeadingWhite.replace("\n?[\t ]*$") /Remove all \n & \t at end of string
             // idk string patterns in js :(
@@ -2573,7 +2577,7 @@ function FormatAst(ast) {
             } else {
                 indent()
 
-                let die = 100
+                let die = 0
                 expr.EntryList.forEach((entry, index) => {
                     if (entry.EntryType == "Field") {
                         if (expr.EntryList.length > die) {
@@ -2582,9 +2586,9 @@ function FormatAst(ast) {
                             applyIndent(entry.Field)
                         }
 
-                        padToken(entry.Token_Equals)
+                        //padToken(entry.Token_Equals)
                         formatExpr(entry.Value)
-                        padExpr(entry.Value)
+                        //padExpr(entry.Value)
                     } else if(entry.EntryType == "Index") {
                         if (expr.EntryList.length > die)
                             trimToken(entry.Token_OpenBracket)
@@ -4198,8 +4202,6 @@ function BeautifyVariables(globalScope, rootScope, renameGlobals) {
 }
 
 
-let watermark = `--discord.gg/boronide, code generated using luamin.js™\n\n`
-
 let luaminp = {}
 
 luaminp.Minify = function(scr, options) {
@@ -4218,7 +4220,6 @@ luaminp.Minify = function(scr, options) {
     StripAst(ast)
 
     let result = PrintAst(ast)
-    result = `${watermark}\n\n${result}`
 
     return result
 }
@@ -4237,8 +4238,6 @@ luaminp.Beautify = function(scr, options) {
     FormatAst(ast)
 
     let result = PrintAst(ast)
-    result = `${watermark}\n\n${result}`
-
     return result
 }
 
