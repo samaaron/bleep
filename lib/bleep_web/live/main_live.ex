@@ -486,7 +486,7 @@ defmodule BleepWeb.MainLive do
           <div class="w-full h-full" id={@monaco_id} monaco-code-editor></div>
         </div>
       </div>
-      <div class="text-sm border border-zinc-600 text-zinc-200 bg-zinc-500 bottom-9 dark:bg-zinc-800">
+      <div class="font-mono text-sm border border-zinc-600 text-zinc-200 bg-zinc-500 bottom-9 dark:bg-zinc-800">
         <div id={@result_id}></div>
       </div>
     </div>
