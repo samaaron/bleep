@@ -108,23 +108,23 @@ export default class BleepAudioCore {
         fx = new PicoPebble(this.#audio_context, this.#monitor);
         break;
       case "reverb":
-      case "reverb-massive":
-      case "reverb-large":
-      case "reverb-medium":
-      case "reverb-small":
-      case "room-large":
-      case "room-small":
-      case "plate-drums":
-      case "plate-vocal":
-      case "plate-large":
-      case "plate-small":
-      case "ambience-large":
-      case "ambience-medium":
-      case "ambience-small":
-      case "mic-reslo":
-      case "mic-beyer":
-      case "mic-foster":
-      case "mic-lomo": 
+      case "reverb_massive":
+      case "reverb_large":
+      case "reverb_medium":
+      case "reverb_small":
+      case "room_large":
+      case "room_small":
+      case "plate_drums":
+      case "plate_vocal":
+      case "plate_large":
+      case "plate_small":
+      case "ambience_large":
+      case "ambience_medium":
+      case "ambience_small":
+      case "mic_reslo":
+      case "mic_beyer":
+      case "mic_foster":
+      case "mic_lomo": 
         fx = new Reverb(this.#audio_context, this.#monitor);
         fx.load(REVERB_FILENAME[fx_name]);
         break;

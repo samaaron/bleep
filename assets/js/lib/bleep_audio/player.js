@@ -96,10 +96,15 @@ export default Player = class {
     }
     // stop time
     // was there a pitch bend? 
-    if (this.#params.bend!==undefined) {
-      // to make sure we hit the target frequency, finish the bend at 3/4 the duration
-      // could make this a tunable parameter through an option
-      const stopBendTime = when + this.#params.duration * 0.75;
+    if (this.#params.bend !== undefined) {
+      // was a bend time specified?
+      let stopBendTime;
+      if (this.#params.bend_time !== undefined) {
+        stopBendTime = when + this.#params.duration * this.#params.bend_time;
+      } else {
+        // assume we stop the bend 3/4 through the duration, to make sure we hit the target freq
+        stopBendTime = when + this.#params.duration * 0.75;
+      }
       // work out the target frequency to bend to
       const targetFreq = Utility.midiNoteToHz(this.#params.bend);
       // only oscillators have a bend function

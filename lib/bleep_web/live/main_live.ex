@@ -27,8 +27,8 @@ defmodule BleepWeb.MainLive do
         kind: :editor,
         lang: :lua,
         content: """
-        push_fx("mic-lomo",{wetLevel=1.2,dryLevel=0})
-        push_fx("reverb-massive",{wetLevel=0.25,dryLevel=1})
+        push_fx("mic_lomo",{wetLevel=1.2,dryLevel=0})
+        push_fx("reverb_massive",{wetLevel=0.25,dryLevel=1})
         sample("bishi_verse")
         """
       },
@@ -182,7 +182,7 @@ defmodule BleepWeb.MainLive do
         use_synth("fmbell")
         push_fx("stereo_delay",{wetLevel=0.1,leftDelay=0.4,rightDelay=0.6})
         -- new reverb impulse responses!
-        push_fx("plate-large",{wetLevel=0.2})
+        push_fx("plate_large",{wetLevel=0.2})
         upper = scale(pelog_sedeng,D4,2):shuffle()
         lower = scale(pelog_sedeng,D3):shuffle()
         for i=0,32 do
@@ -218,7 +218,7 @@ defmodule BleepWeb.MainLive do
         hh = euclidean(9,16)
         bd = pattern("x--- --x- x--- ----")
         -- lots of new impulse responses to try!
-        push_fx("plate-drums",{wetLevel=0.1})
+        push_fx("plate_drums",{wetLevel=0.1})
         for i=0,31 do
           if (sd:get(i)>0) then
             sample("bishi_snare")
@@ -302,7 +302,7 @@ defmodule BleepWeb.MainLive do
         content: """
         bar=16
         use_synth("dognoise")
-        push_fx("reverb-medium",{wetLevel=0.3})
+        push_fx("reverb_medium",{wetLevel=0.3})
         play(C3,{duration=16,cutoff=100,rate=0.1,level=0.2})
         play(C3,{duration=16,cutoff=400,rate=0.05,level=0.1, resonance=25})
         bass_drum = pattern("x-- x-- x- x-- --- x-")
@@ -355,7 +355,7 @@ defmodule BleepWeb.MainLive do
       lang: :lua,
       content: """
       use_synth("noisehat")
-      push_fx("reverb-medium")
+      push_fx("reverb_medium")
       hh = pattern("842-")
       for i=0,31 do
         if (hh:get(i)>0) then
@@ -377,14 +377,16 @@ defmodule BleepWeb.MainLive do
       kind: :editor,
       lang: :lua,
       content: """
-      t=0.12
-      push_fx("stereo_delay",{wetLevel=0.15,feedback=0.2,leftDelay=2*t,rightDelay=4*t})
-      push_fx("reverb-medium")
+      t = 0.12 -- time step
 
-      c = 0.02
-      m=0.3
-      q=0.2
-      d=0.2
+      push_fx("stereo_delay",{wetLevel=0.15,feedback=0.2,leftDelay=2*t,rightDelay=4*t})
+      push_fx("reverb_medium")
+
+      c = 0.02 -- cutoff
+      q = 0.2 -- resonance
+      d = 0.2 -- distortion
+      bt = 0.5 -- bend time
+      m = 0.3 -- envelope modulation
 
       use_synth("dognoise")
 
@@ -393,66 +395,24 @@ defmodule BleepWeb.MainLive do
 
       use_synth("rolandtb")
 
-      for i=1,8 do
+      notes = ring({C3,Cs3,C3,C3,C3,C3,C4,C4,C3,C3,C3,C3,C3,Ds3,Cs3,C3})
+      bends = ring({0,0,0,0,C4,0,0,Cs3,0,C4,0,0,0,0,0,0})
+      accent = ring({1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0})
 
-      sample("bd_sone")
-      play(C3,{duration=t*0.8,level=0.3,cutoff=c,env_mod=m,resonance=q,distortion=d})
-      sleep(t)
-      play(Cs3,{duration=t*0.8,cutoff=c,env_mod=m,resonance=q,distortion=d})
-      sleep(t)
-        if (i>4) then
-        sample("bishi_closed_hat")
-      end
-      play(C3,{duration=t*0.8,cutoff=c,env_mod=m,resonance=q,distortion=d})
-      sleep(t)
-      play(C3,{duration=t,cutoff=c,env_mod=m,resonance=q,distortion=d})
-      sleep(t)
-
-      c = c+0.01
-
-      sample("bd_sone")
-      play(C3,{duration=t,bend=C4,cutoff=c,env_mod=m,resonance=q,distortion=d})
-      sleep(t)
-      play(C3,{duration=t*0.8,cutoff=c,env_mod=m,resonance=q,distortion=d})
-      sleep(t)
-        if (i>4) then
-        sample("bishi_closed_hat")
-      end
-      play(C4,{duration=t,cutoff=c,env_mod=m,resonance=q,distortion=d})
-      sleep(t)
-      play(C4,{duration=t,bend=Cs3,cutoff=c,env_mod=m,resonance=q,distortion=d})
-      sleep(t)
-      c = c+0.01
-
-      sample("bd_sone")
-      play(C3,{duration=t*0.8,cutoff=c,env_mod=m,resonance=q,distortion=d})
-      sleep(t)
-      play(C3,{duration=t,bend=C4,cutoff=c,env_mod=m,resonance=q,distortion=d})
-      sleep(t)
-      play(C3,{duration=t*0.8,cutoff=c,env_mod=m,resonance=q,distortion=d})
-        if (i>4) then
-        sample("bishi_closed_hat")
-      end
-      sleep(t)
-      play(C3,{duration=t*0.8,cutoff=c,env_mod=m,resonance=q,distortion=d})
-      sleep(t)
-      c = c+0.01
-
-      sample("bd_sone")
-      play(C3,{duration=t*0.8,cutoff=c,env_mod=m,resonance=q,distortion=d})
-      sleep(t)
-      play(Ds3,{duration=t*0.8,cutoff=c,env_mod=m,resonance=q,distortion=d})
-      sleep(t)
-      play(Cs3,{duration=t*0.8,level=0.3,cutoff=c,env_mod=m,resonance=q,distortion=d})
-        if (i>4) then
-        sample("bishi_closed_hat")
-      end
-      sleep(t)
-      play(C3,{duration=t*0.8,cutoff=c,env_mod=m,resonance=q,distortion=d})
-      sleep(t)
-      c = c+0.03
-      q = q+0.05
-
+      for i=0,8*16 do
+          if (i%4==0) then
+              sample("bd_sone")
+          end
+          lev = 0.2+0.1*accent:get(i)
+          if (bends:get(i)>0) then
+              play(notes:get(i),{duration=t,bend=bends:get(i),bend_time=bt,level=lev,cutoff=c,env_mod=m,resonance=q,distortion=d})
+          else
+              play(notes:get(i),{duration=t*0.8,level=lev,cutoff=c,env_mod=m,resonance=q,distortion=d})
+          end
+          sleep(t)
+          c = c+0.001
+          q = q+0.001
+          d = d+0.001
       end
       """
       }
