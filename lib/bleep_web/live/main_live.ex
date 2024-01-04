@@ -377,16 +377,82 @@ defmodule BleepWeb.MainLive do
       kind: :editor,
       lang: :lua,
       content: """
-      use_synth("dogbass")
-      push_fx("reverb-medium")
       t=0.12
-      for i=1,4 do
-      play(C3,{duration=0.1})
+      push_fx("stereo_delay",{wetLevel=0.15,feedback=0.2,leftDelay=2*t,rightDelay=4*t})
+      push_fx("reverb-medium")
+
+      c = 0.02
+      m=0.3
+      q=0.2
+      d=0.2
+
+      use_synth("dognoise")
+
+      play(C3,{duration=8*t*16,cutoff=100,rate=0.1,level=0.2})
+      play(C3,{duration=8*t*16,cutoff=400,rate=0.05,level=0.1, resonance=25})
+
+      use_synth("rolandtb")
+
+      for i=1,8 do
+
+      sample("bd_sone")
+      play(C3,{duration=t*0.8,level=0.3,cutoff=c,env_mod=m,resonance=q,distortion=d})
       sleep(t)
-      play(C3,{duration=0.1})
-      sleep(t*3)
-      play(C3,{duration=t*3,bend=C4})
-      sleep(t*4)
+      play(Cs3,{duration=t*0.8,cutoff=c,env_mod=m,resonance=q,distortion=d})
+      sleep(t)
+        if (i>4) then
+        sample("bishi_closed_hat")
+      end
+      play(C3,{duration=t*0.8,cutoff=c,env_mod=m,resonance=q,distortion=d})
+      sleep(t)
+      play(C3,{duration=t,cutoff=c,env_mod=m,resonance=q,distortion=d})
+      sleep(t)
+
+      c = c+0.01
+
+      sample("bd_sone")
+      play(C3,{duration=t,bend=C4,cutoff=c,env_mod=m,resonance=q,distortion=d})
+      sleep(t)
+      play(C3,{duration=t*0.8,cutoff=c,env_mod=m,resonance=q,distortion=d})
+      sleep(t)
+        if (i>4) then
+        sample("bishi_closed_hat")
+      end
+      play(C4,{duration=t,cutoff=c,env_mod=m,resonance=q,distortion=d})
+      sleep(t)
+      play(C4,{duration=t,bend=Cs3,cutoff=c,env_mod=m,resonance=q,distortion=d})
+      sleep(t)
+      c = c+0.01
+
+      sample("bd_sone")
+      play(C3,{duration=t*0.8,cutoff=c,env_mod=m,resonance=q,distortion=d})
+      sleep(t)
+      play(C3,{duration=t,bend=C4,cutoff=c,env_mod=m,resonance=q,distortion=d})
+      sleep(t)
+      play(C3,{duration=t*0.8,cutoff=c,env_mod=m,resonance=q,distortion=d})
+        if (i>4) then
+        sample("bishi_closed_hat")
+      end
+      sleep(t)
+      play(C3,{duration=t*0.8,cutoff=c,env_mod=m,resonance=q,distortion=d})
+      sleep(t)
+      c = c+0.01
+
+      sample("bd_sone")
+      play(C3,{duration=t*0.8,cutoff=c,env_mod=m,resonance=q,distortion=d})
+      sleep(t)
+      play(Ds3,{duration=t*0.8,cutoff=c,env_mod=m,resonance=q,distortion=d})
+      sleep(t)
+      play(Cs3,{duration=t*0.8,level=0.3,cutoff=c,env_mod=m,resonance=q,distortion=d})
+        if (i>4) then
+        sample("bishi_closed_hat")
+      end
+      sleep(t)
+      play(C3,{duration=t*0.8,cutoff=c,env_mod=m,resonance=q,distortion=d})
+      sleep(t)
+      c = c+0.03
+      q = q+0.05
+
       end
       """
       }

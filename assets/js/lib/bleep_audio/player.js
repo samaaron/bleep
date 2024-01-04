@@ -95,16 +95,18 @@ export default Player = class {
       env.apply(obj[e.to.param], when, this.#params.duration);
     }
     // stop time
-    const stopTime = when + this.#params.duration + longestRelease;
-    // was there a pitch bend? b
+    // was there a pitch bend? 
     if (this.#params.bend!==undefined) {
+      // to make sure we hit the target frequency, finish the bend at 3/4 the duration
+      // could make this a tunable parameter through an option
+      const stopBendTime = when + this.#params.duration * 0.75;
       // work out the target frequency to bend to
       const targetFreq = Utility.midiNoteToHz(this.#params.bend);
       // only oscillators have a bend function
       // note that this doesn't work for the pulse oscillator currently
       Object.values(this.#node).forEach((m) => {
         if (typeof m.bend==="function") {
-          m.bend(this.#params.pitch,when,targetFreq,stopTime);
+          m.bend(this.#params.pitch,when,targetFreq,stopBendTime);
           }
         });
     }
@@ -113,6 +115,7 @@ export default Player = class {
       m.start?.(when);
     });
     // stop all the nodes after duration + longest release
+    const stopTime = when + this.#params.duration + longestRelease;
     Object.values(this.#node).forEach((m) => {
       m.stop?.(stopTime);
     });

@@ -92,10 +92,10 @@ ampenv.release = 0.01
 ampenv.sustain = param.level*param.volume
 ampenv.decay = 0.1
 
-filterenv.level = map(param.cutoff,50,10000)
+filterenv.level = map(param.cutoff,50,8000)
 filterenv.attack = 0
 filterenv.decay = map(param.decay,0.01,0.5)
-filterenv.sustain = map(param.cutoff,50,10000)*(1-param.env_mod)
+filterenv.sustain = map(param.cutoff,50,8000)*(1-param.env_mod)
 filterenv.release = 0.1
 
 filterenv.out -> lowpass1.cutoffCV
