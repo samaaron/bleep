@@ -215,9 +215,6 @@ export default class BleepAudioCore {
 
   triggerOneshotSynth(time, synthdef_id, output_id, opts) {
 
-    console.log("OPTIONS");
-    console.log(opts);
-
     let output_node = this.#resolveOutputId(output_id);
     const delta_s = time - this.#initial_wallclock_time_s + 0.2;
     const audio_context_sched_s = this.#base_audio_context_time_s + delta_s; //- this.audio_context.baseLatency
