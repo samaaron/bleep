@@ -85,7 +85,7 @@ end
 
 -- set a value of the ring
 -- value : the value to set
--- index : the index to set 
+-- index : the index to set
 function Ring:set(value, index)
     local i = self.mapIndex(self, index)
     self.array[i] = value
@@ -237,7 +237,7 @@ function Ring:add(s)
     return Ring.new(array_copy)
 end
 
--- mirror the ring, the middle value is repeated 
+-- mirror the ring, the middle value is repeated
 -- returns : a new Ring
 function Ring:mirror()
     return self:concat(self:reverse())
@@ -269,7 +269,7 @@ function Ring:arrayCopy()
 end
 
 -- map an index to the ring, wrapping positive and negative values
--- index : the index to wrap 
+-- index : the index to wrap
 -- returns : the integer index
 function Ring:mapIndex(index)
     if index >= 0 then
@@ -293,7 +293,7 @@ end
 
 --[[
 
--- define table indexing operator for reading from a ring 
+-- define table indexing operator for reading from a ring
 function Ring:__index(key)
     if type(key) == "number" then
         local index = self.mapIndex(self, key)
@@ -303,7 +303,7 @@ function Ring:__index(key)
     end
 end
 
--- define table indexing operator for writing to a ring 
+-- define table indexing operator for writing to a ring
 
 function Ring:__newindex(key, value)
     print("hello")
@@ -409,11 +409,11 @@ function scale(intervals, root, octaves)
 end
 
 -- ===============================================================
--- Pattern in x-xx or x-12 form 
+-- Pattern in x-xx or x-12 form
 -- ===============================================================
 
 -- make a Ring from a string pattern
--- seq : a string pattern containing "-" (rest), "x" hit or 1-9 
+-- seq : a string pattern containing "-" (rest), "x" hit or 1-9
 -- "x" is mapped to 1 and "-" is mapped to 0
 -- Elements in the range 1-9 are mapped into velocities in the range 0.1 to 0.9
 function pattern(seq)
@@ -439,11 +439,11 @@ function hasBeat(pattern_name,index)
 end
 
 -- ===============================================================
--- Euclidean rhythms 
+-- Euclidean rhythms
 -- ===============================================================
 
 -- hits - the number of steps that are drum hits
--- steps - the total number of steps in the sequence 
+-- steps - the total number of steps in the sequence
 -- phase (optional) - the phase offset (e.g. for phase=2 the pattern is right-shifted by two spaces)
 -- returns a string of the form x--x-x- in which the hits are equally spaced in time
 function euclideanPattern(hits, steps, phase)
@@ -460,7 +460,7 @@ function euclideanPattern(hits, steps, phase)
     return table.concat(pattern)
 end
 
--- make a Euclidean rhythm 
+-- make a Euclidean rhythm
 -- returns a Ring containing the pattern, with ones for hits and zeros for rests
 function euclidean(hits,steps,phase)
     local seq = euclideanPattern(hits,steps,phase)

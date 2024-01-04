@@ -24,6 +24,8 @@ import { LiveSocket } from "phoenix_live_view";
 // Vendored libs
 import topbar from "../vendor/topbar";
 import mermaid from "../vendor/mermaid";
+import luamin from "../vendor/luamin";
+window.luamin = luamin;
 
 // Internal libs
 import BleepEditor from "./lib/bleep_editor";
@@ -76,25 +78,41 @@ window.addEventListener(`phx:bleep-audio`, (e) => {
   }
 });
 
-function bleep_modal_clicked() {
-  document.removeEventListener("keydown", bleep_modal_clicked);
-  bleep.idempotentInit();
-  bleep_init_modal.style.display = "none";
-}
-
-bleep_init_button.addEventListener("click", (e) => {
-  bleep_modal_clicked();
-});
-bleep_init_modal.addEventListener("click", (e) => {
-  bleep_modal_clicked();
-});
-
-document.addEventListener("keydown", function (event) {
-  if (event.key === "Enter" || event.code === "Enter") {
+function bleep_modal_keydown(e) {
+  if (
+    e.key === "Enter" ||
+    e.code === "Enter" ||
+    e.key === " " ||
+    e.code === "Space"
+  ) {
     // Your code to handle the Enter key press goes here
-    bleep_modal_clicked();
+    bleep_modal_clicked(e);
     console.log("Enter key pressed");
   }
-});
+}
 
+function bleep_modal_clicked(e) {
+  document.removeEventListener("keydown", bleep_modal_keydown);
+  bleep_init_button.removeEventListener("click", bleep_modal_clicked);
+  bleep_init_modal.removeEventListener("click", bleep_modal_clicked);
 
+  bleep_init_modal.classList.add(
+    "transition",
+    "ease-out",
+    "duration-1000",
+    "opacity-100"
+  );
+
+  bleep.idempotentInit();
+  bleep_init_modal.classList.remove("opacity-100");
+  bleep_init_modal.classList.add("opacity-0");
+
+  setTimeout(() => {
+    bleep_init_modal.style.display = "none";
+  }, 1000);
+}
+
+bleep_init_button.addEventListener("click", bleep_modal_clicked);
+bleep_init_modal.addEventListener("click", bleep_modal_clicked);
+
+document.addEventListener("keydown", bleep_modal_keydown);
