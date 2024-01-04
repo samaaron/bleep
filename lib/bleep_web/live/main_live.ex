@@ -27,8 +27,8 @@ defmodule BleepWeb.MainLive do
         kind: :editor,
         lang: :lua,
         content: """
-        push_fx("mic-lomo",{wetLevel=1.2,dryLevel=0})
-        push_fx("reverb-massive",{wetLevel=0.25,dryLevel=1})
+        push_fx("mic_lomo",{wetLevel=1.2,dryLevel=0})
+        push_fx("reverb_massive",{wetLevel=0.25,dryLevel=1})
         sample("bishi_verse")
         """
       },
@@ -36,7 +36,7 @@ defmodule BleepWeb.MainLive do
         uuid: "af94a406-5b8e-76aa-8e3a-d29aca874ca8",
         kind: :markdown,
         content: """
-        ### Note names
+        ### Note names and playing timed patterns
         MIDI names are now defined as globals in Lua. Transposition is easy, e.g. you can write play(G3+2).
         """
       },
@@ -48,21 +48,13 @@ defmodule BleepWeb.MainLive do
         use_synth("sawlead")
         push_fx("stereo_delay",{leftDelay=0.3,rightDelay=0.6,feedback=0.2,wetLevel=0.2})
         push_fx("reverb",{wetLevel=0.2})
-        play(D4,{duration=0.25})
-        sleep(0.3)
-        play(G4,{duration=0.25})
-        sleep(0.3)
-        play(G4,{duration=0.12})
-        sleep(0.15)
-        play(A4,{duration=0.12})
-        sleep(0.15)
-        play(G4,{duration=0.12})
-        sleep(0.15)
-        play(Fs4,{duration=0.12})
-        sleep(0.15)
-        play(E4,{duration=0.25})
-        sleep(0.3)
-        play(E4,{duration=0.5})
+        -- now have a play_pattern function mostly like Sonic Pi but with tweaks
+        notes = {D4,G4,G4,A4,G4,Fs4,E4,E4}
+        durs = {0.3,0.3,0.15,0.15,0.15,0.15,0.3,0.5}
+        -- the last parameter is the gate length
+        play_pattern(notes,durs,0.4)
+        sleep(0.5)
+        play_pattern(notes,durs,0.95)
         """
       },
       %{
@@ -190,7 +182,7 @@ defmodule BleepWeb.MainLive do
         use_synth("fmbell")
         push_fx("stereo_delay",{wetLevel=0.1,leftDelay=0.4,rightDelay=0.6})
         -- new reverb impulse responses!
-        push_fx("plate-large",{wetLevel=0.2})
+        push_fx("plate_large",{wetLevel=0.2})
         upper = scale(pelog_sedeng,D4,2):shuffle()
         lower = scale(pelog_sedeng,D3):shuffle()
         for i=0,32 do
@@ -226,7 +218,7 @@ defmodule BleepWeb.MainLive do
         hh = euclidean(9,16)
         bd = pattern("x--- --x- x--- ----")
         -- lots of new impulse responses to try!
-        push_fx("plate-drums",{wetLevel=0.1})
+        push_fx("plate_drums",{wetLevel=0.1})
         for i=0,31 do
           if (sd:get(i)>0) then
             sample("bishi_snare")
@@ -310,36 +302,41 @@ defmodule BleepWeb.MainLive do
         content: """
         bar=16
         use_synth("dognoise")
-        push_fx("reverb-medium",{wetLevel=0.3})
+        push_fx("reverb_medium",{wetLevel=0.3})
         play(C3,{duration=16,cutoff=100,rate=0.1,level=0.2})
         play(C3,{duration=16,cutoff=400,rate=0.05,level=0.1, resonance=25})
-        bd = pattern("x-- x-- x- x-- --- x-")
-        lt = pattern("--- --x -- --- --x --")
-        bass = pattern("xx-- --x- --x- ----")
-        hh = pattern("--x-")
+        bass_drum = pattern("x-- x-- x- x-- --- x-")
+        low_tom = pattern("--- --x -- --- --x --")
+        bass_synth = pattern("xx-2 --x- -x2- ----")
+        hi_hat = pattern("--x-")
+        -- now have a convenience function for deciding if there is a beat
         for i=0,bar*4-1 do
-          if (bd:get(i)>0) then
+          if hasBeat(bass_drum,i) then
             sample("bishi_bass_drum")
           end
-          if (lt:get(i)>0) then
+          if hasBeat(low_tom,i) then
             sample("elec_flip")
           end
           sleep(0.12)
         end
         for i=0,bar*4-1 do
-          if (bd:get(i)>0) then
+          if hasBeat(bass_drum,i) then
             sample("bishi_bass_drum")
           end
-          if (lt:get(i)>0) then
+          if hasBeat(low_tom,i) then
             sample("elec_flip")
           end
-          if (bass:get(i)>0) then
+          if hasBeat(bass_synth,i) then
             use_synth("dogbass")
-            play(A2,{volume=2,cutoff=800})
+            if bass_synth:get(i)<0.5 then
+                play(A2,{volume=0.7,cutoff=800,bend=A7})
+            else
+                play(A2,{volume=2,cutoff=800})
+            end
           end
-          if (hh:get(i)>0) then
+          if hasBeat(hi_hat,i) then
             use_synth("noisehat")
-            play(G6,{level=0.1})
+            play(G6,{volume=0.2})
           end
           sleep(0.12)
         end
@@ -353,20 +350,71 @@ defmodule BleepWeb.MainLive do
         """
       },
       %{
-        uuid: "9f258afc-5c45-11ef-r2d2-d29a7ff74c38",
-        kind: :editor,
-        lang: :lua,
-        content: """
-        use_synth("noisehat")
-        push_fx("reverb-medium")
-        hh = pattern("842-")
-        for i=0,31 do
-          if (hh:get(i)>0) then
-            play(G6,{level=hh:get(i),decay=0.19,volume=0.2})
-          end
-          sleep(0.12)
+      uuid: "9f258afc-5c45-11ef-r2d2-d29a7ff74c38",
+      kind: :editor,
+      lang: :lua,
+      content: """
+      use_synth("noisehat")
+      push_fx("reverb_medium")
+      hh = pattern("842-")
+      for i=0,31 do
+        if (hh:get(i)>0) then
+          play(G6,{level=hh:get(i),decay=0.19,volume=0.2})
         end
+        sleep(0.12)
+      end  
+      """
+      },
+      %{
+        uuid: "ac242406-1432-11ee-c3c3-d2c57b817c38",
+        kind: :markdown,
+        content: """
+        Sliding notes - essential for doggy techno
         """
+      },
+      %{
+      uuid: "9f258afc-5c45-44ef-r2d2-d29a7aa43c38",
+      kind: :editor,
+      lang: :lua,
+      content: """
+      t = 0.12 -- time step
+
+      push_fx("stereo_delay",{wetLevel=0.15,feedback=0.2,leftDelay=2*t,rightDelay=4*t})
+      push_fx("reverb_medium")
+
+      c = 0.02 -- cutoff
+      q = 0.2 -- resonance
+      d = 0.2 -- distortion
+      bt = 0.5 -- bend time
+      m = 0.3 -- envelope modulation
+
+      use_synth("dognoise")
+
+      play(C3,{duration=8*t*16,cutoff=100,rate=0.1,level=0.2})
+      play(C3,{duration=8*t*16,cutoff=400,rate=0.05,level=0.1, resonance=25})
+
+      use_synth("rolandtb")
+
+      notes = ring({C3,Cs3,C3,C3,C3,C3,C4,C4,C3,C3,C3,C3,C3,Ds3,Cs3,C3})
+      bends = ring({0,0,0,0,C4,0,0,Cs3,0,C4,0,0,0,0,0,0})
+      accent = ring({1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0})
+
+      for i=0,8*16 do
+          if (i%4==0) then
+              sample("bd_sone")
+          end
+          lev = 0.2+0.1*accent:get(i)
+          if (bends:get(i)>0) then
+              play(notes:get(i),{duration=t,bend=bends:get(i),bend_time=bt,level=lev,cutoff=c,env_mod=m,resonance=q,distortion=d})
+          else
+              play(notes:get(i),{duration=t*0.8,level=lev,cutoff=c,env_mod=m,resonance=q,distortion=d})
+          end
+          sleep(t)
+          c = c+0.001
+          q = q+0.001
+          d = d+0.001
+      end
+      """
       }
     ]
   end

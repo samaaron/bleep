@@ -66,6 +66,13 @@ Oscillator = class {
     return this._osc.frequency;
   }
 
+  // quick fix
+  // TODO : this will not work for pulse oscillator @guyjbrown
+  bend(startFreq,startTime,endFreq,endTime) {
+    this._osc.frequency.setValueAtTime(startFreq,startTime);
+    this._osc.frequency.exponentialRampToValueAtTime(endFreq,endTime);
+  }
+
   start(tim) {
     if (VERBOSE) console.log("starting oscillator");
     this._osc.start(tim);

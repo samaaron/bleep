@@ -8,23 +8,23 @@ import { DEBUG_EFFECTS } from "./flags";
 
 export const REVERB_FILENAME = {
   "reverb": "hall-medium.flac",
-  "reverb-massive": "reactor-hall.flac",
-  "reverb-large": "hall-large-church.flac",
-  "reverb-medium": "hall-medium.flac",
-  "reverb-small": "hall-small.flac",
-  "room-large": "room-large.flac",
-  "room-small": "room-small-bright.flac",
-  "plate-drums": "plate-snare.flac",
-  "plate-vocal": "rich-plate-vocal-2.flac",
-  "plate-large": "plate-large.flac",
-  "plate-small": "plate-small.flac",
-  "ambience-large": "ambience-large.flac",
-  "ambience-medium": "ambience-medium.flac",
-  "ambience-small": "ambience-small.flac",
-  "mic-reslo": "IR_ResloURA.flac",
-  "mic-beyer": "IR_BeyerM500Stock.flac",
-  "mic-foster": "IR_FosterDynamicDF1.flac",
-  "mic-lomo": "IR_Lomo52A5M.flac"
+  "reverb_massive": "reactor-hall.flac",
+  "reverb_large": "hall-large-church.flac",
+  "reverb_medium": "hall-medium.flac",
+  "reverb_small": "hall-small.flac",
+  "room_large": "room-large.flac",
+  "room_small": "room-small-bright.flac",
+  "plate_drums": "plate-snare.flac",
+  "plate_vocal": "rich-plate-vocal-2.flac",
+  "plate_large": "plate-large.flac",
+  "plate_small": "plate-small.flac",
+  "ambience_large": "ambience-large.flac",
+  "ambience_medium": "ambience-medium.flac",
+  "ambience_small": "ambience-small.flac",
+  "mic_reslo": "IR_ResloURA.flac",
+  "mic_beyer": "IR_BeyerM500Stock.flac",
+  "mic_foster": "IR_FosterDynamicDF1.flac",
+  "mic_lomo": "IR_Lomo52A5M.flac"
 }
 
 // ----------------------------------------------------------------

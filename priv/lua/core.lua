@@ -432,6 +432,12 @@ function pattern(seq)
     return Ring.new(array)
 end
 
+-- helper functions
+
+function hasBeat(pattern_name,index)
+    return pattern_name:get(index)>0
+end
+
 -- ===============================================================
 -- Euclidean rhythms
 -- ===============================================================
@@ -459,4 +465,29 @@ end
 function euclidean(hits,steps,phase)
     local seq = euclideanPattern(hits,steps,phase)
     return pattern(seq)
+end
+
+-- ===============================================================
+-- play patterns 
+-- ===============================================================
+
+-- follows sonic pi approach for bad parameters
+-- if the list of times is too short, repeat them from the start (a ring)
+-- if the list of times is too long, ignore them
+-- this works with a list of times or a single time
+-- maybe we don't need play_pattern_timed?
+-- gate is the gate duration (the proportion of the note duration that is actually played)
+function play_pattern(notes,times,gate)
+    if type(times) == "number" then
+        times = {times}
+    end
+    if #times<1 then
+        error("must have at least one time",2)
+    end
+    gate = gate or 1
+    for i=1,#notes do
+        local dur = times[ (i-1) % #times + 1]
+        play(notes[i],{duration=dur*gate})
+        sleep(dur)
+    end
 end

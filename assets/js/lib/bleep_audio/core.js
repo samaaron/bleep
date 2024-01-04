@@ -108,23 +108,23 @@ export default class BleepAudioCore {
         fx = new PicoPebble(this.#audio_context, this.#monitor);
         break;
       case "reverb":
-      case "reverb-massive":
-      case "reverb-large":
-      case "reverb-medium":
-      case "reverb-small":
-      case "room-large":
-      case "room-small":
-      case "plate-drums":
-      case "plate-vocal":
-      case "plate-large":
-      case "plate-small":
-      case "ambience-large":
-      case "ambience-medium":
-      case "ambience-small":
-      case "mic-reslo":
-      case "mic-beyer":
-      case "mic-foster":
-      case "mic-lomo": 
+      case "reverb_massive":
+      case "reverb_large":
+      case "reverb_medium":
+      case "reverb_small":
+      case "room_large":
+      case "room_small":
+      case "plate_drums":
+      case "plate_vocal":
+      case "plate_large":
+      case "plate_small":
+      case "ambience_large":
+      case "ambience_medium":
+      case "ambience_small":
+      case "mic_reslo":
+      case "mic_beyer":
+      case "mic_foster":
+      case "mic_lomo": 
         fx = new Reverb(this.#audio_context, this.#monitor);
         fx.load(REVERB_FILENAME[fx_name]);
         break;
@@ -190,10 +190,14 @@ export default class BleepAudioCore {
   }
 
   #triggerBuffer(time, buffer, output_node, opts) {
+    // TODO : opts is always undefined @samaaron
     const audio_context_sched_s = this.#clockTimeToAudioTime(time);
     let source = this.#audio_context.createBufferSource();
+    // untested since opts isnt working yet - should set sample playback rate
+    source.playbackRate.value = opts.rate !== undefined ? opts.rate : 1; // untested
     let gain = this.#audio_context.createGain();
-    gain.gain.value = 1;
+    // untested since opts isn't working yet - should set the playback level of the sample
+    gain.gain.value = opts.level !== undefined ? opts.level : 1; // untested
     source.connect(gain);
     source.buffer = buffer;
 
@@ -210,6 +214,7 @@ export default class BleepAudioCore {
   }
 
   triggerOneshotSynth(time, synthdef_id, output_id, opts) {
+
     let output_node = this.#resolveOutputId(output_id);
     const delta_s = time - this.#initial_wallclock_time_s + 0.2;
     const audio_context_sched_s = this.#base_audio_context_time_s + delta_s; //- this.audio_context.baseLatency
