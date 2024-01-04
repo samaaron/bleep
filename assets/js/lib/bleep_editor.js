@@ -55,7 +55,6 @@ const BleepEditor = {
     this.editor.getDomNode().addEventListener(
       "wheel",
       function (e) {
-        console.log("wheel");
         window.scrollBy(0, e.deltaY);
       },
       { passive: false }
