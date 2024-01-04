@@ -47,7 +47,7 @@ const BleepEditor = {
       scrollbar: { vertical: "hidden" },
       autoHeight: true,
       minimap: {
-        enabled: true,
+        enabled: false,
       },
       scrollBeyondLastLine: false,
     });
