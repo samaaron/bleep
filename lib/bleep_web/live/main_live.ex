@@ -350,20 +350,20 @@ defmodule BleepWeb.MainLive do
         """
       },
       %{
-      uuid: "9f258afc-5c45-11ef-r2d2-d29a7ff74c38",
-      kind: :editor,
-      lang: :lua,
-      content: """
-      use_synth("noisehat")
-      push_fx("reverb_medium")
-      hh = pattern("842-")
-      for i=0,31 do
-        if (hh:get(i)>0) then
-          play(G6,{level=hh:get(i),decay=0.19,volume=0.2})
+        uuid: "9f258afc-5c45-11ef-r2d2-d29a7ff74c38",
+        kind: :editor,
+        lang: :lua,
+        content: """
+        use_synth("noisehat")
+        push_fx("reverb_medium")
+        hh = pattern("842-")
+        for i=0,31 do
+          if (hh:get(i)>0) then
+            play(G6,{level=hh:get(i),decay=0.19,volume=0.2})
+          end
+          sleep(0.12)
         end
-        sleep(0.12)
-      end  
-      """
+        """
       },
       %{
         uuid: "ac242406-1432-11ee-c3c3-d2c57b817c38",
@@ -373,48 +373,48 @@ defmodule BleepWeb.MainLive do
         """
       },
       %{
-      uuid: "9f258afc-5c45-44ef-r2d2-d29a7aa43c38",
-      kind: :editor,
-      lang: :lua,
-      content: """
-      t = 0.12 -- time step
+        uuid: "9f258afc-5c45-44ef-r2d2-d29a7aa43c38",
+        kind: :editor,
+        lang: :lua,
+        content: """
+        t = 0.12 -- time step
 
-      push_fx("stereo_delay",{wetLevel=0.15,feedback=0.2,leftDelay=2*t,rightDelay=4*t})
-      push_fx("reverb_medium")
+        push_fx("stereo_delay",{wetLevel=0.15,feedback=0.2,leftDelay=2*t,rightDelay=4*t})
+        push_fx("reverb_medium")
 
-      c = 0.02 -- cutoff
-      q = 0.2 -- resonance
-      d = 0.2 -- distortion
-      bt = 0.5 -- bend time
-      m = 0.3 -- envelope modulation
+        c = 0.02 -- cutoff
+        q = 0.2 -- resonance
+        d = 0.2 -- distortion
+        bt = 0.5 -- bend time
+        m = 0.3 -- envelope modulation
 
-      use_synth("dognoise")
+        use_synth("dognoise")
 
-      play(C3,{duration=8*t*16,cutoff=100,rate=0.1,level=0.2})
-      play(C3,{duration=8*t*16,cutoff=400,rate=0.05,level=0.1, resonance=25})
+        play(C3,{duration=8*t*16,cutoff=100,rate=0.1,level=0.2})
+        play(C3,{duration=8*t*16,cutoff=400,rate=0.05,level=0.1, resonance=25})
 
-      use_synth("rolandtb")
+        use_synth("rolandtb")
 
-      notes = ring({C3,Cs3,C3,C3,C3,C3,C4,C4,C3,C3,C3,C3,C3,Ds3,Cs3,C3})
-      bends = ring({0,0,0,0,C4,0,0,Cs3,0,C4,0,0,0,0,0,0})
-      accent = ring({1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0})
+        notes = ring({C3,Cs3,C3,C3,C3,C3,C4,C4,C3,C3,C3,C3,C3,Ds3,Cs3,C3})
+        bends = ring({0,0,0,0,C4,0,0,Cs3,0,C4,0,0,0,0,0,0})
+        accent = ring({1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0})
 
-      for i=0,8*16 do
-          if (i%4==0) then
-              sample("bd_sone")
-          end
-          lev = 0.2+0.1*accent:get(i)
-          if (bends:get(i)>0) then
-              play(notes:get(i),{duration=t,bend=bends:get(i),bend_time=bt,level=lev,cutoff=c,env_mod=m,resonance=q,distortion=d})
-          else
-              play(notes:get(i),{duration=t*0.8,level=lev,cutoff=c,env_mod=m,resonance=q,distortion=d})
-          end
-          sleep(t)
-          c = c+0.001
-          q = q+0.001
-          d = d+0.001
-      end
-      """
+        for i=0,8*16 do
+            if (i%4==0) then
+                sample("bd_sone")
+            end
+            lev = 0.2+0.1*accent:get(i)
+            if (bends:get(i)>0) then
+                play(notes:get(i),{duration=t,bend=bends:get(i),bend_time=bt,level=lev,cutoff=c,env_mod=m,resonance=q,distortion=d})
+            else
+                play(notes:get(i),{duration=t*0.8,level=lev,cutoff=c,env_mod=m,resonance=q,distortion=d})
+            end
+            sleep(t)
+            c = c+0.001
+            q = q+0.001
+            d = d+0.001
+        end
+        """
       }
     ]
   end
@@ -605,8 +605,6 @@ defmodule BleepWeb.MainLive do
         %{"value" => code, "result_id" => result_id},
         socket
       ) do
-    Logger.error(["res id", result_id])
-    Logger.error(result_id)
     start_time = :erlang.system_time(:milli_seconds) / 1000.0
     eval_code(start_time, code, result_id, socket)
   end
