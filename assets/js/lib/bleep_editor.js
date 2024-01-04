@@ -36,6 +36,8 @@ const BleepEditor = {
       this.el.dataset;
     const run_button = this.el.querySelector("#" + this.el.dataset.runButtonId);
     const cue_button = this.el.querySelector("#" + this.el.dataset.cueButtonId);
+    const result_id = this.el.dataset.resultId;
+    const uuid = this.el.dataset.uuid;
     const container = this.el.querySelector("[monaco-code-editor]");
 
     this.editor = monaco.editor.create(container, {
@@ -88,6 +90,8 @@ const BleepEditor = {
       this.pushEvent("eval-code", {
         value: formatted,
         path: path,
+        uuid: uuid,
+        result_id: result_id,
       });
       console.log(this.editor.getValue());
     });
@@ -97,6 +101,8 @@ const BleepEditor = {
       this.pushEvent("cue-code", {
         value: this.editor.getValue(),
         path: path,
+        uuid: uuid,
+        result_id: result_id,
       });
       console.log(this.editor.getValue());
     });

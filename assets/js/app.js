@@ -64,7 +64,8 @@ liveSocket.connect();
 window.liveSocket = liveSocket;
 
 window.addEventListener(`phx:update-luareplres`, (e) => {
-  document.getElementById("luareplres").innerHTML = e.detail.lua_repl_result;
+  document.getElementById(e.detail.result_id).innerHTML =
+    e.detail.lua_repl_result;
 });
 
 window.addEventListener(`phx:bleep-audio`, (e) => {

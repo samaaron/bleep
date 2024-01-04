@@ -453,6 +453,7 @@ defmodule BleepWeb.MainLive do
     assigns = assign(assigns, :cue_button_id, "cue-button-#{assigns[:uuid]}")
     assigns = assign(assigns, :monaco_path, "#{assigns[:uuid]}.lua")
     assigns = assign(assigns, :monaco_id, "monaco-#{assigns[:uuid]}")
+    assigns = assign(assigns, :result_id, "result-#{assigns[:uuid]}")
 
     ~H"""
     <div class="h-full">
@@ -465,6 +466,7 @@ defmodule BleepWeb.MainLive do
         data-content={@content}
         data-monaco-id={@monaco_id}
         data-path={@monaco_path}
+        data-result-id={@result_id}
         data-run-button-id={@run_button_id}
         data-cue-button-id={@cue_button_id}
       >
@@ -480,7 +482,12 @@ defmodule BleepWeb.MainLive do
         >
           Cue
         </button>
-        <div class="w-full h-full" id={@monaco_id} monaco-code-editor></div>
+        <div class="h-full pt-3 pb-3 bg-black">
+          <div class="w-full h-full" id={@monaco_id} monaco-code-editor></div>
+        </div>
+      </div>
+      <div class="text-sm border border-zinc-600 text-zinc-200 bg-zinc-500 bottom-9 dark:bg-zinc-800">
+        <div id={@result_id}></div>
       </div>
     </div>
     """
@@ -494,8 +501,6 @@ defmodule BleepWeb.MainLive do
         <.render_frag {frag} />
       </div>
     <% end %>
-
-    <p id="luareplres"></p>
     """
   end
 
@@ -586,21 +591,27 @@ defmodule BleepWeb.MainLive do
   end
 
   @impl true
-  def handle_event("cue-code", %{"value" => code}, socket) do
+  def handle_event("cue-code", %{"value" => code, "result_id" => result_id}, socket) do
     start_time_ms = :erlang.system_time(:milli_seconds)
     bar_duration_ms = 4 * 1000
     offset_ms = bar_duration_ms - rem(start_time_ms, bar_duration_ms)
     start_time = (start_time_ms + offset_ms) / 1000.0
-    eval_code(start_time, code, socket)
+    eval_code(start_time, code, result_id, socket)
   end
 
   @impl true
-  def handle_event("eval-code", %{"value" => code}, socket) do
+  def handle_event(
+        "eval-code",
+        %{"value" => code, "result_id" => result_id},
+        socket
+      ) do
+    Logger.error(["res id", result_id])
+    Logger.error(result_id)
     start_time = :erlang.system_time(:milli_seconds) / 1000.0
-    eval_code(start_time, code, socket)
+    eval_code(start_time, code, result_id, socket)
   end
 
-  def eval_code(start_time, code, socket) do
+  def eval_code(start_time, code, result_id, socket) do
     lua = :luerl_sandbox.init()
 
     {_, lua} = :luerl.do(<<"bleep_start_time = #{start_time}">>, lua)
@@ -686,17 +697,18 @@ defmodule BleepWeb.MainLive do
 
     {:noreply,
      socket
-     |> display_eval_result(res_or_exception)}
+     |> display_eval_result(res_or_exception, result_id)}
   end
 
-  def display_eval_result(socket, {:exception, e, trace}) do
+  def display_eval_result(socket, {:exception, e, trace}, result_id) do
     socket
     |> push_event("update-luareplres", %{
-      lua_repl_result: Exception.format(:error, e, trace)
+      lua_repl_result: Exception.format(:error, e, trace),
+      result_id: result_id
     })
   end
 
-  def display_eval_result(socket, {:ok, result, _new_state}) do
+  def display_eval_result(socket, {:ok, result, _new_state}, result_id) do
     result =
       Enum.map(result, fn el ->
         # IO.chardata_to_string(el)
@@ -704,18 +716,25 @@ defmodule BleepWeb.MainLive do
       end)
 
     socket
-    |> push_event("update-luareplres", %{lua_repl_result: "#{inspect(result)}"})
+    |> push_event("update-luareplres", %{
+      lua_repl_result: "#{inspect(result)}",
+      result_id: result_id
+    })
   end
 
-  def display_eval_result(socket, {:error, error, _new_state}) do
-    socket
-    |> push_event("update-luareplres", %{lua_repl_result: "Error - #{inspect(error)}"})
-  end
-
-  def display_eval_result(socket, error) do
+  def display_eval_result(socket, {:error, error, _new_state}, result_id) do
     socket
     |> push_event("update-luareplres", %{
-      lua_repl_result: Kernel.inspect(error)
+      lua_repl_result: "Error - #{inspect(error)}",
+      result_id: result_id
+    })
+  end
+
+  def display_eval_result(socket, error, result_id) do
+    socket
+    |> push_event("update-luareplres", %{
+      lua_repl_result: Kernel.inspect(error),
+      result_id: result_id
     })
   end
 
