@@ -44,10 +44,36 @@ const BleepEditor = {
       language: language,
       matchBrackets: true,
       bracketPairColorization: { enabled: true },
-
+      scrollbar: { vertical: "hidden" },
+      autoHeight: true,
       minimap: {
         enabled: true,
       },
+      scrollBeyondLastLine: false,
+    });
+
+    this.editor.getDomNode().addEventListener(
+      "wheel",
+      function (e) {
+        console.log("wheel");
+        window.scrollBy(0, e.deltaY);
+      },
+      { passive: false }
+    );
+
+    function autoResizeMonacoEditor(mon) {
+      const lineHeight = mon.getOption(monaco.editor.EditorOption.lineHeight);
+      const lineCount = mon.getModel().getLineCount();
+      const contentHeight = lineHeight * lineCount;
+
+      mon.layout({
+        width: container.clientWidth,
+        height: contentHeight,
+      });
+    }
+
+    this.editor.onDidChangeModelContent(() => {
+      autoResizeMonacoEditor(this.editor);
     });
 
     run_button.addEventListener("click", (e) => {
@@ -75,6 +101,8 @@ const BleepEditor = {
       });
       console.log(this.editor.getValue());
     });
+
+    autoResizeMonacoEditor(this.editor);
   },
 
   destroyed() {

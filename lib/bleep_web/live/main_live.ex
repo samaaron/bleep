@@ -407,31 +407,33 @@ defmodule BleepWeb.MainLive do
     assigns = assign(assigns, :monaco_id, "monaco-#{assigns[:uuid]}")
 
     ~H"""
-    <div
-      id={@uuid}
-      class="flex-col -mt-12 w-100 h-60"
-      phx-hook="BleepEditor"
-      phx-update="ignore"
-      data-language="lua"
-      data-content={@content}
-      data-monaco-id={@monaco_id}
-      data-path={@monaco_path}
-      data-run-button-id={@run_button_id}
-      data-cue-button-id={@cue_button_id}
-    >
-      <button
-        class="px-2 py-1 font-bold text-white bg-orange-600 rounded hover:bg-orange-800"
-        id={@run_button_id}
+    <div class="h-full">
+      <div
+        id={@uuid}
+        class=""
+        phx-hook="BleepEditor"
+        phx-update="ignore"
+        data-language="lua"
+        data-content={@content}
+        data-monaco-id={@monaco_id}
+        data-path={@monaco_path}
+        data-run-button-id={@run_button_id}
+        data-cue-button-id={@cue_button_id}
       >
-        Run
-      </button>
-      <button
-        class="px-2 py-1 font-bold text-white bg-orange-600 rounded hover:bg-orange-800"
-        id={@cue_button_id}
-      >
-        Cue
-      </button>
-      <div class="w-full h-full" id={@monaco_id} monaco-code-editor></div>
+        <button
+          class="px-2 py-1 font-bold text-white bg-orange-600 rounded hover:bg-orange-800"
+          id={@run_button_id}
+        >
+          Run
+        </button>
+        <button
+          class="px-2 py-1 font-bold text-white bg-orange-600 rounded hover:bg-orange-800"
+          id={@cue_button_id}
+        >
+          Cue
+        </button>
+        <div class="w-full h-full" id={@monaco_id} monaco-code-editor></div>
+      </div>
     </div>
     """
   end
