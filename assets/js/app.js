@@ -117,3 +117,27 @@ bleep_init_button.addEventListener("click", bleep_modal_clicked);
 bleep_init_modal.addEventListener("click", bleep_modal_clicked);
 
 document.addEventListener("keydown", bleep_modal_keydown);
+
+
+let bleep_logo_hue_rotation = 0;
+const bleep_logo = document.getElementById('bleep-logo');
+
+function bleep_animate_logo() {
+  // Increase the hue rotation angle
+  bleep_logo_hue_rotation += 15;
+
+  // Apply the hue rotation to the image
+  bleep_logo.style.filter = `hue-rotate(${bleep_logo_hue_rotation}deg)`;
+
+  // If the hue rotation angle is less than 360, keep animating
+  if (bleep_logo_hue_rotation > 360) {
+    bleep_logo_hue_rotation = 0;
+  }
+
+  setTimeout(() => {
+      requestAnimationFrame(bleep_animate_logo);
+    }, 400);
+}
+
+// Start the animation
+bleep_animate_logo();
