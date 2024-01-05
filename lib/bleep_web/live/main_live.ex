@@ -537,11 +537,14 @@ defmodule BleepWeb.MainLive do
     )
   end
 
-  def sample(lua, args) do
+  def sample(lua, [sample_name]) when is_binary(sample_name) do
+    sample(lua, [sample_name, []])
+  end
+
+  def sample(lua, [sample_name, opts_table]) when is_list(opts_table) do
     output_id = fetch_current_output_id(lua)
-    sample_name = Enum.at(args, 0)
     time = lua_time(lua)
-    opts = %{}
+    opts = lua_table_to_map(opts_table)
 
     BleepWeb.Endpoint.broadcast(
       "room:bleep-audio",
