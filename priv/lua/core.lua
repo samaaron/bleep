@@ -491,3 +491,31 @@ function play_pattern(notes,times,gate)
         sleep(dur)
     end
 end
+
+-- map operation on a table
+function map(func,the_table)
+    local new_table = {}
+    for i,v in pairs(the_table) do
+        new_table[i] = func(v)
+    end
+    return new_table
+end
+
+-- drum patterns
+
+function drum_pattern(ptn, times, sample_name)
+    if type(times) == "number" then
+        times = { times }
+    end
+    if #times < 1 then
+        error("must have at least one time", 2)
+    end
+    local p = pattern(ptn)
+    for i = 0, p:length()-1 do
+        local dur = times[(i - 1) % #times + 1]
+        if (p:get(i)>0) then
+            sample(sample_name)
+        end
+        sleep(dur)
+    end
+end
