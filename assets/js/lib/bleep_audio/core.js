@@ -124,7 +124,7 @@ export default class BleepAudioCore {
       case "mic_reslo":
       case "mic_beyer":
       case "mic_foster":
-      case "mic_lomo": 
+      case "mic_lomo":
         fx = new Reverb(this.#audio_context, this.#monitor);
         fx.load(REVERB_FILENAME[fx_name]);
         break;
