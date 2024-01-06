@@ -80,11 +80,12 @@ const BleepEditor = {
     run_button.addEventListener("click", (e) => {
       window.bleep.idempotentInit();
       const code = this.editor.getValue();
-      const formatted = luamin.Beautify(code, {
+      const placeholder = "bleep_tmp_placeholder()";
+      const formatted = luamin.Beautify(`${code}\n${placeholder}`, {
         RenameVariables: false,
         RenameGlobals: false,
         SolveMath: false,
-      });
+      }).slice(0, -(placeholder.length + 1));
 
       this.editor.setValue(formatted);
       this.pushEvent("eval-code", {
