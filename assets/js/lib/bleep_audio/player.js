@@ -96,7 +96,7 @@ export default Player = class {
     }
     // stop time
     // was there a pitch bend? 
-    if (this.#params.bend !== undefined) {
+    if (this.#params.bend !== undefined && this.#params.bend>0) {
       // was a bend time specified?
       let stopBendTime;
       if (this.#params.bend_time !== undefined) {

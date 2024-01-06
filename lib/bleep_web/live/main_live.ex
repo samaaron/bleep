@@ -36,8 +36,20 @@ defmodule BleepWeb.MainLive do
         uuid: "af94a406-5b8e-76aa-8e3a-d29aca874ca8",
         kind: :markdown,
         content: """
-        ### Note names and playing timed patterns
-        MIDI names are now defined as globals in Lua. Transposition is easy, e.g. you can write play(G3+2).
+        ### New patterns!
+        Parameters are now rings.
+        I intend to do the same for drum patterns too so we will have
+        ```
+        play_pattern(note_list,opts)
+        ```
+        and
+        ```
+        drum_pattern(xoxo_string,opts)
+        ```
+        which will have a consistent syntax with
+        ```
+        play(note,opts)
+        ```
         """
       },
       %{
@@ -46,15 +58,43 @@ defmodule BleepWeb.MainLive do
         lang: :lua,
         content: """
         use_synth("sawlead")
-        push_fx("stereo_delay",{leftDelay=0.3,rightDelay=0.6,feedback=0.2,wetLevel=0.2})
-        push_fx("reverb",{wetLevel=0.2})
-        -- now have a play_pattern function mostly like Sonic Pi but with tweaks
-        notes = {D4,G4,G4,A4,G4,Fs4,E4,E4}
-        durs = {0.3,0.3,0.15,0.15,0.15,0.15,0.3,0.5}
-        -- the last parameter is the gate length
-        play_pattern(notes,durs,0.4)
+        push_fx("stereo_delay", {leftDelay=0.3,rightDelay=0.6,feedback=0.2,wetLevel=0.2})
+        push_fx("reverb", {wetLevel=0.2})
+        -- pattern play has now been changed so that a list of parameters is passed
+        -- all the parameters can be single values or rings
+        -- if ring is shorter than note sequence we cycle around
+        -- allows easy control of accents etc
+        the_notes = {D4,G4,G4,A4,G4,Fs4,E4,E4}
+        the_durs = {0.3,0.3,0.15,0.15,0.15,0.15,0.3,0.5}
+        -- gate length is the proportion (0-1) that the note sounds for the given duration
+        play_pattern(the_notes, {
+          dur=the_durs,
+          gate=0.4})
         sleep(0.5)
-        play_pattern(notes,durs,0.95)
+        -- longer gate for legato
+        play_pattern(the_notes, {
+          dur=the_durs,
+          gate=0.95})
+        sleep(0.5)
+        -- we can add subtle emphasis by cycling through levels
+        play_pattern(the_notes, {
+          dur=the_durs,
+          level={0.2,0.35},
+          gate=0.5})
+        sleep(0.5)
+        -- or could do the same with cutoff
+        play_pattern(the_notes, {
+          dur=the_durs,
+          cutoff={0.3,0.7},
+          gate=0.5})
+        sleep(0.5)
+        -- or bends
+        -- there is a bug in the editor - comments in the last line of a box get removed
+        play_pattern({D4,D4,G4,A4,G4,Fs4,Fs4,E4}, {
+          dur=the_durs,
+          bend_time=0.5,
+          bend={0,G4,0,0,0,0,E4,0},
+          gate={0.5,1,0.5,0.5,0.5,0.5,1,0.5}})
         """
       },
       %{
