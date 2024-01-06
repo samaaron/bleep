@@ -103,7 +103,7 @@ defmodule BleepWeb.MainLive do
         content: """
         ### Putting the fun into functional programming
         If you want to go all functional then you can now use a map function on
-        lua tables
+        lua tables. Doesn't work on rings yet but it will. 
         """
       },
       %{
@@ -147,6 +147,8 @@ defmodule BleepWeb.MainLive do
         instead of myring:get(3). I have this working in a lua 5.3 installation but it doesn't work in luerl
         (I note that the docs for luerl say that metatables are not correctly implemented). I have commented
         that code out for the time being.
+
+        This should now be fixed - in which case I can get ```play_pattern``` working on rings too.
         """
       },
       %{
@@ -407,7 +409,7 @@ defmodule BleepWeb.MainLive do
         uuid: "af94c406-1432-11ee-c3c3-d2c57a361c38",
         kind: :markdown,
         content: """
-        Percussion line - not syncing properly
+        Bass drum - cue this before the techno line below
         """
       },
       %{
@@ -415,22 +417,20 @@ defmodule BleepWeb.MainLive do
       kind: :editor,
       lang: :lua,
       content: """
-      use_synth("noisehat")
-      push_fx("reverb_medium")
-      hh = pattern("842-")
-      for i=0,31 do
-        if (hh:get(i)>0) then
-          play(G6,{level=hh:get(i),decay=0.19,volume=0.2})
-        end
-        sleep(0.12)
-      end  
+      bd = pattern("x---")
+      for i = 0, 64 do
+      if (bd:get(i) > 0) then
+        sample("bd_sone")
+      end
+      sleep(0.125)
+      end
       """
       },
       %{
         uuid: "ac242406-1432-11ee-c3c3-d2c57b817c38",
         kind: :markdown,
         content: """
-        Sliding notes - essential for doggy techno
+        Sliding notes - essential for techno
         """
       },
       %{
@@ -438,42 +438,32 @@ defmodule BleepWeb.MainLive do
       kind: :editor,
       lang: :lua,
       content: """
-      t = 0.12 -- time step
+      t = 0.125 -- time step
 
-      push_fx("stereo_delay",{wetLevel=0.15,feedback=0.2,leftDelay=2*t,rightDelay=4*t})
+      push_fx("stereo_delay", {wetLevel=0.15,feedback=0.2,leftDelay=2 * t,rightDelay=4 * t})
       push_fx("reverb_medium")
-
-      c = 0.02 -- cutoff
-      q = 0.2 -- resonance
-      d = 0.2 -- distortion
-      bt = 0.5 -- bend time
-      m = 0.3 -- envelope modulation
-
-      use_synth("dognoise")
-
-      play(C3,{duration=8*t*16,cutoff=100,rate=0.1,level=0.2})
-      play(C3,{duration=8*t*16,cutoff=400,rate=0.05,level=0.1, resonance=25})
 
       use_synth("rolandtb")
 
-      notes = ring({C3,Cs3,C3,C3,C3,C3,C4,C4,C3,C3,C3,C3,C3,Ds3,Cs3,C3})
-      bends = ring({0,0,0,0,C4,0,0,Cs3,0,C4,0,0,0,0,0,0})
-      accent = ring({1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0})
+      the_notes = {C3,Cs3,C3,C3,C3,C3,C4,C4,C3,C3,C3,C3,C3,Ds3,Cs3,C3}
+      the_bends = {0,0,0,0,C4,0,0,Cs3,0,C4,0,0,0,0,0,0}
+      -- need a better way of doing this 
+      the_accents = {0.3,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.3,0.2}
+      the_gates = {0.8,0.8,0.8,0.8,1,0.8,0.8,1,0.8,1,0.8,0.8,0.8,0.8,0.8,0.8}
 
-      for i=0,8*16 do
-          if (i%4==0) then
-              sample("bd_sone")
-          end
-          lev = 0.2+0.1*accent:get(i)
-          if (bends:get(i)>0) then
-              play(notes:get(i),{duration=t,bend=bends:get(i),bend_time=bt,level=lev,cutoff=c,env_mod=m,resonance=q,distortion=d})
-          else
-              play(notes:get(i),{duration=t*0.8,level=lev,cutoff=c,env_mod=m,resonance=q,distortion=d})
-          end
-          sleep(t)
-          c = c+0.001
-          q = q+0.001
-          d = d+0.001
+      the_cutoff = 0.03
+
+      for i = 1, 4 do
+        play_pattern(the_notes, {
+          dur=t,
+          gate=the_gates,
+          bend=the_bends,
+          level=the_accents,
+          env_mod=0.3,
+          distortion=0.4,
+          cutoff =the_cutoff,
+          resonance=0.3})
+        the_cutoff = the_cutoff + 0.04
       end
       """
       }
