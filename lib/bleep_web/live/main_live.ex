@@ -97,6 +97,27 @@ defmodule BleepWeb.MainLive do
           gate={0.5,1,0.5,0.5,0.5,0.5,1,0.5}})
         """
       },
+       %{
+        uuid: "af94f2f4-5b8e-11ff-8e3a-d2957a874c38",
+        kind: :markdown,
+        content: """
+        ### Putting the fun into functional programming
+        If you want to go all functional then you can now use a map function on
+        lua tables
+        """
+      },
+      %{
+        uuid: "8e5f23a6-82bb-2432-8e4c-d2957b474c38",
+        kind: :editor,
+        lang: :lua,
+        content: """
+        use_synth("sawlead")
+        map(function (n)
+          play(n, {duration=0.12})
+          sleep(0.125)
+        end, {C3,D3,E3,F3,G3})
+        """
+      },
       %{
         uuid: "af94a406-5b8e-19af-8e3a-d2957a874c38",
         kind: :markdown,
