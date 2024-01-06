@@ -47,7 +47,7 @@ defmodule Bleep.MixProject do
       {:gettext, "~> 0.24"},
       {:jason, "~> 1.4"},
       {:plug_cowboy, "~> 2.6"},
-      {:luerl, git: "https://github.com/rvirding/luerl.git", tag: "1.1"},
+      {:luerl, "~> 1.1"},
       {:earmark, "~> 1.4"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:elixir_uuid, "~> 1.2"}
