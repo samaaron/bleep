@@ -30,6 +30,7 @@ window.luamin = luamin;
 // Internal libs
 import BleepEditor from "./lib/bleep_editor";
 import BleepAudioCore from "./lib/bleep_audio/core";
+import BleepTime from "./lib/bleep_time";
 
 mermaid.initialize({ startOnLoad: true });
 
@@ -40,7 +41,7 @@ let csrfToken = document
   .querySelector("meta[name='csrf-token']")
   .getAttribute("content");
 
-let Hooks = { BleepEditor };
+let Hooks = { BleepEditor, BleepTime };
 let liveSocket = new LiveSocket("/live", Socket, {
   hooks: Hooks,
   params: { _csrf_token: csrfToken },
@@ -68,7 +69,21 @@ window.addEventListener(`phx:update-luareplres`, (e) => {
     e.detail.lua_repl_result;
 });
 
-window.addEventListener(`phx:bleep-audio`, (e) => {
+window.addEventListener(`phx:bleep-time-ack`, (e) => {
+  const now = Date.now() / 1000;
+  const roundtrip_time1 = e.detail.roundtrip_time;
+  const server_time = e.detail.server_time;
+  const roundtrip_time2 = now;
+  const single_way_time = (roundtrip_time2 - roundtrip_time1) / 2;
+  window.bleep_time_delta = server_time - (now - single_way_time);
+  console.log("Bleep time:")
+  console.log(`T1 ${roundtrip_time1}s`);
+  console.log(`S1 ${server_time}s`);
+  console.log(`T2 ${roundtrip_time2}s`);
+  console.log(`RT  ${(roundtrip_time2 - roundtrip_time1) * 1000 }ms`);
+});
+
+window.addEventListener(`phx:sched-bleep-audio`, (e) => {
   try {
     const msg = JSON.parse(e.detail.msg);
     //console.log(`got incoming msg: ${JSON.stringify(msg)}`)

@@ -551,6 +551,8 @@ defmodule BleepWeb.MainLive do
   @impl true
   def render(assigns) do
     ~H"""
+    <div class="text-white" id="bleep-time" phx-hook="BleepTime"></div>
+
     <%= for frag <- @data do %>
       <div class="p-2 ">
         <.render_frag {frag} />
@@ -646,6 +648,16 @@ defmodule BleepWeb.MainLive do
       "msg",
       {time, {:core_control_fx, uuid, opts}}
     )
+  end
+
+  @impl true
+  def handle_event("bleep-time", %{"time" => time}, socket) do
+    {:noreply,
+     socket
+     |> push_event("bleep-time-ack", %{
+       roundtrip_time: time,
+       server_time: :erlang.system_time(:milli_seconds) / 1000.0
+     })}
   end
 
   @impl true
