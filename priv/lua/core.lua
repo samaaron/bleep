@@ -477,6 +477,7 @@ end
 -- this works with a list of times or a single time
 -- maybe we don't need play_pattern_timed?
 -- gate is the gate duration (the proportion of the note duration that is actually played)
+--[[
 function play_pattern(notes,times,gate)
     if type(times) == "number" then
         times = {times}
@@ -488,6 +489,114 @@ function play_pattern(notes,times,gate)
     for i=1,#notes do
         local dur = times[ (i-1) % #times + 1]
         play(notes[i],{duration=dur*gate})
+        sleep(dur)
+    end
+end
+]]
+
+-- map operation on a table
+function map(func,the_table)
+    local new_table = {}
+    for i,v in pairs(the_table) do
+        new_table[i] = func(v)
+    end
+    return new_table
+end
+
+-- drum patterns
+
+function drum_pattern(ptn, times, sample_name)
+    if type(times) == "number" then
+        times = { times }
+    end
+    if #times < 1 then
+        error("must have at least one time", 2)
+    end
+    local p = pattern(ptn)
+    for i = 0, p:length()-1 do
+        local dur = times[(i - 1) % #times + 1]
+        if (p:get(i)>0) then
+            sample(sample_name)
+        end
+        sleep(dur)
+    end
+end
+
+function isListOfNumbers(tbl)
+    if type(tbl) ~= "table" then
+        return false
+    end
+    local count = 0
+    for key, value in pairs(tbl) do
+        -- Check if the key is a consecutive integer
+        if type(key) ~= "number" or key ~= count + 1 then
+            return false
+        end
+        -- Check if the value is a number
+        if type(value) ~= "number" then
+            return false
+        end
+        count = count + 1
+    end
+    return true
+end
+
+function tableToString(tbl)
+    local str = "{"
+    for key, value in pairs(tbl) do
+        str = str .. key .. "=" .. tostring(value) .. ", "
+    end
+    -- Remove the last comma and space if the table is not empty
+    if str ~= "{" then
+        str = str:sub(1, -3)
+    end
+    str = str .. "}"
+    return str
+end
+
+function play_pattern(notes, params)
+    local param_map = {}
+    if not isListOfNumbers(notes) then
+        error("expected a list of notes", 2)
+    end
+    if params == nil then
+        params = {}
+    end
+    if type(params) ~= "table" then
+        error("expected a list of parameters", 2)
+    end
+    -- get the list of key,value parameter pairs
+    for key, value in pairs(params) do
+        -- if the key is a number then we didnt get a key value pair, just a single value
+        if type(key) == "number" then
+            error("parameter list must contain key value pairs", 2)
+        end
+        -- we have a valid key, so check the value
+        if type(value) == "number" then
+            -- if the value is a number turn it into a list
+            param_map[key] = Ring.new({ value })
+        elseif isListOfNumbers(value) then
+            -- a list of numbers is fine as it is
+            param_map[key] = Ring.new(value)
+        else
+            -- we got something else, an error
+            error("parameters must be single numbers or lists of numbers", 2)
+        end
+    end
+    -- main loop to make the parameters for each note
+    -- TODO : fix this to use array notation for rings @guyjbrown
+    for i, note in ipairs(notes) do
+        local note_params = {}
+        local gate = param_map.gate and param_map.gate:get(i - 1) or 1
+        local dur = param_map.dur and param_map.dur:get(i - 1) or 1
+        note_params["duration"] = dur * gate
+        for key, param_ring in pairs(param_map) do
+            -- remember that rings are indexed from 0
+            if key ~= "dur" and key ~= "gate" then
+                note_params[key] = param_ring:get(i - 1)
+            end
+        end
+        play(note,note_params)
         sleep(dur)
     end
 end

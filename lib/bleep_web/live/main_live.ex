@@ -38,8 +38,20 @@ defmodule BleepWeb.MainLive do
         uuid: "af94a406-5b8e-76aa-8e3a-d29aca874ca8",
         kind: :markdown,
         content: """
-        ### Note names and playing timed patterns
-        MIDI names are now defined as globals in Lua. Transposition is easy, e.g. you can write play(G3+2).
+        ### New patterns!
+        Parameters are now rings.
+        I intend to do the same for drum patterns too so we will have
+        ```
+        play_pattern(note_list,opts)
+        ```
+        and
+        ```
+        drum_pattern(xoxo_string,opts)
+        ```
+        which will have a consistent syntax with
+        ```
+        play(note,opts)
+        ```
         """
       },
       %{
@@ -48,15 +60,64 @@ defmodule BleepWeb.MainLive do
         lang: :lua,
         content: """
         use_synth("sawlead")
-        push_fx("stereo_delay",{leftDelay=0.3,rightDelay=0.6,feedback=0.2,wetLevel=0.2})
-        push_fx("reverb",{wetLevel=0.2})
-        -- now have a play_pattern function mostly like Sonic Pi but with tweaks
-        notes = {D4,G4,G4,A4,G4,Fs4,E4,E4}
-        durs = {0.3,0.3,0.15,0.15,0.15,0.15,0.3,0.5}
-        -- the last parameter is the gate length
-        play_pattern(notes,durs,0.4)
+        push_fx("stereo_delay", {leftDelay=0.3,rightDelay=0.6,feedback=0.2,wetLevel=0.2})
+        push_fx("reverb", {wetLevel=0.2})
+        -- pattern play has now been changed so that a list of parameters is passed
+        -- all the parameters can be single values or rings
+        -- if ring is shorter than note sequence we cycle around
+        -- allows easy control of accents etc
+        the_notes = {D4,G4,G4,A4,G4,Fs4,E4,E4}
+        the_durs = {0.3,0.3,0.15,0.15,0.15,0.15,0.3,0.5}
+        -- gate length is the proportion (0-1) that the note sounds for the given duration
+        play_pattern(the_notes, {
+          dur=the_durs,
+          gate=0.4})
         sleep(0.5)
-        play_pattern(notes,durs,0.95)
+        -- longer gate for legato
+        play_pattern(the_notes, {
+          dur=the_durs,
+          gate=0.95})
+        sleep(0.5)
+        -- we can add subtle emphasis by cycling through levels
+        play_pattern(the_notes, {
+          dur=the_durs,
+          level={0.2,0.35},
+          gate=0.5})
+        sleep(0.5)
+        -- or could do the same with cutoff
+        play_pattern(the_notes, {
+          dur=the_durs,
+          cutoff={0.3,0.7},
+          gate=0.5})
+        sleep(0.5)
+        -- or bends
+        -- there is a bug in the editor - comments in the last line of a box get removed
+        play_pattern({D4,D4,G4,A4,G4,Fs4,Fs4,E4}, {
+          dur=the_durs,
+          bend_time=0.5,
+          bend={0,G4,0,0,0,0,E4,0},
+          gate={0.5,1,0.5,0.5,0.5,0.5,1,0.5}})
+        """
+      },
+       %{
+        uuid: "af94f2f4-5b8e-11ff-8e3a-d2957a874c38",
+        kind: :markdown,
+        content: """
+        ### Putting the fun into functional programming
+        If you want to go all functional then you can now use a map function on
+        lua tables. Doesn't work on rings yet but it will. 
+        """
+      },
+      %{
+        uuid: "8e5f23a6-82bb-2432-8e4c-d2957b474c38",
+        kind: :editor,
+        lang: :lua,
+        content: """
+        use_synth("sawlead")
+        map(function (n)
+          play(n, {duration=0.12})
+          sleep(0.125)
+        end, {C3,D3,E3,F3,G3})
         """
       },
       %{
@@ -88,6 +149,8 @@ defmodule BleepWeb.MainLive do
         instead of myring:get(3). I have this working in a lua 5.3 installation but it doesn't work in luerl
         (I note that the docs for luerl say that metatables are not correctly implemented). I have commented
         that code out for the time being.
+
+        This should now be fixed - in which case I can get ```play_pattern``` working on rings too.
         """
       },
       %{
@@ -348,75 +411,65 @@ defmodule BleepWeb.MainLive do
         uuid: "af94c406-1432-11ee-c3c3-d2c57a361c38",
         kind: :markdown,
         content: """
-        Percussion line - not syncing properly
+        Bass drum - cue this before the techno line below
         """
       },
       %{
-        uuid: "9f258afc-5c45-11ef-r2d2-d29a7ff74c38",
-        kind: :editor,
-        lang: :lua,
-        content: """
-        use_synth("noisehat")
-        push_fx("reverb_medium")
-        hh = pattern("842-")
-        for i=0,31 do
-          if (hh:get(i)>0) then
-            play(G6,{level=hh:get(i),decay=0.19,volume=0.2})
-          end
-          sleep(0.12)
-        end
-        """
+
+      uuid: "9f258afc-5c45-11ef-r2d2-d29a7ff74c38",
+      kind: :editor,
+      lang: :lua,
+      content: """
+      bd = pattern("x---")
+      for i = 0, 64 do
+      if (bd:get(i) > 0) then
+        sample("bd_sone")
+      end
+      sleep(0.125)
+      end
+      """
+
       },
       %{
         uuid: "ac242406-1432-11ee-c3c3-d2c57b817c38",
         kind: :markdown,
         content: """
-        Sliding notes - essential for doggy techno
+        Sliding notes - essential for techno
         """
       },
       %{
-        uuid: "9f258afc-5c45-44ef-r2d2-d29a7aa43c38",
-        kind: :editor,
-        lang: :lua,
-        content: """
-        t = 0.12 -- time step
+      uuid: "9f258afc-5c45-44ef-r2d2-d29a7aa43c38",
+      kind: :editor,
+      lang: :lua,
+      content: """
+      t = 0.125 -- time step
 
-        push_fx("stereo_delay",{wetLevel=0.15,feedback=0.2,leftDelay=2*t,rightDelay=4*t})
-        push_fx("reverb_medium")
+      push_fx("stereo_delay", {wetLevel=0.15,feedback=0.2,leftDelay=2 * t,rightDelay=4 * t})
+      push_fx("reverb_medium")
 
-        c = 0.02 -- cutoff
-        q = 0.2 -- resonance
-        d = 0.2 -- distortion
-        bt = 0.5 -- bend time
-        m = 0.3 -- envelope modulation
+      use_synth("rolandtb")
 
-        use_synth("dognoise")
+      the_notes = {C3,Cs3,C3,C3,C3,C3,C4,C4,C3,C3,C3,C3,C3,Ds3,Cs3,C3}
+      the_bends = {0,0,0,0,C4,0,0,Cs3,0,C4,0,0,0,0,0,0}
+      -- need a better way of doing this 
+      the_accents = {0.3,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.3,0.2}
+      the_gates = {0.8,0.8,0.8,0.8,1,0.8,0.8,1,0.8,1,0.8,0.8,0.8,0.8,0.8,0.8}
 
-        play(C3,{duration=8*t*16,cutoff=100,rate=0.1,level=0.2})
-        play(C3,{duration=8*t*16,cutoff=400,rate=0.05,level=0.1, resonance=25})
+      the_cutoff = 0.03
 
-        use_synth("rolandtb")
-
-        notes = ring({C3,Cs3,C3,C3,C3,C3,C4,C4,C3,C3,C3,C3,C3,Ds3,Cs3,C3})
-        bends = ring({0,0,0,0,C4,0,0,Cs3,0,C4,0,0,0,0,0,0})
-        accent = ring({1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0})
-
-        for i=0,8*16 do
-            if (i%4==0) then
-                sample("bd_sone")
-            end
-            lev = 0.2+0.1*accent:get(i)
-            if (bends:get(i)>0) then
-                play(notes:get(i),{duration=t,bend=bends:get(i),bend_time=bt,level=lev,cutoff=c,env_mod=m,resonance=q,distortion=d})
-            else
-                play(notes:get(i),{duration=t*0.8,level=lev,cutoff=c,env_mod=m,resonance=q,distortion=d})
-            end
-            sleep(t)
-            c = c+0.001
-            q = q+0.001
-            d = d+0.001
-        end
-        """
+      for i = 1, 4 do
+        play_pattern(the_notes, {
+          dur=t,
+          gate=the_gates,
+          bend=the_bends,
+          level=the_accents,
+          env_mod=0.3,
+          distortion=0.4,
+          cutoff =the_cutoff,
+          resonance=0.3})
+        the_cutoff = the_cutoff + 0.04
+      end
+      """
       }
     ]
   end
