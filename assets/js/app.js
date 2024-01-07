@@ -83,7 +83,7 @@ window.addEventListener(`phx:bleep-time-ack`, (e) => {
   console.log(`RT  ${(roundtrip_time2 - roundtrip_time1) * 1000 }ms`);
 });
 
-window.addEventListener(`phx:sched-bleep-audio`, (e) => {
+window.addEventListener(`phx:bleep-audio`, (e) => {
   try {
     const msg = JSON.parse(e.detail.msg);
     //console.log(`got incoming msg: ${JSON.stringify(msg)}`)
