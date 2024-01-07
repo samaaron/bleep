@@ -2,6 +2,8 @@ defmodule BleepWeb.MainLive do
   require Logger
   use BleepWeb, :live_view
 
+  @core_lua File.read!(Path.join([:code.priv_dir(:bleep), "lua", "core.lua"]))
+
   @impl true
   def mount(_params, _session, socket) do
     BleepWeb.Endpoint.subscribe("room:bleep-audio")
@@ -413,6 +415,7 @@ defmodule BleepWeb.MainLive do
         """
       },
       %{
+
       uuid: "9f258afc-5c45-11ef-r2d2-d29a7ff74c38",
       kind: :editor,
       lang: :lua,
@@ -425,6 +428,7 @@ defmodule BleepWeb.MainLive do
       sleep(0.125)
       end
       """
+
       },
       %{
         uuid: "ac242406-1432-11ee-c3c3-d2c57b817c38",
@@ -504,6 +508,7 @@ defmodule BleepWeb.MainLive do
     assigns = assign(assigns, :cue_button_id, "cue-button-#{assigns[:uuid]}")
     assigns = assign(assigns, :monaco_path, "#{assigns[:uuid]}.lua")
     assigns = assign(assigns, :monaco_id, "monaco-#{assigns[:uuid]}")
+    assigns = assign(assigns, :result_id, "result-#{assigns[:uuid]}")
 
     ~H"""
     <div class="h-full">
@@ -516,6 +521,7 @@ defmodule BleepWeb.MainLive do
         data-content={@content}
         data-monaco-id={@monaco_id}
         data-path={@monaco_path}
+        data-result-id={@result_id}
         data-run-button-id={@run_button_id}
         data-cue-button-id={@cue_button_id}
       >
@@ -531,7 +537,12 @@ defmodule BleepWeb.MainLive do
         >
           Cue
         </button>
-        <div class="w-full h-full" id={@monaco_id} monaco-code-editor></div>
+        <div class="h-full pt-3 pb-3 bg-black">
+          <div class="w-full h-full" id={@monaco_id} monaco-code-editor></div>
+        </div>
+      </div>
+      <div class="font-mono text-sm border border-zinc-600 text-zinc-200 bg-zinc-500 bottom-9 dark:bg-zinc-800">
+        <div id={@result_id}></div>
       </div>
     </div>
     """
@@ -545,8 +556,6 @@ defmodule BleepWeb.MainLive do
         <.render_frag {frag} />
       </div>
     <% end %>
-
-    <p id="luareplres"></p>
     """
   end
 
@@ -583,11 +592,14 @@ defmodule BleepWeb.MainLive do
     )
   end
 
-  def sample(lua, args) do
+  def sample(lua, [sample_name]) when is_binary(sample_name) do
+    sample(lua, [sample_name, []])
+  end
+
+  def sample(lua, [sample_name, opts_table]) when is_list(opts_table) do
     output_id = fetch_current_output_id(lua)
-    sample_name = Enum.at(args, 0)
     time = lua_time(lua)
-    opts = %{}
+    opts = lua_table_to_map(opts_table)
 
     BleepWeb.Endpoint.broadcast(
       "room:bleep-audio",
@@ -637,21 +649,25 @@ defmodule BleepWeb.MainLive do
   end
 
   @impl true
-  def handle_event("cue-code", %{"value" => code}, socket) do
+  def handle_event("cue-code", %{"value" => code, "result_id" => result_id}, socket) do
     start_time_ms = :erlang.system_time(:milli_seconds)
     bar_duration_ms = 4 * 1000
     offset_ms = bar_duration_ms - rem(start_time_ms, bar_duration_ms)
     start_time = (start_time_ms + offset_ms) / 1000.0
-    eval_code(start_time, code, socket)
+    eval_code(start_time, code, result_id, socket)
   end
 
   @impl true
-  def handle_event("eval-code", %{"value" => code}, socket) do
+  def handle_event(
+        "eval-code",
+        %{"value" => code, "result_id" => result_id},
+        socket
+      ) do
     start_time = :erlang.system_time(:milli_seconds) / 1000.0
-    eval_code(start_time, code, socket)
+    eval_code(start_time, code, result_id, socket)
   end
 
-  def eval_code(start_time, code, socket) do
+  def eval_code(start_time, code, result_id, socket) do
     lua = :luerl_sandbox.init()
 
     {_, lua} = :luerl.do(<<"bleep_start_time = #{start_time}">>, lua)
@@ -659,12 +675,9 @@ defmodule BleepWeb.MainLive do
     {_, lua} = :luerl.do(<<"bleep_current_synth = \"fmbell\"">>, lua)
     {_, lua} = :luerl.do(<<"bleep_current_fx_stack = { \"default\" }">>, lua)
 
-    core_lua_path = Path.join([:code.priv_dir(:bleep), "lua", "core.lua"])
-    {:ok, core_lua} = File.read(core_lua_path)
-
     {_, lua} =
       :luerl.do(
-        core_lua,
+        @core_lua,
         lua
       )
 
@@ -737,17 +750,18 @@ defmodule BleepWeb.MainLive do
 
     {:noreply,
      socket
-     |> display_eval_result(res_or_exception)}
+     |> display_eval_result(res_or_exception, result_id)}
   end
 
-  def display_eval_result(socket, {:exception, e, trace}) do
+  def display_eval_result(socket, {:exception, e, trace}, result_id) do
     socket
     |> push_event("update-luareplres", %{
-      lua_repl_result: Exception.format(:error, e, trace)
+      lua_repl_result: Exception.format(:error, e, trace),
+      result_id: result_id
     })
   end
 
-  def display_eval_result(socket, {:ok, result, _new_state}) do
+  def display_eval_result(socket, {:ok, result, _new_state}, result_id) do
     result =
       Enum.map(result, fn el ->
         # IO.chardata_to_string(el)
@@ -755,18 +769,25 @@ defmodule BleepWeb.MainLive do
       end)
 
     socket
-    |> push_event("update-luareplres", %{lua_repl_result: "#{inspect(result)}"})
+    |> push_event("update-luareplres", %{
+      lua_repl_result: "#{inspect(result)}",
+      result_id: result_id
+    })
   end
 
-  def display_eval_result(socket, {:error, error, _new_state}) do
-    socket
-    |> push_event("update-luareplres", %{lua_repl_result: "Error - #{inspect(error)}"})
-  end
-
-  def display_eval_result(socket, error) do
+  def display_eval_result(socket, {:error, error, _new_state}, result_id) do
     socket
     |> push_event("update-luareplres", %{
-      lua_repl_result: Kernel.inspect(error)
+      lua_repl_result: "Error - #{inspect(error)}",
+      result_id: result_id
+    })
+  end
+
+  def display_eval_result(socket, error, result_id) do
+    socket
+    |> push_event("update-luareplres", %{
+      lua_repl_result: Kernel.inspect(error),
+      result_id: result_id
     })
   end
 
