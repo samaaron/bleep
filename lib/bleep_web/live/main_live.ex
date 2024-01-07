@@ -99,13 +99,13 @@ defmodule BleepWeb.MainLive do
           gate={0.5,1,0.5,0.5,0.5,0.5,1,0.5}})
         """
       },
-       %{
+      %{
         uuid: "af94f2f4-5b8e-11ff-8e3a-d2957a874c38",
         kind: :markdown,
         content: """
         ### Putting the fun into functional programming
         If you want to go all functional then you can now use a map function on
-        lua tables. Doesn't work on rings yet but it will. 
+        lua tables. Doesn't work on rings yet but it will.
         """
       },
       %{
@@ -415,20 +415,18 @@ defmodule BleepWeb.MainLive do
         """
       },
       %{
-
-      uuid: "9f258afc-5c45-11ef-r2d2-d29a7ff74c38",
-      kind: :editor,
-      lang: :lua,
-      content: """
-      bd = pattern("x---")
-      for i = 0, 64 do
-      if (bd:get(i) > 0) then
-        sample("bd_sone")
-      end
-      sleep(0.125)
-      end
-      """
-
+        uuid: "9f258afc-5c45-11ef-r2d2-d29a7ff74c38",
+        kind: :editor,
+        lang: :lua,
+        content: """
+        bd = pattern("x---")
+        for i = 0, 64 do
+        if (bd:get(i) > 0) then
+          sample("bd_sone")
+        end
+        sleep(0.125)
+        end
+        """
       },
       %{
         uuid: "ac242406-1432-11ee-c3c3-d2c57b817c38",
@@ -438,38 +436,38 @@ defmodule BleepWeb.MainLive do
         """
       },
       %{
-      uuid: "9f258afc-5c45-44ef-r2d2-d29a7aa43c38",
-      kind: :editor,
-      lang: :lua,
-      content: """
-      t = 0.125 -- time step
+        uuid: "9f258afc-5c45-44ef-r2d2-d29a7aa43c38",
+        kind: :editor,
+        lang: :lua,
+        content: """
+        t = 0.125 -- time step
 
-      push_fx("stereo_delay", {wetLevel=0.15,feedback=0.2,leftDelay=2 * t,rightDelay=4 * t})
-      push_fx("reverb_medium")
+        push_fx("stereo_delay", {wetLevel=0.15,feedback=0.2,leftDelay=2 * t,rightDelay=4 * t})
+        push_fx("reverb_medium")
 
-      use_synth("rolandtb")
+        use_synth("rolandtb")
 
-      the_notes = {C3,Cs3,C3,C3,C3,C3,C4,C4,C3,C3,C3,C3,C3,Ds3,Cs3,C3}
-      the_bends = {0,0,0,0,C4,0,0,Cs3,0,C4,0,0,0,0,0,0}
-      -- need a better way of doing this 
-      the_accents = {0.3,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.3,0.2}
-      the_gates = {0.8,0.8,0.8,0.8,1,0.8,0.8,1,0.8,1,0.8,0.8,0.8,0.8,0.8,0.8}
+        the_notes = {C3,Cs3,C3,C3,C3,C3,C4,C4,C3,C3,C3,C3,C3,Ds3,Cs3,C3}
+        the_bends = {0,0,0,0,C4,0,0,Cs3,0,C4,0,0,0,0,0,0}
+        -- need a better way of doing this
+        the_accents = {0.3,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.3,0.2}
+        the_gates = {0.8,0.8,0.8,0.8,1,0.8,0.8,1,0.8,1,0.8,0.8,0.8,0.8,0.8,0.8}
 
-      the_cutoff = 0.03
+        the_cutoff = 0.03
 
-      for i = 1, 4 do
-        play_pattern(the_notes, {
-          dur=t,
-          gate=the_gates,
-          bend=the_bends,
-          level=the_accents,
-          env_mod=0.3,
-          distortion=0.4,
-          cutoff =the_cutoff,
-          resonance=0.3})
-        the_cutoff = the_cutoff + 0.04
-      end
-      """
+        for i = 1, 4 do
+          play_pattern(the_notes, {
+            dur=t,
+            gate=the_gates,
+            bend=the_bends,
+            level=the_accents,
+            env_mod=0.3,
+            distortion=0.4,
+            cutoff =the_cutoff,
+            resonance=0.3})
+          the_cutoff = the_cutoff + 0.04
+        end
+        """
       }
     ]
   end
