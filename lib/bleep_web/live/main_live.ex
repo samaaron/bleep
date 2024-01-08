@@ -2,7 +2,8 @@ defmodule BleepWeb.MainLive do
   require Logger
   use BleepWeb, :live_view
 
-  @core_lua File.read!(Path.join([:code.priv_dir(:bleep), "lua", "core.lua"]))
+  @core_lua_path Path.join([:code.priv_dir(:bleep), "lua", "core.lua"])
+  @core_lua File.read!(@core_lua_path)
 
   @impl true
   def mount(_params, _session, socket) do
@@ -678,6 +679,13 @@ defmodule BleepWeb.MainLive do
   end
 
   def eval_code(start_time, code, result_id, socket) do
+    core_lua =
+      if(Mix.env() == :dev) do
+        File.read!(@core_lua_path)
+      else
+        @core_lua
+      end
+
     lua = :luerl_sandbox.init()
 
     {_, lua} = :luerl.do(<<"bleep_start_time = #{start_time}">>, lua)
@@ -687,7 +695,7 @@ defmodule BleepWeb.MainLive do
 
     {_, lua} =
       :luerl.do(
-        @core_lua,
+        core_lua,
         lua
       )
 
