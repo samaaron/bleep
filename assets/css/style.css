@@ -31,5 +31,10 @@
   }
   code {
     @apply text-zinc-400;
+    @apply bg-zinc-800;
+    @apply rounded-md;
+    @apply px-2;
+    @apply py-0.5;
+    @apply text-xs;
   }
 }

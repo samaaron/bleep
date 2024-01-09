@@ -48,17 +48,9 @@ defmodule BleepWeb.MainLive do
         ### New patterns!
         Parameters are now rings.
         I intend to do the same for drum patterns too so we will have
-        ```
-        play_pattern(note_list,opts)
-        ```
-        and
-        ```
-        drum_pattern(xoxo_string,opts)
-        ```
-        which will have a consistent syntax with
-        ```
-        play(note,opts)
-        ```
+        `play_pattern(note_list,opts)` and `drum_pattern(xoxo_string,opts)`
+        which will have a consistent syntax with `play(note,opts)`
+
         """
       },
       %{
@@ -492,7 +484,7 @@ defmodule BleepWeb.MainLive do
     assigns = assign(assigns, :markdown, md)
 
     ~H"""
-    <div class="p-6 my-12 mt-8 text-sm border rounded border-zinc-600 text-zinc-200 bg-zinc-500 bottom-9 dark:bg-zinc-700">
+    <div class="mt-4 text-sm px-7 text-zinc-200 bg-zinc-800 dark:bg-zinc-900">
       <%= Phoenix.HTML.raw(@markdown) %>
     </div>
     """
@@ -516,7 +508,7 @@ defmodule BleepWeb.MainLive do
     assigns = assign(assigns, :result_id, "result-#{assigns[:uuid]}")
 
     ~H"""
-    <div class="h-full">
+    <div class="h-full p-7">
       <div
         id={@uuid}
         class=""
@@ -542,8 +534,8 @@ defmodule BleepWeb.MainLive do
         >
           Cue
         </button>
-        <div class="h-full pt-3 pb-3 bg-black">
-          <div class="w-full h-full" id={@monaco_id} monaco-code-editor></div>
+        <div class="h-full pt-3 pb-3 overflow-scroll bg-black border border-orange-600 rounded-sm">
+          <div class="h-full" id={@monaco_id} monaco-code-editor></div>
         </div>
       </div>
       <div class="font-mono text-sm border border-zinc-600 text-zinc-200 bg-zinc-500 bottom-9 dark:bg-zinc-800">
@@ -563,7 +555,7 @@ defmodule BleepWeb.MainLive do
     </div>
 
     <%= for frag <- @data do %>
-      <div class="p-2 ">
+      <div class="">
         <.render_frag {frag} />
       </div>
     <% end %>
