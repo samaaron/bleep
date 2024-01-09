@@ -8,7 +8,13 @@ defmodule BleepWeb.MainLive do
   @impl true
   def mount(_params, _session, socket) do
     BleepWeb.Endpoint.subscribe("room:bleep-audio")
-    {:ok, assign(socket, data: data())}
+    kalman = Kalman.new(q: 0.005, r: 1, x: 0.01)
+
+    {:ok,
+     socket
+     |> assign(:kalman, kalman)
+     |> assign(:bleep_latency, 0.1)
+     |> assign(:data, data())}
   end
 
   def data() do
@@ -550,7 +556,11 @@ defmodule BleepWeb.MainLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="text-white" id="bleep-time" phx-hook="BleepTime"></div>
+    <div class="text-zinc-100" id="bleep-time" phx-hook="BleepTime">
+      <p>
+        Latency: <%= Float.round(@bleep_latency, 2) %> ms
+      </p>
+    </div>
 
     <%= for frag <- @data do %>
       <div class="p-2 ">
@@ -561,9 +571,9 @@ defmodule BleepWeb.MainLive do
   end
 
   def lua_time(lua) do
-    {[global_time | _rest], lua} = :luerl.do(<<"return bleep_global_time">>, lua)
-    {[start_time | _rest], _lua} = :luerl.do(<<"return bleep_start_time">>, lua)
-    global_time + start_time
+    {[global_time_s | _rest], lua} = :luerl.do(<<"return bleep_global_time">>, lua)
+    {[start_time_s | _rest], _lua} = :luerl.do(<<"return bleep_start_time">>, lua)
+    global_time_s + start_time_s
   end
 
   def bleep_core_start_fx(lua, [uuid, fx_id]) do
@@ -572,24 +582,27 @@ defmodule BleepWeb.MainLive do
 
   def bleep_core_start_fx(lua, [uuid, fx_id, opts_table]) do
     output_id = fetch_current_output_id(lua)
-    time = lua_time(lua)
+    time_s = lua_time(lua)
     opts = lua_table_to_map(opts_table)
+
+    tag = "*"
 
     BleepWeb.Endpoint.broadcast(
       "room:bleep-audio",
       "msg",
-      {time, {:core_start_fx, uuid, fx_id, output_id, opts}}
+      {time_s, tag, {:core_start_fx, uuid, fx_id, output_id, opts}}
     )
   end
 
   def bleep_core_stop_fx(lua, [uuid]) do
-    time = lua_time(lua)
+    time_s = lua_time(lua)
     opts = %{}
+    tag = "*"
 
     BleepWeb.Endpoint.broadcast(
       "room:bleep-audio",
       "msg",
-      {time, {:core_stop_fx, uuid, opts}}
+      {time_s, tag, {:core_stop_fx, uuid, opts}}
     )
   end
 
@@ -599,13 +612,14 @@ defmodule BleepWeb.MainLive do
 
   def sample(lua, [sample_name, opts_table]) when is_list(opts_table) do
     output_id = fetch_current_output_id(lua)
-    time = lua_time(lua)
+    time_s = lua_time(lua)
     opts = lua_table_to_map(opts_table)
+    tag = "*"
 
     BleepWeb.Endpoint.broadcast(
       "room:bleep-audio",
       "msg",
-      {time, {:sample, sample_name, output_id, opts}}
+      {time_s, tag, {:sample, sample_name, output_id, opts}}
     )
   end
 
@@ -615,14 +629,15 @@ defmodule BleepWeb.MainLive do
 
   def play(lua, [opts_table]) when is_list(opts_table) do
     output_id = fetch_current_output_id(lua)
-    time = lua_time(lua)
+    time_s = lua_time(lua)
     opts = lua_table_to_map(opts_table)
     {[synth | _rest], _lua} = :luerl.do(<<"return bleep_current_synth">>, lua)
+    tag = "*"
 
     BleepWeb.Endpoint.broadcast(
       "room:bleep-audio",
       "msg",
-      {time, {:synth, synth, output_id, opts}}
+      {time_s, tag, {:synth, synth, output_id, opts}}
     )
   end
 
@@ -639,23 +654,29 @@ defmodule BleepWeb.MainLive do
   end
 
   def control_fx(lua, [uuid, opts_table]) when is_list(opts_table) do
-    time = lua_time(lua)
+    time_s = lua_time(lua)
     opts = lua_table_to_map(opts_table)
+    tag = "*"
 
     BleepWeb.Endpoint.broadcast(
       "room:bleep-audio",
       "msg",
-      {time, {:core_control_fx, uuid, opts}}
+      {time_s, tag, {:core_control_fx, uuid, opts}}
     )
   end
 
   @impl true
-  def handle_event("bleep-time", %{"time" => time}, socket) do
+  def handle_event("bleep-time", %{"time_s" => time_s, "latency" => latency}, socket) do
+    socket = assign(socket, :kalman, Kalman.step(0, latency, socket.assigns.kalman))
+    latency_est = Kalman.estimate(socket.assigns.kalman)
+
     {:noreply,
      socket
+     |> assign(:bleep_latency, latency_est * 1000)
      |> push_event("bleep-time-ack", %{
-       roundtrip_time: time,
-       server_time: :erlang.system_time(:milli_seconds) / 1000.0
+       roundtrip_time: time_s,
+       latency_est: latency_est,
+       server_time: :erlang.system_time(:milli_seconds) / 1000
      })}
   end
 
@@ -664,8 +685,8 @@ defmodule BleepWeb.MainLive do
     start_time_ms = :erlang.system_time(:milli_seconds)
     bar_duration_ms = 4 * 1000
     offset_ms = bar_duration_ms - rem(start_time_ms, bar_duration_ms)
-    start_time = (start_time_ms + offset_ms) / 1000.0
-    eval_code(start_time, code, result_id, socket)
+    start_time_s = (start_time_ms + offset_ms) / 1000.0
+    eval_code(start_time_s, code, result_id, socket)
   end
 
   @impl true
@@ -674,11 +695,11 @@ defmodule BleepWeb.MainLive do
         %{"value" => code, "result_id" => result_id},
         socket
       ) do
-    start_time = :erlang.system_time(:milli_seconds) / 1000.0
-    eval_code(start_time, code, result_id, socket)
+    start_time_s = :erlang.system_time(:milli_seconds) / 1000
+    eval_code(start_time_s, code, result_id, socket)
   end
 
-  def eval_code(start_time, code, result_id, socket) do
+  def eval_code(start_time_s, code, result_id, socket) do
     core_lua =
       if(Mix.env() == :dev) do
         File.read!(@core_lua_path)
@@ -688,7 +709,7 @@ defmodule BleepWeb.MainLive do
 
     lua = :luerl_sandbox.init()
 
-    {_, lua} = :luerl.do(<<"bleep_start_time = #{start_time}">>, lua)
+    {_, lua} = :luerl.do(<<"bleep_start_time = #{start_time_s}">>, lua)
     {_, lua} = :luerl.do(<<"bleep_global_time = 0">>, lua)
     {_, lua} = :luerl.do(<<"bleep_current_synth = \"fmbell\"">>, lua)
     {_, lua} = :luerl.do(<<"bleep_current_fx_stack = { \"default\" }">>, lua)
@@ -822,21 +843,15 @@ defmodule BleepWeb.MainLive do
 
   @impl true
   def handle_info(
-        %{
-          topic: "room:bleep-audio",
-          payload: {time, {:core_stop_fx, uuid, opts}}
-        },
+        %{topic: "room:bleep-audio", payload: {time_s, tag, {:core_stop_fx, uuid, opts}}},
         socket
       ) do
     {:noreply,
-     push_event(socket, "bleep-audio", %{
-       msg:
-         Jason.encode!(%{
-           time: time,
-           cmd: "releaseFX",
-           uuid: uuid,
-           opts: opts
-         })
+     sched_bleep_audio(socket, time_s, tag, %{
+       time_s: time_s,
+       cmd: "releaseFX",
+       uuid: uuid,
+       opts: opts
      })}
   end
 
@@ -844,19 +859,16 @@ defmodule BleepWeb.MainLive do
   def handle_info(
         %{
           topic: "room:bleep-audio",
-          payload: {time, {:core_control_fx, uuid, opts}}
+          payload: {time_s, tag, {:core_control_fx, uuid, opts}}
         },
         socket
       ) do
     {:noreply,
-     push_event(socket, "bleep-audio", %{
-       msg:
-         Jason.encode!(%{
-           time: time,
-           cmd: "controlFX",
-           uuid: uuid,
-           opts: opts
-         })
+     sched_bleep_audio(socket, time_s, tag, %{
+       time_s: time_s,
+       cmd: "controlFX",
+       uuid: uuid,
+       opts: opts
      })}
   end
 
@@ -864,21 +876,18 @@ defmodule BleepWeb.MainLive do
   def handle_info(
         %{
           topic: "room:bleep-audio",
-          payload: {time, {:core_start_fx, uuid, fx_id, output_id, opts}}
+          payload: {time_s, tag, {:core_start_fx, uuid, fx_id, output_id, opts}}
         },
         socket
       ) do
     {:noreply,
-     push_event(socket, "bleep-audio", %{
-       msg:
-         Jason.encode!(%{
-           time: time,
-           cmd: "triggerFX",
-           fx_id: fx_id,
-           uuid: uuid,
-           output_id: output_id,
-           opts: opts
-         })
+     sched_bleep_audio(socket, time_s, tag, %{
+       time_s: time_s,
+       cmd: "triggerFX",
+       fx_id: fx_id,
+       uuid: uuid,
+       output_id: output_id,
+       opts: opts
      })}
   end
 
@@ -886,20 +895,17 @@ defmodule BleepWeb.MainLive do
   def handle_info(
         %{
           topic: "room:bleep-audio",
-          payload: {time, {:sample, sample_name, output_id, opts}}
+          payload: {time_s, tag, {:sample, sample_name, output_id, opts}}
         },
         socket
       ) do
     {:noreply,
-     push_event(socket, "bleep-audio", %{
-       msg:
-         Jason.encode!(%{
-           time: time,
-           cmd: "triggerSample",
-           sample_name: sample_name,
-           output_id: output_id,
-           opts: opts
-         })
+     sched_bleep_audio(socket, time_s, tag, %{
+       time_s: time_s,
+       cmd: "triggerSample",
+       sample_name: sample_name,
+       output_id: output_id,
+       opts: opts
      })}
   end
 
@@ -907,20 +913,27 @@ defmodule BleepWeb.MainLive do
   def handle_info(
         %{
           topic: "room:bleep-audio",
-          payload: {time, {:synth, synth, output_id, opts}}
+          payload: {time_s, tag, {:synth, synth, output_id, opts}}
         },
         socket
       ) do
     {:noreply,
-     push_event(socket, "bleep-audio", %{
-       msg:
-         Jason.encode!(%{
-           time: time,
-           cmd: "triggerOneshotSynth",
-           synthdef_id: synth,
-           output_id: output_id,
-           opts: opts
-         })
+     sched_bleep_audio(socket, time_s, tag, %{
+       time_s: time_s,
+       cmd: "triggerOneshotSynth",
+       synthdef_id: synth,
+       output_id: output_id,
+       opts: opts
      })}
+  end
+
+  def sched_bleep_audio(socket, time_s, tag, msg) do
+    msg = Map.put(msg, :time_s, time_s + 0.5)
+
+    push_event(socket, "sched-bleep-audio", %{
+      time_s: time_s + 2,
+      tag: tag,
+      msg: Jason.encode!(msg)
+    })
   end
 end

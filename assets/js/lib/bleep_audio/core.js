@@ -18,9 +18,6 @@ export default class BleepAudioCore {
   #loaded_synthgens = new Map();
   #loaded_buffers = new Map();
   #running_fx = new Map();
-  #initial_audio_context_time_s = 0;
-  #base_audio_context_time_s = 0;
-  #initial_wallclock_time_s = 0;
   #started = false;
   #default_synthdef_paths;
 
@@ -58,10 +55,6 @@ export default class BleepAudioCore {
   idempotentInit() {
     if (!this.#started) {
       this.#audio_context = new AudioContext();
-      this.#initial_audio_context_time_s = this.#audio_context.currentTime;
-      this.#base_audio_context_time_s =
-        this.#initial_audio_context_time_s + this.#audio_context.baseLatency;
-      this.#initial_wallclock_time_s = Date.now() / 1000;
       this.#started = true;
 
       this.#default_synthdef_paths.map((x) => {
@@ -137,7 +130,7 @@ export default class BleepAudioCore {
     }
 
     this.#running_fx.set(id, fx);
-    fx.setParams(opts, this.#audio_context.currentTime)
+    fx.setParams(opts, this.#audio_context.currentTime);
     fx.out.connect(output_node.in);
   }
 
@@ -183,10 +176,14 @@ export default class BleepAudioCore {
     return output_node;
   }
 
-  #clockTimeToAudioTime(wallclock_time) {
-    const delta_s = wallclock_time - this.#initial_wallclock_time_s + 0.2;
-    const audio_context_sched_s = this.#base_audio_context_time_s + delta_s; //- this.audio_context.baseLatency
-    return audio_context_sched_s;
+  #clockTimeToAudioTime(wallclock_time_s) {
+    const audio_time_s = this.#audio_context.currentTime;
+    const clock_time_s = Date.now() / 1000;
+    return (
+      audio_time_s +
+      (wallclock_time_s - clock_time_s) +
+      this.#audio_context.baseLatency
+    );
   }
 
   #triggerBuffer(time, buffer, output_node, opts) {
@@ -214,15 +211,12 @@ export default class BleepAudioCore {
   }
 
   triggerOneshotSynth(time, synthdef_id, output_id, opts) {
+    const audio_context_sched_s = this.#clockTimeToAudioTime(time);
 
     let output_node = this.#resolveOutputId(output_id);
-    const delta_s = time - this.#initial_wallclock_time_s + 0.2;
-    const audio_context_sched_s = this.#base_audio_context_time_s + delta_s; //- this.audio_context.baseLatency
-
     const note = opts.hasOwnProperty("note") ? opts.note : 60;
     const level = opts.hasOwnProperty("level") ? opts.level : 0.2;
     const duration = opts.hasOwnProperty("duration") ? opts.duration : 0.5; // duration in seconds
-
     const pitchHz = Utility.midiNoteToHz(note);
 
     const gen = this.#getSynthGen(synthdef_id);
@@ -243,7 +237,6 @@ export default class BleepAudioCore {
     synth.out.connect(output_node.in);
     // play the note
     synth.play(audio_context_sched_s);
-
   }
 
   loadSynthDef(synthdef) {
@@ -255,11 +248,11 @@ export default class BleepAudioCore {
     return gen.id;
   }
 
-  jsonDispatch(json) {
+  jsonDispatch(time_delta_s, json) {
     switch (json.cmd) {
       case "triggerOneshotSynth":
         this.triggerOneshotSynth(
-          json.time,
+          json.time_s + time_delta_s,
           json.synthdef_id,
           json.output_id,
           json.opts
@@ -267,7 +260,7 @@ export default class BleepAudioCore {
         break;
       case "triggerSample":
         this.triggerSample(
-          json.time,
+          json.time_s + time_delta_s,
           json.sample_name,
           json.output_id,
           json.opts
@@ -275,7 +268,7 @@ export default class BleepAudioCore {
         break;
       case "triggerFX":
         this.triggerFX(
-          json.time,
+          json.time_s + time_delta_s,
           json.fx_id,
           json.uuid,
           json.output_id,
@@ -283,14 +276,10 @@ export default class BleepAudioCore {
         );
         break;
       case "controlFX":
-        this.controlFX(
-          json.time,
-          json.uuid,
-          json.opts
-        );
+        this.controlFX(json.time_s + time_delta_s, json.uuid, json.opts);
         break;
       case "releaseFX":
-        this.releaseFX(json.time, json.uuid);
+        this.releaseFX(json.time_s + time_delta_s, json.uuid);
         break;
 
       default:

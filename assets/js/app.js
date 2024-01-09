@@ -22,8 +22,8 @@ import { Socket } from "phoenix";
 import { LiveSocket } from "phoenix_live_view";
 
 // Vendored libs
+// import mermaid from "../vendor/mermaid";
 import topbar from "../vendor/topbar";
-import mermaid from "../vendor/mermaid";
 import luamin from "../vendor/luamin";
 window.luamin = luamin;
 
@@ -31,9 +31,9 @@ window.luamin = luamin;
 import BleepEditor from "./lib/bleep_editor";
 import BleepAudioCore from "./lib/bleep_audio/core";
 import BleepTime from "./lib/bleep_time";
-import "./lib/bleep_modal"
+import "./lib/bleep_modal";
 
-mermaid.initialize({ startOnLoad: true });
+// mermaid.initialize({ startOnLoad: true });
 
 let bleep = new BleepAudioCore();
 window.bleep = bleep;
@@ -47,7 +47,6 @@ let liveSocket = new LiveSocket("/live", Socket, {
   hooks: Hooks,
   params: { _csrf_token: csrfToken },
 });
-
 
 // Show progress bar on live navigation and form submits
 topbar.config({ barColors: { 0: "#29d" }, shadowColor: "rgba(0, 0, 0, .3)" });
@@ -69,24 +68,22 @@ window.addEventListener(`phx:update-luareplres`, (e) => {
 });
 
 window.addEventListener(`phx:bleep-time-ack`, (e) => {
-  const now = Date.now() / 1000;
   const roundtrip_time1 = e.detail.roundtrip_time;
   const server_time = e.detail.server_time;
-  const roundtrip_time2 = now;
+  const roundtrip_time2 = Date.now() / 1000;
   const single_way_time = (roundtrip_time2 - roundtrip_time1) / 2;
-  window.bleep_time_delta = server_time - (now - single_way_time);
-  console.log("Bleep time:")
-  console.log(`T1 ${roundtrip_time1}s`);
-  console.log(`S1 ${server_time}s`);
-  console.log(`T2 ${roundtrip_time2}s`);
-  console.log(`RT  ${(roundtrip_time2 - roundtrip_time1) * 1000 }ms`);
+  window.bleep_time_delta =
+    roundtrip_time2 - e.detail.latency_est - server_time;
+  window.bleep_latency_measurement = single_way_time;
+  window.bleep_latency = e.detail.latency_est;
 });
 
-window.addEventListener(`phx:bleep-audio`, (e) => {
+window.addEventListener(`phx:sched-bleep-audio`, (e) => {
   try {
     const msg = JSON.parse(e.detail.msg);
-    //console.log(`got incoming msg: ${JSON.stringify(msg)}`)
-    bleep.jsonDispatch(msg);
+    // const time = e.detail.time;
+    // const tag = e.detail.tag;
+    bleep.jsonDispatch(window.bleep_time_delta, msg);
   } catch (ex) {
     console.log(`Incoming bleep-audio event error ${ex.message}`);
     console.log(ex);
@@ -108,8 +105,8 @@ function bleep_animate_logo() {
   }
 
   setTimeout(() => {
-      requestAnimationFrame(bleep_animate_logo);
-    }, 400);
+    requestAnimationFrame(bleep_animate_logo);
+  }, 400);
 }
 
 // Start the animation

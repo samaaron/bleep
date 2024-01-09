@@ -50,7 +50,8 @@ defmodule Bleep.MixProject do
       {:luerl, "~> 1.1"},
       {:earmark, "~> 1.4"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:elixir_uuid, "~> 1.2"}
+      {:elixir_uuid, "~> 1.2"},
+      {:kalman, "~> 1.0"}
     ]
   end
 
