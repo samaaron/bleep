@@ -5,7 +5,7 @@ const BleepTime = {
     window.bleep_time_info = {
       delta: 0,
       latency: 0.05,
-      latency_measurement: 0,
+      latency_measurement: 0.05,
     };
 
     setTimeout(() => {

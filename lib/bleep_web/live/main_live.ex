@@ -8,12 +8,12 @@ defmodule BleepWeb.MainLive do
   @impl true
   def mount(_params, _session, socket) do
     BleepWeb.Endpoint.subscribe("room:bleep-audio")
-    kalman = Kalman.new(q: 0.005, r: 1, x: 0.01)
+    kalman = Kalman.new(q: 0.005, r: 1, x: 0.05)
 
     {:ok,
      socket
      |> assign(:kalman, kalman)
-     |> assign(:bleep_latency, 0.1)
+     |> assign(:bleep_latency, 50.0)
      |> assign(:data, data())}
   end
 
