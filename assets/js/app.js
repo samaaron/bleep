@@ -72,10 +72,12 @@ window.addEventListener(`phx:bleep-time-ack`, (e) => {
   const server_time = e.detail.server_time;
   const roundtrip_time2 = Date.now() / 1000;
   const single_way_time = (roundtrip_time2 - roundtrip_time1) / 2;
-  window.bleep_time_delta =
-    roundtrip_time2 - e.detail.latency_est - server_time;
-  window.bleep_latency_measurement = single_way_time;
-  window.bleep_latency = e.detail.latency_est;
+
+  window.bleep_time_info = {
+    delta: roundtrip_time2 - e.detail.latency_est - server_time,
+    latency: e.detail.latency_est,
+    latency_measurement: single_way_time,
+  };
 });
 
 window.addEventListener(`phx:sched-bleep-audio`, (e) => {
@@ -83,7 +85,7 @@ window.addEventListener(`phx:sched-bleep-audio`, (e) => {
     const msg = JSON.parse(e.detail.msg);
     // const time = e.detail.time;
     // const tag = e.detail.tag;
-    bleep.jsonDispatch(window.bleep_time_delta, msg);
+    bleep.jsonDispatch(window.bleep_time_info.delta, msg);
   } catch (ex) {
     console.log(`Incoming bleep-audio event error ${ex.message}`);
     console.log(ex);
