@@ -68,6 +68,10 @@ export default class BleepAudioCore {
     }
   }
 
+  getAudioContext() {
+    return this.#audio_context
+  }
+
   hasStarted() {
     return this.#started;
   }
