@@ -31,12 +31,15 @@ window.luamin = luamin;
 import BleepEditor from "./lib/bleep_editor";
 import BleepAudioCore from "./lib/bleep_audio/core";
 import BleepTime from "./lib/bleep_time";
+import BleepPrescheduler from "./lib/bleep_prescheduler";
 import "./lib/bleep_modal";
 
 // mermaid.initialize({ startOnLoad: true });
 
 let bleep = new BleepAudioCore();
 window.bleep = bleep;
+
+let prescheduler = new BleepPrescheduler(bleep);
 
 let csrfToken = document
   .querySelector("meta[name='csrf-token']")
@@ -83,9 +86,9 @@ window.addEventListener(`phx:bleep-time-ack`, (e) => {
 window.addEventListener(`phx:sched-bleep-audio`, (e) => {
   try {
     const msg = JSON.parse(e.detail.msg);
-    // const time = e.detail.time;
-    // const tag = e.detail.tag;
-    bleep.jsonDispatch(window.bleep_time_info.delta, msg);
+    const time = e.detail.time_s;
+    const tag = e.detail.tag;
+    prescheduler.schedule(time, tag, msg, window.bleep_time_info.delta);
   } catch (ex) {
     console.log(`Incoming bleep-audio event error ${ex.message}`);
     console.log(ex);

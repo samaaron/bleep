@@ -923,7 +923,7 @@ defmodule BleepWeb.MainLive do
     msg = Map.put(msg, :time_s, time_s + 0.5)
 
     push_event(socket, "sched-bleep-audio", %{
-      time_s: time_s + 2,
+      time_s: time_s,
       tag: tag,
       msg: Jason.encode!(msg)
     })
