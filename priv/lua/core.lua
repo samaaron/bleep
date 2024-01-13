@@ -441,7 +441,7 @@ end
 -- steps - the total number of steps in the sequence 
 -- phase (optional) - the phase offset (e.g. for phase=2 the pattern is right-shifted by two spaces)
 -- returns a string of the form x--x-x- in which the hits are equally spaced in time
-function euclideanPattern(hits, steps, phase)
+function euclidean_pattern(hits, steps, phase)
     phase = phase or 0
     local pattern = {}
     local slope = hits / steps
@@ -457,8 +457,8 @@ end
 
 -- make a Euclidean rhythm 
 -- returns a Ring containing the pattern, with ones for hits and zeros for rests
-function euclidean(hits,steps,phase)
-    local seq = euclideanPattern(hits,steps,phase)
+function euclidean_ring(hits,steps,phase)
+    local seq = euclidean_pattern(hits,steps,phase)
     return pattern(seq)
 end
 
@@ -686,4 +686,18 @@ function drum_pattern(pattern, params)
     if sleep_duration > 0 then
         sleep(sleep_duration)
     end
+end
+
+-- ===============================================================
+-- Grooves
+-- ===============================================================
+
+function swing_8ths(amount,dur)
+    local delta = dur*amount/200
+    return Ring.new({dur, dur+delta,dur-delta,dur})
+end
+
+function swing_16ths(amount,dur)
+    local delta = dur*amount/200
+    return Ring.new({dur+delta,dur-delta})
 end

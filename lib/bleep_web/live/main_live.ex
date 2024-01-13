@@ -309,12 +309,12 @@ defmodule BleepWeb.MainLive do
         ### Lua redux - Drum patterns
         Two functions for playing patterns:
 
-        **pattern(s)** takes a string **s** in x-xx form and returns a ring containing numerical values. "x" is
-        mapped to 1 and "-" is mapped to zero. Digits 1-9 are mapped to 0.1 to 0.9. So the pattern can be used
-        to represent sound level (velocity) as well as note ons.
+        **drum_pattern(s,params)** plays a drum pattern in x-xx form. Spaces are ignored. Parameters (including the sample name) can be
+        single values or rings.
 
-        **euclidean(h,n,p)** makes a euclidean pattern given the number of hits **h**, length of the sequence **n** and (optionally)
-        the phase **p**. A phase of p right-shifts the pattern to the right by p steps. A ring is returned with 0,1 values.
+        **euclidean_pattern(h,n,p)** makes a euclidean pattern given the number of hits **h**, length of the sequence **n** and (optionally)
+        the phase **p**. A phase of p right-shifts the pattern to the right by p steps. A string is returned in x-xx form which can be used
+        with drum_pattern.
         """
       },
       %{
@@ -347,6 +347,27 @@ defmodule BleepWeb.MainLive do
           sample={ch,ch,ch,ch,ch,ch,ch,oh},
           level={1,0.3,0.5,0.3},
           duration=0.2})
+        sleep(1)
+
+        -- or we can mess with the sample rate
+        -- there is also a helper function to make euclidean rhythms
+
+        drum_pattern(euclidean_pattern(20, 32), {
+          sample="drum_tom_lo_soft",
+          level={1,0.3,0.2,1,0.3,0.2,1.0,0.4},
+          rate={1,1,2},
+          duration=0.1})
+        sleep(1)
+
+        -- finally we can mess with durations to get swing
+        -- a helper function will calculate this for us and return a ring of durations
+
+        dur = swing_16ths(30, 0.125)
+
+        drum_pattern("xxxx xxxx xxxx xxxx", {
+          sample={ch,ch,ch,ch,ch,ch,ch,oh},
+          level={1,0.3,0.5,0.3},
+          duration=dur})
         """
       },
       %{
