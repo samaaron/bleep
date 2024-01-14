@@ -693,7 +693,7 @@ defmodule BleepWeb.MainLive do
 
   def eval_code(start_time_s, code, result_id, socket) do
     core_lua =
-      if(Mix.env() == :dev) do
+      if Mix.env() == :dev do
         File.read!(@core_lua_path)
       else
         @core_lua
