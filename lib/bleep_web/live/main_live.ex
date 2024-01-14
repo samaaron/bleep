@@ -539,7 +539,7 @@ defmodule BleepWeb.MainLive do
         </div>
       </div>
       <div class="font-mono text-sm border border-zinc-600 text-zinc-200 bg-zinc-500 bottom-9 dark:bg-zinc-800">
-        <div id={@result_id}></div>
+        <div phx-update="ignore" id={@result_id}></div>
       </div>
     </div>
     """
