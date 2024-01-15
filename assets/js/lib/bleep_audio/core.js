@@ -30,6 +30,7 @@ export default class BleepAudioCore {
       "/bleep_audio/synthdefs/brasspad.txt",
       "/bleep_audio/synthdefs/buzzer.txt",
       "/bleep_audio/synthdefs/catholicstyle.txt",
+      "/bleep_audio/synthdefs/childhood.txt",
       "/bleep_audio/synthdefs/choir.txt",
       "/bleep_audio/synthdefs/default.txt",
       "/bleep_audio/synthdefs/dogbass.txt",

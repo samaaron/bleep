@@ -395,8 +395,8 @@ function Ring:map(func)
     return Ring.new(new_table)
 end
 
--- intercalate two rings
-function Ring:intercalate(another_ring)
+-- merge (intercalate) two rings
+function Ring:merge(another_ring)
     local fused = {}
     local n = math.max(self:length(),another_ring:length())
     for i=1,n do
@@ -615,24 +615,35 @@ end
 -- Drum patterns
 -- ===============================================================
 
--- make a Ring from a string pattern
--- "x" is mapped to 1 and "-" is mapped to 0
-function patternToTable(seq)
-    local array = {}
-    seq = seq:gsub("%s", "") -- remove any spaces
-    for i = 1, #seq do
-        local char = seq:sub(i, i)
-        if (char == "x") then
-            table.insert(array, 1)
-        else
-            table.insert(array, 0)
+-- make a map of characters that appear in the pattern string
+-- so we can look up their indices later
+
+function findCharIndices(str)
+    local recordedChars = {}
+    local order = {}
+    local indices = {}
+    for i = 1, #str do
+        local char = str:sub(i, i)
+        if char~="-" and not recordedChars[char] then
+            recordedChars[char] = true
+            table.insert(order, char)
+            indices[char] = #order
         end
     end
-    return array
+    return indices
 end
 
+-- play a drum pattern
+-- strings are any sequence of characters, spaces are ignored and dashes are rests
+-- other characters are mapped to the ring of sample names in the order they appear
+-- there may be a better way?
+
 function drum_pattern(pattern, params)
-    local beats = patternToTable(pattern)
+    -- remove spaces
+    pattern = pattern:gsub("%s", "")
+    -- find all the instrument characters in the string
+    local char_indices = findCharIndices(pattern)
+    -- parameter map
     local param_map = {}
     if params == nil then
         params = {}
@@ -663,16 +674,18 @@ function drum_pattern(pattern, params)
     end
     -- main loop
     local sleep_duration = 0
-    for i, beat in ipairs(beats) do
+    for i = 1, #pattern do
+        local this_char = pattern:sub(i, i)
         local beat_params = {}
         local dur = param_map.duration and param_map.duration[i] or 1
-        local samp = param_map.sample and param_map.sample[i] or "elec_blip"
         for key, param_ring in pairs(param_map) do
             if key ~= "sample" and key ~= "duration" then
                 beat_params[key] = param_ring[i]
             end
         end
-        if beat == 1 then
+        if this_char ~= "-" then
+            local sample_index = char_indices[this_char]
+            local samp = param_map.sample and param_map.sample[sample_index] or "elec_blip"
             if sleep_duration > 0 then
                 sleep(sleep_duration)
                 sleep_duration = 0

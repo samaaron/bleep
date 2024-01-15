@@ -63,7 +63,7 @@ defmodule BleepWeb.MainLive do
 
         sleep(1)
 
-        -- the procedural way, using array index style
+        -- the imperative way, using array index style
         -- indexes now count from 1 and of course wrap around
 
         for i = 1, 10 do
@@ -117,7 +117,7 @@ defmodule BleepWeb.MainLive do
 
         -- combine them
 
-        duran_duran = duran:intercalate(pedal)
+        duran_duran = duran:merge(pedal)
 
         for i = 1, 2 do
           duran_duran:map(function (n)
@@ -202,7 +202,7 @@ defmodule BleepWeb.MainLive do
         * `reflect()` - returns a mirror with the duplicate middle element removed
         * `sort()` - return a sorted ring
         * **NEW!** `alternate(n)` - make alternating intervals by duplicating each value and adding a constant
-        * **NEW!** `intercalate(n)` - intercalate the values of two rings
+        * **NEW!** `merge(n)` - merge (intercalate) the values of two rings
         * **NEW!** `quantize(n)` - quantise values in the ring to nearest n 
         * **NEW!** `Ring.constant(n,v)` - make a Ring of size n with constant value v
         * **NEW!** `Ring.random(n,min,max)` - make a Ring of n random values between min and max
@@ -310,7 +310,7 @@ defmodule BleepWeb.MainLive do
         Two functions for playing patterns:
 
         **drum_pattern(s,params)** plays a drum pattern in x-xx form. Spaces are ignored. Parameters (including the sample name) can be
-        single values or rings.
+        single values or rings. Characters other than - and space are mapped to a ring of sample names in the order they appear.
 
         **euclidean_pattern(h,n,p)** makes a euclidean pattern given the number of hits **h**, length of the sequence **n** and (optionally)
         the phase **p**. A phase of p right-shifts the pattern to the right by p steps. A string is returned in x-xx form which can be used
@@ -329,22 +329,20 @@ defmodule BleepWeb.MainLive do
           duration=0.125})
         sleep(1)
 
-        -- we are limited to one drum sound per box, but ... since any parameter can be a 
-        -- ring we can swap in some different sounds
+        -- we are limited to one drum sound per time step, but we can use any characters
+        -- we like apart from space (ignored) and dash (rest)
+        -- other characters are mapped to the ring of samples, if given, in the order
+        -- they appear in the pattern string
 
-        bd = "bishi_bass_drum"
-        sd = "bishi_snare"
-        drum_pattern("xx-x x-x- xx-- x-xx", {
-          sample={bd,sd,bd,bd},
+        drum_pattern("xx-x S-x- xx-- S-xx", {
+          sample={"bishi_bass_drum","bishi_snare"},
           duration=0.125})
         sleep(1)
 
         -- we can also add levels which cycle round to get a bit more feel
 
-        ch = "bishi_closed_hat"
-        oh = "hat_cats"
-        drum_pattern("xxxx xxxx xxxx xxxx", {
-          sample={ch,ch,ch,ch,ch,ch,ch,oh},
+        drum_pattern("xxxx xxxo xxxx xoxo", {
+          sample={"bishi_closed_hat","hat_cats"},
           level={1,0.3,0.5,0.3},
           duration=0.2})
         sleep(1)
@@ -361,13 +359,22 @@ defmodule BleepWeb.MainLive do
 
         -- finally we can mess with durations to get swing
         -- a helper function will calculate this for us and return a ring of durations
+        -- swing_16ths(amount,duration)
+        -- swing_8ths(amount,duration)
 
         dur = swing_16ths(30, 0.125)
 
-        drum_pattern("xxxx xxxx xxxx xxxx", {
-          sample={ch,ch,ch,ch,ch,ch,ch,oh},
+        for i = 1, 2 do
+          drum_pattern("Bxxx Sxxo Bxxx SxoS BxBx Sxxo Bxxx SxSS", {
+          sample={"bishi_bass_drum","bishi_closed_hat","bishi_snare","hat_cats"},
           level={1,0.3,0.5,0.3},
           duration=dur})
+        end
+
+        -- not sure about the way samples are allocated actually
+        -- would be much easier just to have explicit declarations
+        -- x = "bishi_closed_hat", 
+        -- S = "bishi_snare" etc
         """
       },
       %{
@@ -411,6 +418,7 @@ defmodule BleepWeb.MainLive do
         content: """
         ### Putting it all together
         Techno track - the first part of The Black Dog's "Let's all make brutalism"
+        This needs to be updated with new pattern play functions, haven't had time yet
         """
       },
       %{
@@ -472,12 +480,10 @@ defmodule BleepWeb.MainLive do
         kind: :editor,
         lang: :lua,
         content: """
-        bd = pattern("x---")
-        for i = 0, 64 do
-        if (bd:get(i) > 0) then
-          sample("bd_sone")
-        end
-        sleep(0.125)
+        for i = 1, 16 do
+          drum_pattern("x---", {
+          sample="bd_sone",
+          duration=0.125})
         end
         """
       },
@@ -510,7 +516,7 @@ defmodule BleepWeb.MainLive do
 
         for i = 1, 4 do
           play_pattern(the_notes, {
-            dur=t,
+            duration=t,
             gate=the_gates,
             bend=the_bends,
             level=the_accents,
@@ -519,6 +525,37 @@ defmodule BleepWeb.MainLive do
             cutoff =the_cutoff,
             resonance=0.3})
           the_cutoff = the_cutoff + 0.04
+        end
+        """
+      },
+        %{
+        uuid: "ac242406-4142-da26-c3c3-d2c57b817c38",
+        kind: :markdown,
+        content: """
+        Bleeped on Bach - new patch, testing longer sequences with effects
+        """
+      },
+      %{
+        uuid: "9f258afc-9c4e-2a3d-r2d2-d29a7aa43c38",
+        kind: :editor,
+        lang: :lua,
+        content: """
+        t = 0.35
+        push_fx("stereo_delay", {wetLevel=0.1,feedback=0.3,leftDelay=3 * t,rightDelay=2 * t})
+        push_fx("reverb_large", {wetLevel=0.5})
+        push_fx("pico_pebble", {wetLevel=1,dryLevel=0})
+
+        use_synth("childhood")
+
+        s = scale(major, C4, 1.5)
+        root = 1
+        for i = 1, 12 do
+          play_pattern({s[root],s[root+4],s[root+7],s[root+9]}, {
+            duration=t,
+            lfo_depth=1,
+            gate=0.7,
+            level={0.5,0.3,0.3,0.3}})
+          root = root + 7
         end
         """
       }
