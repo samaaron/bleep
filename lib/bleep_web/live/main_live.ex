@@ -124,10 +124,20 @@ defmodule BleepWeb.MainLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="text-zinc-100" id="bleep-time" phx-hook="BleepTime">
-      <p>
-        Latency: <%= Float.round(@bleep_latency, 2) %> ms
-      </p>
+    <div class="fixed top-0 left-0 z-50 flex items-center justify-between w-full text-sm shadow-lg border-zinc-100 bg-zinc-900 backdrop-blur-md bg-opacity-70">
+      <div class="flex items-center pl-7 gap border-b-orange-500">
+        <a href="/">
+          <img id="bleep-logo" src={~p"/images/bleep_logo.png"} width="200" phx-update="ignore" />
+        </a>
+        <p class="px-2 font-medium leading-6 rounded-full bg-brand/5 text-brand">
+          v0.0.1
+        </p>
+      </div>
+      <div class="float-right pr-7 text-zinc-100" id="bleep-time" phx-hook="BleepTime">
+        <p class="font-mono text-sm text-zinc-200">
+          Latency: <%= Float.round(@bleep_latency, 2) %> ms
+        </p>
+      </div>
     </div>
 
     <%= for frag <- @data do %>

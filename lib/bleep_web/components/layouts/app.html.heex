@@ -1,16 +1,6 @@
-<header class="px-4 sm:px-6 lg:px-8">
-  <div class="flex items-center justify-between py-3 text-sm border-b border-zinc-100">
-    <div class="flex items-center gap-4">
-      <a href="/">
-        <img id="bleep-logo" src={~p"/images/bleep_logo.png"} width="200" phx-update="ignore" />
-      </a>
-      <p class="px-2 font-medium leading-6 rounded-full bg-brand/5 text-brand">
-        v0.0.1
-      </p>
-    </div>
-  </div>
+<header class="fixed top-0 z-50 w-full px-4 sm:px-6 lg:px-8 bg-zinc-900 backdrop-blur-md bg-opacity-70">
 </header>
-<main class="px-4 py-20 sm:px-6 lg:px-8">
+<main class="sm:px-6 lg:px-8 ">
   <div class="max-w-3xl mx-auto">
     <.flash_group flash={@flash} />
     <%= @inner_content %>
