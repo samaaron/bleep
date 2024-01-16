@@ -1,0 +1,163 @@
+@synth childhood
+longname : Childhood
+type : synth
+author : Guy J Brown
+version : 1.0
+doc : Bright simple sound with modulation
+@end
+
+# parameters
+
+@param low_cutoff
+type : float
+mutable: yes
+step : 0.01
+min : 100
+max : 10000
+default : 10000
+doc : lowpass cutoff frequency
+@end
+
+@param high_cutoff
+type : float
+mutable: yes
+step : 0.01
+min : 10
+max : 8000
+default : 500
+doc : highpass cutoff frequency
+@end
+
+@param noise_level
+type : float
+mutable: yes
+step : 0.01
+min : 0
+max : 1
+default : 0.03
+doc : noise level
+@end
+
+@param filter_mod
+type : float
+mutable: yes
+step : 0.01
+min : 0
+max : 1
+default : 0.1
+doc : filter modulation amount
+@end
+
+@param lfo_rate
+type : float
+mutable: yes
+step : 0.01
+min : 1
+max : 8
+default : 5
+doc : LFO rate
+@end
+
+@param lfo_depth
+type : float
+mutable: yes
+step : 0.01
+min : 0
+max : 100
+default : 25
+doc : LFO depth
+@end
+
+@param lfo_delay
+type : float
+mutable: yes
+step : 0.01
+min : 0
+max : 2
+default : 1.5
+doc : delay before LFO fades in
+@end
+
+@param volume
+type : float
+mutable: yes
+step : 0.01
+min : 0
+max : 1
+default : 0.8
+doc : master volume
+@end
+
+# modules
+
+SAW-OSC : saw
+PULSE-OSC : pulse
+NOISE : noise
+VCA : noiselevel
+LPF : lowpass
+HPF : highpass
+VCA : mix
+VCA : vca
+ADSR : ampenv
+ADSR : filterenv
+TRI-OSC : lfo
+VCA : lfodepth
+ADSR : lfoenv
+VCA : filtermod
+
+# patch
+
+pulse.pulsewidth=0.65
+noiselevel.level=param.noise_level
+# saw.out  mix.in
+pulse.out -> mix.in
+noise.out -> noiselevel.in
+noiselevel.out -> mix.in
+mix.out -> highpass.in
+highpass.out -> lowpass.in
+lowpass.out -> vca.in
+vca.out -> audio.in
+
+lfo.out -> lfodepth.in
+lfodepth.out -> saw.pitchCV
+lfodepth.out -> pulse.pitchCV
+
+lfo.out -> filtermod.in
+filtermod.out -> lowpass.cutoffCV
+
+# tweak
+
+mix.level=0.4
+saw.pitch = param.pitch
+pulse.pitch = param.pitch
+highpass.cutoff = param.high_cutoff
+lowpass.resonance = 5
+lfo.pitch = param.lfo_rate
+filtermod.level = param.low_cutoff*param.filter_mod
+
+lfoenv.out -> lfodepth.levelCV
+
+# envelopes
+
+ampenv.level = param.level*param.volume
+ampenv.attack = 0.01
+ampenv.decay = 2
+ampenv.sustain = 0
+ampenv.release = 0.8
+ampenv.out -> vca.levelCV
+
+filterenv.level = param.low_cutoff
+filterenv.attack = 0.01
+filterenv.decay = 0.1
+filterenv.sustain = param.low_cutoff*0.5
+filterenv.release = 1
+
+filterenv.out -> lowpass.cutoffCV
+
+lfoenv.attack = param.lfo_delay
+lfoenv.level = param.lfo_depth
+lfoenv.decay = 0.1
+lfoenv.sustain = param.lfo_depth
+lfoenv.release = 0.6
+
+# end

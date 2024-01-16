@@ -1,0 +1,91 @@
+@synth saveaprayer
+longname : Square wave arpeggiator sound
+type : synth
+author : Guy J Brown
+version : 1.0
+doc : A square wave arpeggiator sound based on the track Save a prayer by Duran Duran. Add Roland Chorus and delay at 0.75 beats, apply mascara and play on a yacht in the Carribean.
+@end
+
+# parameters
+
+@param lowpass_cutoff
+type : float
+mutable: yes
+step : 0.01
+min : 100
+max : 3000
+default : 2000
+doc : lowpass cutoff frequency
+@end
+
+@param highpass_cutoff
+type : float
+mutable: yes
+step : 0.01
+min : 0
+max : 3000
+default : 400
+doc : highpass cutoff frequency
+@end
+
+@param detune
+type : float
+mutable : yes
+step : 0.01
+min : 0
+max : 100
+default : 15
+doc : the detuning amount of the upper octave square wave
+@end
+
+@param volume
+type : float
+mutable : yes
+step : 0.01
+min : 0
+max : 1
+default : 0.8
+doc : the overall volume
+@end
+
+# modules
+
+SQR-OSC : osc1
+SQR-OSC : osc2
+VCA : mix
+LPF : lowpass
+HPF : highpass
+VCA : vca
+ADSR : env
+
+# patch
+
+osc1.out -> mix.in
+osc2.out -> mix.in
+mix.out -> highpass.in
+highpass.out -> lowpass.in
+
+lowpass.out -> vca.in
+vca.out -> audio.in
+
+env.out -> vca.levelCV
+
+# tweak
+
+mix.level = 0.4
+lowpass.resonance = 0
+highpass.resonance = 0     
+
+env.level = param.level*param.volume
+env.attack = 0.02
+env.release = 0.1
+env.decay = 0.1
+env.sustain = param.level*param.volume*0.2
+
+osc1.pitch = param.pitch
+osc2.pitch = param.pitch
+osc2.detune = param.detune
+lowpass.cutoff = param.lowpass_cutoff
+highpass.cutoff = param.highpass_cutoff
+
+# end

@@ -2,7 +2,7 @@ defmodule BleepWeb.MainLive do
   require Logger
   use BleepWeb, :live_view
 
-  @content_path Path.join([:code.priv_dir(:bleep), "content", "change_update.lua"])
+  @content_path Path.join([:code.priv_dir(:bleep), "content", "content_16_01_24.lua"])
 
   @impl true
   def mount(_params, _session, socket) do
