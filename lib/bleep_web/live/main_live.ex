@@ -60,7 +60,7 @@ defmodule BleepWeb.MainLive do
     assigns = assign(assigns, :markdown, md)
 
     ~H"""
-    <div class="mt-4 text-sm px-7 text-zinc-200 bg-zinc-800 dark:bg-zinc-900">
+    <div class="p-5 text-sm px-7 text-zinc-200">
       <%= Phoenix.HTML.raw(@markdown) %>
     </div>
     """
@@ -124,7 +124,7 @@ defmodule BleepWeb.MainLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="fixed top-0 left-0 z-50 flex items-center justify-between w-full text-sm shadow-lg border-zinc-100 bg-zinc-900 backdrop-blur-md bg-opacity-70">
+    <div class="fixed top-0 left-0 z-50 flex items-center justify-between w-full text-sm border-b shadow-lg border-zinc-100 bg-zinc-950 backdrop-blur-md bg-opacity-70 border-b-orange-600">
       <div class="flex items-center pl-7 gap border-b-orange-500">
         <a href="/">
           <img id="bleep-logo" src={~p"/images/bleep_logo.png"} width="200" phx-update="ignore" />
@@ -134,17 +134,16 @@ defmodule BleepWeb.MainLive do
         </p>
       </div>
       <div class="float-right pr-7 text-zinc-100" id="bleep-time" phx-hook="BleepTime">
-        <p class="font-mono text-sm text-zinc-200">
+        <p class="font-mono text-xs text-zinc-200">
           Latency: <%= :erlang.float_to_binary(@bleep_latency, decimals: 2) %> ms
         </p>
       </div>
     </div>
-
-    <%= for frag <- @data do %>
-      <div class="">
+    <div class="pt-20">
+      <%= for frag <- @data do %>
         <.render_frag {frag} />
-      </div>
-    <% end %>
+      <% end %>
+    </div>
     """
   end
 
