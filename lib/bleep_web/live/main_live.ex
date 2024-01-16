@@ -18,20 +18,7 @@ defmodule BleepWeb.MainLive do
 
   def data_from_lua(path) do
     content_lua = File.read!(path)
-    lua = :luerl_sandbox.init()
-
-    lua =
-      :luerl.set_table(
-        [<<"uuid">>],
-        fn _args, state ->
-          {[UUID.uuid4()], state}
-        end,
-        lua
-      )
-
-    {_, lua} =
-      :luerl.do(
-        "
+    lua = Bleep.Lang.make_lua_vm("
       function markdown(s)
         return {
           kind = \"markdown\",
@@ -48,11 +35,9 @@ defmodule BleepWeb.MainLive do
           uuid = uuid()
         }
       end
-      ",
-        lua
-      )
+      ")
 
-    {:ok, result, _new_state} = :luerl_new.do_dec(content_lua, lua)
+    {:ok, result, _new_state} = Bleep.Lang.eval_lua(content_lua, lua)
     result = Bleep.Lang.lua_table_array_to_list(hd(result))
 
     Enum.map(result, fn frag_info ->
@@ -220,7 +205,7 @@ defmodule BleepWeb.MainLive do
   end
 
   def eval_and_display(socket, start_time_s, code, result_id) do
-    res = Bleep.Lang.eval_code(start_time_s, code)
+    res = Bleep.Lang.start_run(start_time_s, code)
     display_eval_result(socket, res, result_id)
   end
 

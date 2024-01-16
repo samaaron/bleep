@@ -9,6 +9,31 @@ defmodule Bleep.Lang do
 
   """
 
+  def eval_lua(code, lua) do
+    :luerl_new.do_dec(code, lua)
+  end
+
+  def make_lua_vm(seed_code) do
+    lua = :luerl_sandbox.init()
+
+    lua =
+      :luerl.set_table(
+        [<<"uuid">>],
+        fn _args, state ->
+          {[UUID.uuid4()], state}
+        end,
+        lua
+      )
+
+    {_, lua} =
+      :luerl.do(
+        seed_code,
+        lua
+      )
+
+    lua
+  end
+
   def lua_time(lua) do
     {[global_time_s | _rest], lua} = :luerl.do(<<"return bleep_global_time">>, lua)
     {[start_time_s | _rest], _lua} = :luerl.do(<<"return bleep_start_time">>, lua)
@@ -84,7 +109,7 @@ defmodule Bleep.Lang do
     broadcast({time_s, tag, {:core_control_fx, uuid, opts}})
   end
 
-  def eval_code(start_time_s, code) do
+  def start_run(start_time_s, code) do
     core_lua =
       if Mix.env() == :dev do
         File.read!(@core_lua_path)
@@ -92,18 +117,12 @@ defmodule Bleep.Lang do
         @core_lua
       end
 
-    lua = :luerl_sandbox.init()
+    lua = make_lua_vm(core_lua)
 
     {_, lua} = :luerl.do(<<"bleep_start_time = #{start_time_s}">>, lua)
     {_, lua} = :luerl.do(<<"bleep_global_time = 0">>, lua)
     {_, lua} = :luerl.do(<<"bleep_current_synth = \"fmbell\"">>, lua)
     {_, lua} = :luerl.do(<<"bleep_current_fx_stack = { \"default\" }">>, lua)
-
-    {_, lua} =
-      :luerl.do(
-        core_lua,
-        lua
-      )
 
     lua =
       :luerl.set_table(
@@ -166,7 +185,7 @@ defmodule Bleep.Lang do
 
     res_or_exception =
       try do
-        :luerl_new.do_dec(code, lua)
+        eval_lua(code, lua)
       rescue
         e ->
           {:exception, e, __STACKTRACE__}
