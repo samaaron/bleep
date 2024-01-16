@@ -135,7 +135,7 @@ defmodule BleepWeb.MainLive do
       </div>
       <div class="float-right pr-7 text-zinc-100" id="bleep-time" phx-hook="BleepTime">
         <p class="font-mono text-sm text-zinc-200">
-          Latency: <%= Float.round(@bleep_latency, 2) %> ms
+          Latency: <%= :erlang.float_to_binary(@bleep_latency, decimals: 2) %> ms
         </p>
       </div>
     </div>
