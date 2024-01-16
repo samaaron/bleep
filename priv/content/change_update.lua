@@ -71,7 +71,7 @@ map(function (n)
 end, {C3,D3,E3,F3,G3})
 ]],
 
-editor [[
+markdown [[
 ### Rings
 Closely based on the approach in Sonic Pi, with the following implemented:
 * `pick(n)` - selects n values in a new ring
