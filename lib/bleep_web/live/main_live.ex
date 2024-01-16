@@ -124,8 +124,8 @@ defmodule BleepWeb.MainLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="fixed top-0 left-0 z-50 flex items-center justify-between w-full text-sm border-b shadow-lg border-zinc-100 bg-zinc-950 backdrop-blur-md bg-opacity-70 border-b-orange-600">
-      <div class="flex items-center pl-7 gap border-b-orange-500">
+    <div class="fixed top-0 left-0 z-50 flex items-center justify-between w-full text-sm border-b shadow-lg border-zinc-100 bg-zinc-950 backdrop-blur-md bg-opacity-70 border-b-zinc-600">
+      <div class="flex items-center pl-7 gap">
         <a href="/">
           <img id="bleep-logo" src={~p"/images/bleep_logo.png"} width="200" phx-update="ignore" />
         </a>
