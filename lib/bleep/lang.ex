@@ -94,69 +94,20 @@ defmodule Bleep.Lang do
 
     lua = Bleep.VM.make_vm(core_lua)
 
-    {_, lua} = :luerl.do(<<"bleep_start_time = #{start_time_s}">>, lua)
-    {_, lua} = :luerl.do(<<"bleep_global_time = 0">>, lua)
-    {_, lua} = :luerl.do(<<"bleep_current_synth = \"fmbell\"">>, lua)
-    {_, lua} = :luerl.do(<<"bleep_current_fx_stack = { \"default\" }">>, lua)
+    global_state_init = """
+    bleep_start_time = #{start_time_s}
+    bleep_global_time = 0
+    bleep_current_synth = "fmbell"
+    bleep_current_fx_stack = { "default" }
+    """
 
-    lua =
-      :luerl.set_table(
-        [<<"play">>],
-        fn args, state ->
-          play(state, args)
-          {[0], state}
-        end,
-        lua
-      )
+    {:ok, _res, lua} = Bleep.VM.eval(global_state_init, lua)
 
-    lua =
-      :luerl.set_table(
-        [<<"sample">>],
-        fn args, state ->
-          sample(state, args)
-          {[0], state}
-        end,
-        lua
-      )
-
-    lua =
-      :luerl.set_table(
-        [<<"control_fx">>],
-        fn args, state ->
-          control_fx(state, args)
-          {[0], state}
-        end,
-        lua
-      )
-
-    lua =
-      :luerl.set_table(
-        [<<"uuid">>],
-        fn _args, state ->
-          {[UUID.uuid4()], state}
-        end,
-        lua
-      )
-
-    lua =
-      :luerl.set_table(
-        [<<"bleep_core_start_fx">>],
-        fn args, state ->
-          bleep_core_start_fx(state, args)
-          {[0], state}
-        end,
-        lua
-      )
-
-    lua =
-      :luerl.set_table(
-        [<<"bleep_core_stop_fx">>],
-        fn args, state ->
-          bleep_core_stop_fx(state, args)
-          {[0], state}
-        end,
-        lua
-      )
+    lua = Bleep.VM.add_fn("play", &play/2, lua)
+    lua = Bleep.VM.add_fn("sample", &sample/2, lua)
+    lua = Bleep.VM.add_fn("control_fx", &control_fx/2, lua)
+    lua = Bleep.VM.add_fn("bleep_core_start_fx", &bleep_core_start_fx/2, lua)
+    lua = Bleep.VM.add_fn("bleep_core_stop_fx", &bleep_core_stop_fx/2, lua)
 
     res_or_exception =
       try do

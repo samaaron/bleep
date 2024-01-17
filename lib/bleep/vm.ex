@@ -27,4 +27,14 @@ defmodule Bleep.VM do
 
     vm
   end
+
+  def add_fn(name, fun, vm) do
+    :luerl.set_table(
+      [name],
+      fn args, state ->
+        {[fun.(state, args)], state}
+      end,
+      vm
+    )
+  end
 end
