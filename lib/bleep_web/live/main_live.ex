@@ -37,7 +37,7 @@ defmodule BleepWeb.MainLive do
       end
       ")
 
-    {:ok, result, _new_state} = Bleep.VM.eval(content_lua, lua)
+    {:ok, result, _new_state} = Bleep.VM.eval(lua, content_lua)
     result = Bleep.Lang.lua_table_array_to_list(hd(result))
 
     Enum.map(result, fn frag_info ->

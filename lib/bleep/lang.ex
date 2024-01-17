@@ -10,8 +10,8 @@ defmodule Bleep.Lang do
   """
 
   def lua_time(lua) do
-    {[global_time_s | _rest], lua} = :luerl.do(<<"return bleep_global_time">>, lua)
-    {[start_time_s | _rest], _lua} = :luerl.do(<<"return bleep_start_time">>, lua)
+    global_time_s = Bleep.VM.get_global(lua, "global_time")
+    start_time_s = Bleep.VM.get_global(lua, "start_time")
     global_time_s + start_time_s
   end
 
@@ -92,26 +92,21 @@ defmodule Bleep.Lang do
         @core_lua
       end
 
-    lua = Bleep.VM.make_vm(core_lua)
-
-    global_state_init = """
-    bleep_start_time = #{start_time_s}
-    bleep_global_time = 0
-    bleep_current_synth = "fmbell"
-    bleep_current_fx_stack = { "default" }
-    """
-
-    {:ok, _res, lua} = Bleep.VM.eval(global_state_init, lua)
-
-    lua = Bleep.VM.add_fn("play", &play/2, lua)
-    lua = Bleep.VM.add_fn("sample", &sample/2, lua)
-    lua = Bleep.VM.add_fn("control_fx", &control_fx/2, lua)
-    lua = Bleep.VM.add_fn("bleep_core_start_fx", &bleep_core_start_fx/2, lua)
-    lua = Bleep.VM.add_fn("bleep_core_stop_fx", &bleep_core_stop_fx/2, lua)
+    lua =
+      Bleep.VM.make_vm(core_lua)
+      |> Bleep.VM.set_global("start_time", start_time_s)
+      |> Bleep.VM.set_global("global_time", 0)
+      |> Bleep.VM.set_global("current_synth", "fmbell")
+      |> Bleep.VM.set_global("current_fx_stack", ["default"])
+      |> Bleep.VM.add_fn("play", &play/2)
+      |> Bleep.VM.add_fn("sample", &sample/2)
+      |> Bleep.VM.add_fn("control_fx", &control_fx/2)
+      |> Bleep.VM.add_fn("bleep_core_start_fx", &bleep_core_start_fx/2)
+      |> Bleep.VM.add_fn("bleep_core_stop_fx", &bleep_core_stop_fx/2)
 
     res_or_exception =
       try do
-        Bleep.VM.eval(code, lua)
+        Bleep.VM.eval(lua, code)
       rescue
         e ->
           {:exception, e, __STACKTRACE__}
