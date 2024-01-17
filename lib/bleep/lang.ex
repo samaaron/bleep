@@ -58,7 +58,7 @@ defmodule Bleep.Lang do
     output_id = fetch_current_output_id(lua)
     time_s = lua_time(lua)
     opts = lua_table_to_map(opts_table)
-    {[synth | _rest], _lua} = :luerl.do(<<"return bleep_current_synth">>, lua)
+    synth = Bleep.VM.get_global(lua, "current_synth")
     tag = "*"
 
     broadcast({time_s, tag, {:synth, synth, output_id, opts}})
@@ -126,10 +126,7 @@ defmodule Bleep.Lang do
   end
 
   def fetch_current_output_id(lua_state) do
-    {[fx_id | _rest], _lua} =
-      :luerl.do(<<"return bleep_current_fx_stack[#bleep_current_fx_stack]">>, lua_state)
-
-    fx_id
+    Bleep.VM.get_global(lua_state, "current_fx_stack[#bleep_current_fx_stack]")
   end
 
   def lua_table_array_to_list(table) do
