@@ -18,7 +18,7 @@ defmodule BleepWeb.MainLive do
 
   def data_from_lua(path) do
     content_lua = File.read!(path)
-    lua = Bleep.Lang.make_lua_vm("
+    lua = Bleep.VM.make_vm("
       function markdown(s)
         return {
           kind = \"markdown\",
@@ -37,7 +37,7 @@ defmodule BleepWeb.MainLive do
       end
       ")
 
-    {:ok, result, _new_state} = Bleep.Lang.eval_lua(content_lua, lua)
+    {:ok, result, _new_state} = Bleep.VM.eval(content_lua, lua)
     result = Bleep.Lang.lua_table_array_to_list(hd(result))
 
     Enum.map(result, fn frag_info ->
