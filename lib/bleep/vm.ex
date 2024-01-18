@@ -48,7 +48,32 @@ defmodule Bleep.VM do
     vm
   end
 
-  def elixir_term_to_lua(term) do
+  def lua_table_to_map(table) do
+    Enum.reduce(table, %{}, fn
+      {k, v}, acc when is_binary(k) ->
+        Map.put(acc, String.to_atom(k), v)
+
+      {k, v}, acc ->
+        Map.put(acc, k, v)
+    end)
+  end
+
+  def lua_table_array_to_list(table) do
+    map = lua_table_to_map(table)
+    array_map_to_list(map)
+  end
+
+  defp array_map_to_list(map, index \\ 1) do
+    case Map.has_key?(map, index) do
+      true ->
+        [Map.get(map, index) | array_map_to_list(map, index + 1)]
+
+      false ->
+        []
+    end
+  end
+
+  defp elixir_term_to_lua(term) do
     case term do
       nil ->
         "nil"
@@ -66,7 +91,7 @@ defmodule Bleep.VM do
         "\"#{term}\""
 
       _ when is_list(term) ->
-        "{ #{Enum.map_join(term, ", ", &elixir_term_to_lua/1))} }"
+        "{ #{Enum.map_join(term, ", ", &elixir_term_to_lua/1)} }"
 
       _ ->
         inspect(term)

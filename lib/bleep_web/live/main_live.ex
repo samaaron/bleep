@@ -38,10 +38,10 @@ defmodule BleepWeb.MainLive do
       ")
 
     {:ok, result, _new_state} = Bleep.VM.eval(lua, content_lua)
-    result = Bleep.Lang.lua_table_array_to_list(hd(result))
+    result = Bleep.VM.lua_table_array_to_list(hd(result))
 
     Enum.map(result, fn frag_info ->
-      frag_info = Bleep.Lang.lua_table_to_map(frag_info)
+      frag_info = Bleep.VM.lua_table_to_map(frag_info)
       frag_info = Map.put(frag_info, :uuid, UUID.uuid4())
       frag_info
     end)

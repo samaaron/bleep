@@ -22,7 +22,7 @@ defmodule Bleep.Lang do
   def bleep_core_start_fx(lua, [uuid, fx_id, opts_table]) do
     output_id = fetch_current_output_id(lua)
     time_s = lua_time(lua)
-    opts = lua_table_to_map(opts_table)
+    opts = Bleep.VM.lua_table_to_map(opts_table)
 
     tag = "*"
 
@@ -44,7 +44,7 @@ defmodule Bleep.Lang do
   def sample(lua, [sample_name, opts_table]) when is_list(opts_table) do
     output_id = fetch_current_output_id(lua)
     time_s = lua_time(lua)
-    opts = lua_table_to_map(opts_table)
+    opts = Bleep.VM.lua_table_to_map(opts_table)
     tag = "*"
 
     broadcast({time_s, tag, {:sample, sample_name, output_id, opts}})
@@ -57,7 +57,7 @@ defmodule Bleep.Lang do
   def play(lua, [opts_table]) when is_list(opts_table) do
     output_id = fetch_current_output_id(lua)
     time_s = lua_time(lua)
-    opts = lua_table_to_map(opts_table)
+    opts = Bleep.VM.lua_table_to_map(opts_table)
     synth = Bleep.VM.get_global(lua, "current_synth")
     tag = "*"
 
@@ -78,7 +78,7 @@ defmodule Bleep.Lang do
 
   def control_fx(lua, [uuid, opts_table]) when is_list(opts_table) do
     time_s = lua_time(lua)
-    opts = lua_table_to_map(opts_table)
+    opts = Bleep.VM.lua_table_to_map(opts_table)
     tag = "*"
 
     broadcast({time_s, tag, {:core_control_fx, uuid, opts}})
@@ -115,33 +115,8 @@ defmodule Bleep.Lang do
     res_or_exception
   end
 
-  def lua_table_to_map(table) do
-    Enum.reduce(table, %{}, fn
-      {k, v}, acc when is_binary(k) ->
-        Map.put(acc, String.to_atom(k), v)
-
-      {k, v}, acc ->
-        Map.put(acc, k, v)
-    end)
-  end
-
   def fetch_current_output_id(lua_state) do
     Bleep.VM.get_global(lua_state, "current_fx_stack[#bleep_current_fx_stack]")
-  end
-
-  def lua_table_array_to_list(table) do
-    map = lua_table_to_map(table)
-    array_map_to_list(map)
-  end
-
-  def array_map_to_list(map, index \\ 1) do
-    case Map.has_key?(map, index) do
-      true ->
-        [Map.get(map, index) | array_map_to_list(map, index + 1)]
-
-      false ->
-        []
-    end
   end
 
   def broadcast(msg) do
