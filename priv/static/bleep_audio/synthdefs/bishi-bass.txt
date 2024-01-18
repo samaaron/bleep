@@ -1,9 +1,9 @@
-@synth bishifatbass
-longname : Bishi fat bass sound
+@synth bishibass
+longname : Bishi synth bass sound
 type : synth
 author : Guy Brown
 version : 1.0
-doc : Fat pulse width modulation bass sound with an analog feel
+doc : Pulse width modulation bass sound with an analog feel
 @end
 
 @param cutoff

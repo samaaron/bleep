@@ -25,7 +25,7 @@ export default class BleepAudioCore {
     this.#monitor = new Monitor();
 
     this.#default_synthdef_paths = [
-      "/bleep_audio/synthdefs/bishi-fatbass.txt",
+      "/bleep_audio/synthdefs/bishi-bass.txt",
       "/bleep_audio/synthdefs/bishi-wobble.txt",
       "/bleep_audio/synthdefs/brasspad.txt",
       "/bleep_audio/synthdefs/buzzer.txt",

@@ -1,5 +1,7 @@
+BEATS_PER_MINUTE = 80
+
 function sleep (t)
-  bleep_global_time = bleep_global_time + t
+  bleep_global_time = bleep_global_time + t*60/BEATS_PER_MINUTE -- fixed for BISHI track
 end
 
 function push_fx(fx_id, opts_table)
