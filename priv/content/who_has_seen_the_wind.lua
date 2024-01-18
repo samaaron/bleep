@@ -94,7 +94,7 @@ return {
     editor [[
     use_synth("sawlead")
     push_fx("deep_phaser", {wetLevel=0.8,dryLevel=0.2})
-    push_fx("mono_delay", {wetLevel=0.15,delay=0.5,pan=0.9})
+    push_fx("mono_delay", {wetLevel=0.1,delay=0.5,pan=0.9})
     notes = ring({G5,F5,Ds5,C5})
     freq = range_ring(8, 0.1, 0.5)
     for i = 1, 16 do
@@ -109,7 +109,7 @@ return {
     ]],
     editor [[
     use_synth("sawlead")
-    push_fx("mono_delay", {wetLevel=0.2,delay=0.75,pan=- 0.9})
+    push_fx("mono_delay", {wetLevel=0.1,delay=0.75,pan=- 0.9})
     notes = ring({G4,As4,C5}):clone(2)
     for i = 1, 4 do
         play_pattern(notes, {
@@ -122,8 +122,10 @@ return {
     end
     ]],
     editor [[
-    sample("bishi_down_dini")
-    sleep(4)
+    for i=1,2 do
+        sample("bishi_down_dini")
+        sleep(8)
+    end
     ]]
             
 
