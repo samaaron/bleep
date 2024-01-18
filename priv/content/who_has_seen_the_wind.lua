@@ -78,9 +78,9 @@ return {
         push_fx("reverb_large", {wetLevel=0.25})
         for i = 1, 2 do
             sleep(1.25)
-            sample("bishi_ah_call")
+            sample("bishi_ah_call",{level=0.5})
             sleep(3.5)
-            sample("bishi_ah_reply")
+            sample("bishi_ah_reply",{level=0.5})
             sleep(3.25)
         end
     ]],
@@ -101,7 +101,7 @@ return {
         play_pattern(notes, {
             duration=0.25,
             cutoff=freq[i],
-            gate=0.9,
+            gate=0.75,
             filter_mod=0.4,
             filter_attack=0.05,
         level={0.2,0.1,0.1,0.1}})
@@ -120,6 +120,10 @@ return {
         level={0.1,0.05,0.05}})
         sleep(2.5)
     end
+    ]],
+    editor [[
+    sample("bishi_down_dini")
+    sleep(4)
     ]]
             
 
