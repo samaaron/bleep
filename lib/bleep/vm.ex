@@ -66,7 +66,7 @@ defmodule Bleep.VM do
         "\"#{term}\""
 
       _ when is_list(term) ->
-        "{ #{Enum.join(Enum.map(term, &elixir_term_to_lua/1), ", ")} }"
+        "{ #{Enum.map_join(term, ", ", &elixir_term_to_lua/1))} }"
 
       _ ->
         inspect(term)
