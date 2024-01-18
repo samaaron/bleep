@@ -18,10 +18,12 @@ defmodule BleepWeb.MainLive do
 
   def data_from_lua(path) do
     content_lua = File.read!(path)
-    lua = Bleep.VM.make_vm("
+
+    lua =
+      Bleep.VM.make_vm("""
       function markdown(s)
         return {
-          kind = \"markdown\",
+          kind = "markdown",
           content = s,
           uuid = uuid()
         }
@@ -29,13 +31,13 @@ defmodule BleepWeb.MainLive do
 
       function editor(s)
         return {
-          kind = \"editor\",
+          kind = "editor",
           content = s,
-          lang = \"lua\",
+          lang = "lua",
           uuid = uuid()
         }
       end
-      ")
+      """)
 
     {:ok, result, _new_state} = Bleep.VM.eval(lua, content_lua)
     result = Bleep.VM.lua_table_array_to_list(hd(result))
