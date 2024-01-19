@@ -35,6 +35,10 @@ return {
     end
     ]],
 
+    markdown [[
+        Same again but through triplet delay and gated snare        
+        ]],    
+
     editor [[
     push_fx("mono_delay", {delay=0.375,wetLevel=0.2,dryLevel=0.8})
     push_fx("ambience_gated", {wetLevel=1,dryLevel=0})

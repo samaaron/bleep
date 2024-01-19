@@ -76,7 +76,7 @@ ampenv.level = param.level
 ampenv.attack = 0.1
 ampenv.decay = 1.2
 ampenv.sustain = 0
-ampenv.release = 0.5
+ampenv.release = 0.8
 
 modgain.level = 400
 mix.level = 0.5
