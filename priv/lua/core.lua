@@ -1,25 +1,39 @@
+function uuid()
+  __bleep_vm_uuid()
+end
+
+function play(note, opts_table)
+  local opts_table = opts_table or {}
+  __bleep_ex_play(note, opts_table)
+end
+
+function sample(samp, opts_table)
+  local opts_table = opts_table or {}
+  __bleep_ex_sample(samp, opts_table)
+end
+
 function sleep (t)
-  bleep_global_time = bleep_global_time + t
+  __bleep_core_global_time = __bleep_core_global_time + t
 end
 
 function push_fx(fx_id, opts_table)
   local opts_table = opts_table or {}
-  local uuid = uuid()
-  bleep_core_start_fx(uuid, fx_id, opts_table)
-  table.insert(bleep_current_fx_stack, uuid)
+  local uuid = __bleep_vm_uuid()
+  __bleep_ex_start_fx(uuid, fx_id, opts_table)
+  table.insert(__bleep_core_current_fx_stack, uuid)
   return uuid
 end
 
 function pop_fx()
-  if #bleep_current_fx_stack == 1 then
+  if #__bleep_core_current_fx_stack == 1 then
     return
   end
-  local uuid = table.remove(bleep_current_fx_stack)
-  bleep_core_stop_fx(uuid)
+  local uuid = table.remove(__bleep_core_current_fx_stack)
+  __bleep_ex_stop_fx(uuid)
 end
 
 function use_synth(s)
-  bleep_current_synth = s
+  __bleep_core_current_synth = s
 end
 
 function shuffle(x)

@@ -25,7 +25,7 @@ defmodule BleepWeb.MainLive do
         return {
           kind = "markdown",
           content = s,
-          uuid = uuid()
+          uuid = __bleep_vm_uuid()
         }
       end
 
@@ -34,7 +34,7 @@ defmodule BleepWeb.MainLive do
           kind = "editor",
           content = s,
           lang = "lua",
-          uuid = uuid()
+          uuid = __bleep_vm_uuid()
         }
       end
       """)
