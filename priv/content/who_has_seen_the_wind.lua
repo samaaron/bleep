@@ -30,7 +30,18 @@ return {
     for i = 1, 32 do
         drum_pattern("xx-- x--x ---- ---x ---- -x-- ---- xx--", {
                 x="bishi_snare",
-                level=0.3,
+                level=0.2,
+                duration=0.25})
+    end
+    ]],
+
+    editor [[
+    push_fx("mono_delay", {delay=0.375,wetLevel=0.2,dryLevel=0.8})
+    push_fx("ambience_gated", {wetLevel=1,dryLevel=0})
+    for i = 1, 32 do
+    drum_pattern("xx-- x--x ---- ---x ---- -x-- ---- xx--", {
+                x="bishi_snare",
+                level=0.4,
                 duration=0.25})
     end
     ]],
@@ -85,7 +96,7 @@ return {
         end
     ]],
     editor [[
-        push_fx("reverb_large", {wetLevel=0.25})
+        push_fx("reverb_large", {wetLevel=0.2})
         sample("bishi_verse")
     ]],
     markdown [[
