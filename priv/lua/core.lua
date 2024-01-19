@@ -63,7 +63,7 @@ make_note_names()
 Ring = {}
 Ring.__index = Ring
 
--- define table indexing operator for reading from a ring 
+-- define table indexing operator for reading from a ring
 function Ring:__index(key)
     if type(key) == "number" then
         local index = self.mapIndex(self, key)
@@ -73,7 +73,7 @@ function Ring:__index(key)
     end
 end
 
--- define table indexing operator for writing to a ring 
+-- define table indexing operator for writing to a ring
 function Ring:__newindex(key, value)
     if type(key) == "number" then
         local index = self.mapIndex(self, key)
@@ -117,7 +117,7 @@ function Ring.random(size,min,max)
     return Ring.new(array)
 end
 
--- make a range of values of a given size 
+-- make a range of values of a given size
 -- size : the length of the ring
 -- returns : a new Ring
 function Ring.range(size,min,max)
@@ -131,7 +131,7 @@ end
 
 -- set a value of the ring
 -- value : the value to set
--- index : the index to set 
+-- index : the index to set
 function Ring:set(value, index)
     local i = self.mapIndex(self, index)
     self.array[i] = value
@@ -158,7 +158,7 @@ function Ring:pick(n)
 end
 
 -- quantize values in the ring to a specific grid size
--- this will fail if grid_size is zero 
+-- this will fail if grid_size is zero
 -- grid_size : the size of the grid
 -- returns : a new Ring
 function Ring:quantize(grid_size)
@@ -309,7 +309,7 @@ function Ring:add(s)
     return Ring.new(array_copy)
 end
 
--- mirror the ring, the middle value is repeated 
+-- mirror the ring, the middle value is repeated
 -- returns : a new Ring
 function Ring:mirror()
     return self:concat(self:reverse())
@@ -341,14 +341,14 @@ function Ring:arrayCopy()
 end
 
 -- map an index to the ring, wrapping positive and negative values
--- index : the index to wrap 
+-- index : the index to wrap
 -- returns : the integer index
 function Ring:mapIndex(index)
     return (index-1) % #self.array + 1
 end
 
 -- map function, returns a new ring in which func has been applied
--- to every element 
+-- to every element
 -- func : the funtion to apply
 -- returns : a new Ring
 function Ring:map(func)
@@ -432,11 +432,11 @@ end
 
 
 -- ===============================================================
--- Euclidean rhythms 
+-- Euclidean rhythms
 -- ===============================================================
 
 -- hits - the number of steps that are drum hits
--- steps - the total number of steps in the sequence 
+-- steps - the total number of steps in the sequence
 -- phase (optional) - the phase offset (e.g. for phase=2 the pattern is right-shifted by two spaces)
 -- returns a string of the form x--x-x- in which the hits are equally spaced in time
 function euclidean_pattern(hits, steps, phase)
@@ -453,7 +453,7 @@ function euclidean_pattern(hits, steps, phase)
     return table.concat(pattern)
 end
 
--- make a Euclidean rhythm 
+-- make a Euclidean rhythm
 -- returns a Ring containing the pattern, with ones for hits and zeros for rests
 function euclidean(hits,steps,phase)
     local seq = euclidean_pattern(hits,steps,phase)
@@ -552,7 +552,7 @@ function scale(intervals, root, octaves)
 end
 
 -- =============================================================================
--- Swing patterns 
+-- Swing patterns
 -- =============================================================================
 
 function swing_8ths(amount,dur)
@@ -566,7 +566,7 @@ function swing_16ths(amount,dur)
 end
 
 -- =============================================================================
--- Play patterns 
+-- Play patterns
 -- =============================================================================
 
 function play_pattern(notes, params)
@@ -589,13 +589,13 @@ function play_pattern(notes, params)
         end
         -- we have a valid key, so check the value
         if type(value) == "number" or type(value)=="boolean" then
-            -- if the value is a number turn it into a ring 
+            -- if the value is a number turn it into a ring
             param_map[key] = Ring.new({ value })
         elseif isRing(value) then
             -- a ring already so just set it
             param_map[key] = value
         elseif type(value)=="table" then
-            -- a table is fine, turn it into a ring 
+            -- a table is fine, turn it into a ring
             param_map[key] = Ring.new(value)
         else
             -- we got something else, an error
@@ -603,7 +603,7 @@ function play_pattern(notes, params)
         end
     end
     -- if notes is a ring we just want its array
-    -- to be on the safe side we take a deep copy of this to avoid any inadvertent change to the ring 
+    -- to be on the safe side we take a deep copy of this to avoid any inadvertent change to the ring
     if isRing(notes) then
         notes = notes:arrayCopy()
     end
@@ -624,13 +624,13 @@ function play_pattern(notes, params)
 end
 
 -- =============================================================================
--- Drum patterns 
+-- Drum patterns
 -- =============================================================================
 
 function drum_pattern(pattern, params)
     -- remove spaces
     pattern = pattern:gsub("%s", "")
-    -- parameter map 
+    -- parameter map
     local param_map = {}
     if params == nil then
         params = {}
@@ -670,7 +670,7 @@ function drum_pattern(pattern, params)
         local dur = param_map.duration and param_map.duration[i] or 1
         for key, param_ring in pairs(param_map) do
             -- only add params to the sample function if they are not single characters
-            -- and not a duration, other stuff gets passed on 
+            -- and not a duration, other stuff gets passed on
             if key ~= "duration" and #key>1 then
                 beat_params[key] = param_ring[i]
             end
