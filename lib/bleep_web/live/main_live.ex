@@ -2,7 +2,7 @@ defmodule BleepWeb.MainLive do
   require Logger
   use BleepWeb, :live_view
 
-  @content_path Path.join([:code.priv_dir(:bleep), "content", "content_16_01_24.lua"])
+  @content_path Path.join([:code.priv_dir(:bleep), "content", "who_has_seen_the_wind.lua"])
 
   @impl true
   def mount(_params, _session, socket) do
@@ -167,7 +167,7 @@ defmodule BleepWeb.MainLive do
   @impl true
   def handle_event("cue-code", %{"value" => code, "result_id" => result_id}, socket) do
     start_time_ms = :erlang.system_time(:milli_seconds)
-    bar_duration_ms = 4 * 1000
+    bar_duration_ms = 8 * 750 # fixed by @guyjbrown specifically for Bishi track 2 bars (8 beats) at 80 BPM (1000*60/80)
     offset_ms = bar_duration_ms - rem(start_time_ms, bar_duration_ms)
     start_time_s = (start_time_ms + offset_ms) / 1000.0
     {:noreply, eval_and_display(socket, start_time_s, code, result_id)}

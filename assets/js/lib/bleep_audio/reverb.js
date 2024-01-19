@@ -21,6 +21,7 @@ export const REVERB_FILENAME = {
   "ambience_large": "ambience-large.flac",
   "ambience_medium": "ambience-medium.flac",
   "ambience_small": "ambience-small.flac",
+  "ambience_gated": "ambience-gated.flac",
   "mic_reslo": "IR_ResloURA.flac",
   "mic_beyer": "IR_BeyerM500Stock.flac",
   "mic_foster": "IR_FosterDynamicDF1.flac",
