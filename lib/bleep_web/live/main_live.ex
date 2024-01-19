@@ -166,8 +166,11 @@ defmodule BleepWeb.MainLive do
 
   @impl true
   def handle_event("cue-code", %{"value" => code, "result_id" => result_id}, socket) do
+    # Change this to something more flexible:
+    bpm = 80
+
     start_time_ms = :erlang.system_time(:milli_seconds)
-    bar_duration_ms = 8 * 750 # fixed by @guyjbrown specifically for Bishi track 2 bars (8 beats) at 80 BPM (1000*60/80)
+    bar_duration_ms = round(4 * (60.0 / bpm) * 1000)
     offset_ms = bar_duration_ms - rem(start_time_ms, bar_duration_ms)
     start_time_s = (start_time_ms + offset_ms) / 1000.0
     {:noreply, eval_and_display(socket, start_time_s, code, result_id)}

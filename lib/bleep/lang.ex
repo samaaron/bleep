@@ -95,6 +95,7 @@ defmodule Bleep.Lang do
     lua =
       Bleep.VM.make_vm(core_lua)
       ## Note that set_global prefixes with __bleep_core_ to avoid collisions
+      |> Bleep.VM.set_global("bpm", 80)
       |> Bleep.VM.set_global("start_time", start_time_s)
       |> Bleep.VM.set_global("global_time", 0)
       |> Bleep.VM.set_global("current_synth", "fmbell")

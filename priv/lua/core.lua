@@ -13,7 +13,7 @@ function sample(samp, opts_table)
 end
 
 function sleep (t)
-  __bleep_core_global_time = __bleep_core_global_time + t
+  __bleep_core_global_time = __bleep_core_global_time + t*60/__bleep_core_bpm
 end
 
 function push_fx(fx_id, opts_table)
