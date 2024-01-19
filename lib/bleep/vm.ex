@@ -12,7 +12,7 @@ defmodule Bleep.VM do
 
     vm =
       :luerl.set_table(
-        [<<"uuid">>],
+        [<<"__bleep_vm_uuid">>],
         fn _args, state ->
           {[UUID.uuid4()], state}
         end,
@@ -39,12 +39,12 @@ defmodule Bleep.VM do
   end
 
   def get_global(vm, name) do
-    {:ok, [res | _rest], _vm} = eval(vm, <<"return bleep_#{name}">>)
+    {:ok, [res | _rest], _vm} = eval(vm, <<"return __bleep_core_#{name}">>)
     res
   end
 
   def set_global(vm, name, value) do
-    {:ok, _res, vm} = eval(vm, <<"bleep_#{name} = #{elixir_term_to_lua(value)}">>)
+    {:ok, _res, vm} = eval(vm, <<"__bleep_core_#{name} = #{elixir_term_to_lua(value)}">>)
     vm
   end
 
