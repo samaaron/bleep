@@ -101,7 +101,7 @@ defmodule BleepWeb.MainLive do
         data-cue-button-id={@cue_button_id}
       >
         <button
-          class="px-2 py-1 font-bold text-white bg-orange-600 rounded hover:bg-orange-800"
+          class="hidden px-2 py-1 font-bold text-white bg-orange-600 rounded hover:bg-orange-800"
           id={@run_button_id}
         >
           Run
