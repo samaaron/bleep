@@ -3,9 +3,44 @@ return {
     markdown [[
     ### Who has seen the wind - Bishi
     ]],
-    
+
     markdown [[
-    Bass drum and hi hat        
+    Compressor test
+    ]],
+
+    editor [[
+    push_fx("reverb_medium", {wetLevel=0.1})
+
+    -- various settings stored as preset parameter lists, see core.lua
+    -- COMPRESS_GENERIC
+    -- COMPRESS_PEAKS
+    -- COMPRESS_KICKS
+    -- COMPRESS_CLASSIC
+    -- COMPRESS_SNARE
+    -- COMPRESS_MEDIUM
+    -- COMPRESS_BRUTE
+    -- COMPRESS_WALL
+    -- COMPRESS_GENTLE
+    -- COMPRESS_GLUE
+    -- COMPRESS_ACOUSTIC
+    -- COMPRESS_PRECISE
+
+    push_fx("compressor",COMPRESS_MEDIUM)
+
+    -- firestarter
+    dur = swing_16ths(8, 0.14)
+    for i = 1, 4 do
+        drum_pattern("BxxxSxxSxSxxSxxx", {
+        B="bd_sone",
+        x="bishi_closed_hat",
+        S="bishi_snare",
+        level={1,0.1,0.8,0.1},
+        duration=dur})
+    end
+    ]],
+
+    markdown [[
+    Bass drum and hi hat
     ]],
 
     editor [[
@@ -18,13 +53,13 @@ return {
                 x="bishi_closed_hat",
                 duration=0.25,
                 level=1})
-    end         
+    end
     ]],
-        
+
     markdown [[
-    Syncopated snare        
+    Syncopated snare
     ]],
-    
+
     editor [[
     push_fx("reverb", {wetLevel=0.1})
     for i = 1, 32 do
@@ -36,8 +71,8 @@ return {
     ]],
 
     markdown [[
-        Same again but through triplet delay and gated snare        
-        ]],    
+        Same again but through triplet delay and gated snare
+        ]],
 
     editor [[
     push_fx("mono_delay", {delay=0.375,wetLevel=0.2,dryLevel=0.8})
@@ -51,7 +86,7 @@ return {
     ]],
 
     markdown [[
-    Synths        
+    Synths
         ]],
 
     editor [[
@@ -61,11 +96,11 @@ return {
         play_pattern({C3,C4,C3,C4,F3,G3,As3}, {
                     duration={0.75,3.25,0.75,1.25,0.75,0.75,0.5},
                     level=0.1})
-    end   
+    end
     ]],
 
     markdown [[
-    Vocals        
+    Vocals
     ]],
 
     editor [[
@@ -104,7 +139,7 @@ return {
         sample("bishi_verse")
     ]],
     markdown [[
-        Cool synthy middle bit (what do we do about the sitar?)        
+        Cool synthy middle bit (what do we do about the sitar?)
     ]],
     editor [[
     use_synth("sawlead")
@@ -142,6 +177,6 @@ return {
         sleep(8)
     end
     ]]
-            
+
 
 }
