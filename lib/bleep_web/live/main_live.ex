@@ -13,6 +13,7 @@ defmodule BleepWeb.MainLive do
      socket
      |> assign(:kalman, kalman)
      |> assign(:bleep_latency, 50.0)
+     |> assign(:bleep_bpm, 80.0)
      |> assign(:data, data_from_lua(@content_path))}
   end
 
@@ -166,9 +167,7 @@ defmodule BleepWeb.MainLive do
 
   @impl true
   def handle_event("cue-code", %{"value" => code, "result_id" => result_id}, socket) do
-    # Change this to something more flexible:
-    bpm = 80
-
+    bpm = socket.assigns.bleep_bpm
     start_time_ms = :erlang.system_time(:milli_seconds)
     bar_duration_ms = round(4 * (60.0 / bpm) * 1000)
     offset_ms = bar_duration_ms - rem(start_time_ms, bar_duration_ms)
@@ -219,7 +218,8 @@ defmodule BleepWeb.MainLive do
   end
 
   def eval_and_display(socket, start_time_s, code, result_id) do
-    res = Bleep.Lang.start_run(start_time_s, code)
+    bpm = socket.assigns.bleep_bpm
+    res = Bleep.Lang.start_run(start_time_s, code, %{bpm: bpm})
     display_eval_result(socket, res, result_id)
   end
 

@@ -84,7 +84,7 @@ defmodule Bleep.Lang do
     broadcast({time_s, tag, {:core_control_fx, uuid, opts}})
   end
 
-  def start_run(start_time_s, code) do
+  def start_run(start_time_s, code, opts \\ %{}) do
     core_lua =
       if Mix.env() == :dev do
         File.read!(@core_lua_path)
@@ -92,10 +92,12 @@ defmodule Bleep.Lang do
         @core_lua
       end
 
+    bpm = opts[:bpm] || 60
+
     lua =
       Bleep.VM.make_vm(core_lua)
       ## Note that set_global prefixes with __bleep_core_ to avoid collisions
-      |> Bleep.VM.set_global("bpm", 80)
+      |> Bleep.VM.set_global("bpm", bpm)
       |> Bleep.VM.set_global("start_time", start_time_s)
       |> Bleep.VM.set_global("global_time", 0)
       |> Bleep.VM.set_global("current_synth", "fmbell")
