@@ -3,9 +3,9 @@ return {
     markdown [[
     ### Who has seen the wind - Bishi
     ]],
-    
+
     markdown [[
-    Bass drum and hi hat        
+    Bass drum and hi hat
     ]],
 
     editor [[
@@ -13,19 +13,20 @@ return {
     use_synth("bishiwobble")
     for i = 1, 32 do
         play(C2)
-        drum_pattern("B-x- --x- --x- --x-", {
+        drum_pattern("B-xx --x- --xx --x-", {
                 B="bishi_bass_drum",
                 x="bishi_closed_hat",
                 duration=0.25,
-                level=1})
-    end         
+                level={1,0.1,0.5,0.1}})
+    end
     ]],
-        
+
     markdown [[
-    Syncopated snare        
+    Syncopated snare
     ]],
-    
+
     editor [[
+    push_fx("mono_delay",{wetLevel=0.1,delay=0.375,feedback=0.1})
     push_fx("reverb", {wetLevel=0.1})
     for i = 1, 32 do
         drum_pattern("xx-- x--x ---- ---x ---- -x-- ---- xx--", {
@@ -36,22 +37,7 @@ return {
     ]],
 
     markdown [[
-        Same again but through triplet delay and gated snare        
-        ]],    
-
-    editor [[
-    push_fx("mono_delay", {delay=0.375,wetLevel=0.2,dryLevel=0.8})
-    push_fx("ambience_gated", {wetLevel=1,dryLevel=0})
-    for i = 1, 32 do
-    drum_pattern("xx-- x--x ---- ---x ---- -x-- ---- xx--", {
-                x="bishi_snare",
-                level=0.4,
-                duration=0.25})
-    end
-    ]],
-
-    markdown [[
-    Synths        
+    Synths
         ]],
 
     editor [[
@@ -61,11 +47,11 @@ return {
         play_pattern({C3,C4,C3,C4,F3,G3,As3}, {
                     duration={0.75,3.25,0.75,1.25,0.75,0.75,0.5},
                     level=0.1})
-    end   
+    end
     ]],
 
     markdown [[
-    Vocals        
+    Vocals
     ]],
 
     editor [[
@@ -104,7 +90,7 @@ return {
         sample("bishi_verse")
     ]],
     markdown [[
-        Cool synthy middle bit (what do we do about the sitar?)        
+        Cool synthy middle bit (what do we do about the sitar?)
     ]],
     editor [[
     use_synth("sawlead")
@@ -142,6 +128,6 @@ return {
         sleep(8)
     end
     ]]
-            
+
 
 }
