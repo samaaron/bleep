@@ -10,6 +10,7 @@ import { Reverb, REVERB_FILENAME } from "./reverb";
 import Utility from "./utility";
 import { Flanger } from "./flanger";
 import { AutoPan } from "./autopan";
+import {Compressor} from "./compressor";
 
 export default class BleepAudioCore {
   #audio_context;
@@ -87,6 +88,9 @@ export default class BleepAudioCore {
     switch (fx_name) {
       case "auto_pan":
         fx = new AutoPan(this.#audio_context, this.#monitor);
+        break;
+      case "compressor":
+        fx = new Compressor(this.#audio_context, this.#monitor);
         break;
       case "mono_delay":
         fx = new MonoDelay(this.#audio_context, this.#monitor);
