@@ -11,7 +11,7 @@ import Utility from "./utility";
 import { Flanger } from "./flanger";
 import { AutoPan } from "./autopan";
 import {Compressor} from "./compressor";
-import { Distortion } from "./distortion";
+import { Distortion, Overdrive } from "./distortion";
 
 export default class BleepAudioCore {
   #audio_context;
@@ -93,8 +93,11 @@ export default class BleepAudioCore {
       case "compressor":
         fx = new Compressor(this.#audio_context, this.#monitor);
         break;
-        case "distortion":
+      case "distortion":
         fx = new Distortion(this.#audio_context, this.#monitor);
+        break;
+      case "overdrive":
+        fx = new Overdrive(this.#audio_context, this.#monitor);
         break;
       case "mono_delay":
         fx = new MonoDelay(this.#audio_context, this.#monitor);
