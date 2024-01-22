@@ -35,7 +35,9 @@ if config_env() == :prod do
         versions: [:"tlsv1.2"],
         ciphers: [
           ~c"ECDHE-RSA-AES256-GCM-SHA384",
-          ~c"ECDHE-RSA-AES128-GCM-SHA256"
+          ~c"ECDHE-RSA-AES128-GCM-SHA256",
+          ~c"ECDHE-RSA-AES128-GCM-SHA256",
+          ~c"ECDHE-ECDSA-AES128-GCM-SHA256"
         ],
         honor_cipher_order: true,
         keyfile: System.get_env("BLEEP_SSL_KEY_PATH"),
