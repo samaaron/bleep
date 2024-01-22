@@ -9,6 +9,15 @@ defmodule BleepWeb.Router do
     plug(:protect_from_forgery)
     plug(:put_secure_browser_headers)
     plug(BleepWeb.Plugs.AdditionalHeaders)
+    plug :put_content_security_policy
+  end
+
+  defp put_content_security_policy(conn, _opts) do
+    Plug.Conn.put_resp_header(
+      conn,
+      "content-security-policy",
+      "default-src 'self'; style-src 'self' 'unsafe-inline'"
+    )
   end
 
   pipeline :api do
