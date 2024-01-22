@@ -705,3 +705,20 @@ function drum_pattern(pattern, params)
         sleep(sleep_duration)
     end
 end
+
+-- =============================================================================
+-- Compressor presets, borrowed from Ableton
+-- =============================================================================
+
+COMPRESS_GENERIC = {attack=10/1000,release=100/1000,ratio=2,threshold=-21.5,knee=0.7}
+COMPRESS_PEAKS = {attack=2/1000,release=50/1000,ratio=2,threshold=0,knee=6}
+COMPRESS_KICKS = {attack=30/1000,release=120/1000,ratio=4,threshold=-14.9,knee=0.4}
+COMPRESS_CLASSIC = {attack=0.22/1000,release=100/1000,ratio=1.15,threshold=-9.7,knee=6}
+COMPRESS_SNARE = {attack=3/1000,release=150/1000,ratio=4.74,threshold=-19.2,knee=0}
+COMPRESS_MEDIUM = {attack=25.9/1000,release=100/1000,ratio=4,threshold=-22.8,knee=4}
+COMPRESS_BRUTE = {attack=0.01/1000,release=10.2/1000,ratio=12.6,threshold=-31.9,knee=0}
+COMPRESS_WALL = {attack=0.02/1000,release=100/1000,ratio=20,threshold=-9.7,knee=1}
+COMPRESS_GENTLE = {attack=1/1000,release=100/1000,ratio=1.5,threshold=-21.5,knee=12}
+COMPRESS_GLUE = {attack=12.5/1000,release=1,ratio=1.2,threshold=-22.1,knee=12}
+COMPRESS_ACOUSTIC = {attack=17.9/1000,release=222/1000,ratio=2.25,threshold=-17.5,knee=7.7}
+COMPRESS_PRECISE = {attack=0.88/1000,release=100/1000,ratio=1.54,threshold=-28.7,knee=6}

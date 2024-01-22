@@ -7,8 +7,8 @@ import Utility from "./utility";
  */
 export class AutoPan extends BleepEffect {
 
-    static DEFAULT_RATE_HZ
-    static DEFAULT_SPREAD
+    static DEFAULT_RATE_HZ = 0.5
+    static DEFAULT_SPREAD = 0.8
 
     _lfo
     _pan
