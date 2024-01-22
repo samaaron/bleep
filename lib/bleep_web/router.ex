@@ -8,6 +8,7 @@ defmodule BleepWeb.Router do
     plug(:put_root_layout, html: {BleepWeb.Layouts, :root})
     plug(:protect_from_forgery)
     plug(:put_secure_browser_headers)
+    plug(BleepWeb.Plugs.AdditionalHeaders)
   end
 
   pipeline :api do
