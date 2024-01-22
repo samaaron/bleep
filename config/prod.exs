@@ -7,12 +7,10 @@ import Config
 # before starting your production server.
 config :bleep, BleepWeb.Endpoint, cache_static_manifest: "priv/static/cache_manifest.json"
 
-if System.get_env("BLEEP_SECURE_SERVER") do
-  host = System.get_env("PHX_HOST") || "example.com"
-
-  config :bleep, BleepWeb.Endpoint,
-    force_ssl: [host: host, hsts: true, rewrite_on: [:x_forwarded_proto]]
-end
+## When running a production server, uncomment the following to force SSL
+# host = "example.com"
+# config :bleep, BleepWeb.Endpoint,
+#   force_ssl: [host: host, hsts: true, rewrite_on: [:x_forwarded_proto]]
 
 # Configures Swoosh API Client
 config :swoosh, api_client: Swoosh.ApiClient.Finch, finch_name: Bleep.Finch
