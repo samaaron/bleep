@@ -86,7 +86,8 @@ defmodule Bleep.Lang do
 
   def start_run(start_time_s, code, opts \\ %{}) do
     core_lua =
-      if Mix.env() == :dev do
+      if Application.get_env(:my_app, :reload_lua) do
+        # for dev environments reload the lua file on each run
         File.read!(@core_lua_path)
       else
         @core_lua
