@@ -50,8 +50,10 @@ export default class BleepAudioCore {
       "/bleep_audio/synthdefs/rolandtb.txt",
       "/bleep_audio/synthdefs/saveaprayer.txt",
       "/bleep_audio/synthdefs/sawlead.txt",
+      "/bleep_audio/synthdefs/simplepulse.txt",
       "/bleep_audio/synthdefs/submarine.txt",
       "/bleep_audio/synthdefs/supersaw.txt",
+      "/bleep_audio/synthdefs/thickbass.txt",
       "/bleep_audio/synthdefs/voxhumana.txt",
     ];
   }
