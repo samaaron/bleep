@@ -1,0 +1,113 @@
+@synth simplepulse
+longname : simplepulse
+type : synth
+author : Guy J Brown
+version : 1.0
+doc : Bright simple sound with manual pulse width control
+@end
+
+# parameters
+
+@param pulse_width
+type : float
+mutable: yes
+step : 0.01
+min : 0.05
+max : 0.95
+default : 0.55
+doc : pulse width
+@end
+
+@param low_cutoff
+type : float
+mutable: yes
+step : 0.01
+min : 100
+max : 10000
+default : 2000
+doc : lowpass cutoff frequency
+@end
+
+@param high_cutoff
+type : float
+mutable: yes
+step : 0.01
+min : 10
+max : 8000
+default : 600
+doc : highpass cutoff frequency
+@end
+
+@param env_mod
+type : float
+mutable: yes
+step : 0.01
+min : 0
+max : 1
+default : 0.7
+doc : envelope modulation amount
+@end
+
+@param env_decay
+type : float
+mutable: yes
+step : 0.01
+min : 0.01
+max : 0.5
+default : 0.15
+doc : envelope decay time
+@end
+
+@param volume
+type : float
+mutable: yes
+step : 0.01
+min : 0
+max : 1
+default : 0.8
+doc : master volume
+@end
+
+# modules
+
+PULSE-OSC : pulse
+LPF : lowpass
+HPF : highpass
+VCA : vca
+ADSR : ampenv
+ADSR : filterenv
+VCA : filtermod
+
+# patch
+
+pulse.pulsewidth=param.pulse_width
+pulse.out -> highpass.in
+highpass.out -> lowpass.in
+lowpass.out -> vca.in
+vca.out -> audio.in
+
+# tweak
+
+pulse.pitch = param.pitch
+highpass.cutoff = param.high_cutoff
+lowpass.resonance = 0
+highpass.resonance = 0
+
+# envelopes
+
+ampenv.level = param.level*param.volume
+ampenv.attack = 0.01
+ampenv.decay = param.env_decay
+ampenv.sustain = param.level*param.volume*(1-param.env_mod)
+ampenv.release = 0.1
+ampenv.out -> vca.levelCV
+
+filterenv.level = 100+param.level*param.low_cutoff
+filterenv.attack = 0.01
+filterenv.decay = param.env_decay
+filterenv.sustain = param.low_cutoff*(1-param.env_mod)
+filterenv.release = 1
+
+filterenv.out -> lowpass.cutoffCV
+
+# end
