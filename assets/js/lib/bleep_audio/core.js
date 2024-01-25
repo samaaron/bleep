@@ -11,6 +11,7 @@ import Utility from "./utility";
 import { Flanger } from "./flanger";
 import { AutoPan } from "./autopan";
 import {Compressor} from "./compressor";
+import { Distortion, Overdrive } from "./distortion";
 
 export default class BleepAudioCore {
   #audio_context;
@@ -49,8 +50,10 @@ export default class BleepAudioCore {
       "/bleep_audio/synthdefs/rolandtb.txt",
       "/bleep_audio/synthdefs/saveaprayer.txt",
       "/bleep_audio/synthdefs/sawlead.txt",
+      "/bleep_audio/synthdefs/simplepulse.txt",
       "/bleep_audio/synthdefs/submarine.txt",
       "/bleep_audio/synthdefs/supersaw.txt",
+      "/bleep_audio/synthdefs/thickbass.txt",
       "/bleep_audio/synthdefs/voxhumana.txt",
     ];
   }
@@ -91,6 +94,12 @@ export default class BleepAudioCore {
         break;
       case "compressor":
         fx = new Compressor(this.#audio_context, this.#monitor);
+        break;
+      case "distortion":
+        fx = new Distortion(this.#audio_context, this.#monitor);
+        break;
+      case "overdrive":
+        fx = new Overdrive(this.#audio_context, this.#monitor);
         break;
       case "mono_delay":
         fx = new MonoDelay(this.#audio_context, this.#monitor);

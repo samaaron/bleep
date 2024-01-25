@@ -108,7 +108,7 @@ export default Player = class {
       // work out the target frequency to bend to
       const targetFreq = Utility.midiNoteToHz(this.#params.bend);
       // only oscillators have a bend function
-      // note that this doesn't work for the pulse oscillator currently
+      // TODO @guyjbrown note that this doesn't work for the pulse oscillator currently
       Object.values(this.#node).forEach((m) => {
         if (typeof m.bend==="function") {
           m.bend(this.#params.pitch,when,targetFreq,stopBendTime);

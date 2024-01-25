@@ -1,0 +1,140 @@
+@synth thickbass
+longname : Thick Bass
+type : synth
+author : Guy Brown
+version : 1.0
+doc : Thick synth bass sound
+@end
+
+@param cutoff
+type: float
+mutable: no
+step: 0.01
+min: 100
+max: 8000
+default : 1800
+doc : controls the brightness
+@end
+
+@param pwm_rate
+type: float
+mutable: no
+step: 0.01
+min: 0.05
+max: 10
+default : 0.95
+doc : controls the rate of pulse width modulation
+@end
+
+@param pwm_depth
+type: float
+mutable: no
+step: 0.01
+min: 0
+max: 1
+default : 0.4
+doc : controls the depth of pulse width modulation
+@end
+
+@param sub_level
+type: float
+mutable: no
+step: 0.01
+min: 0
+max: 1
+default : 0.1
+doc : controls the level of the sub oscillator
+@end
+
+@param noise
+type: float
+mutable: yes
+step: 0.01
+min: 0
+max: 1
+default : 0.1
+doc : controls the amount of noise
+@end
+
+@param resonance
+type: float
+mutable: yes
+step: 0.01
+min: 0
+max: 20
+default : 10
+doc : controls the resonance of the filter
+@end
+
+@param volume
+type: float
+mutable: no
+step: 0.01
+min: 0
+max: 1
+default : 0.7
+doc : controls the volume
+@end
+
+# modules
+
+PULSE-OSC : pwm
+SQR-OSC : sub
+NOISE : noise
+VCA : mix1
+VCA : mix3
+VCA : mix4
+VCA : mixer
+VCA : vca
+ADSR : env1
+ADSR : env2
+LPF : vcf
+TRI-OSC : lfo
+VCA : lfogain
+
+
+lfo.out -> lfogain.in
+lfogain.out -> pwm.pulsewidthCV
+lfogain.level = param.pwm_depth*0.45
+lfo.pitch = param.pwm_rate
+
+pwm.out -> mix1.in
+sub.out -> mix3.in
+noise.out -> mix4.in
+mix1.level = 0.8
+mix3.level = param.sub_level
+mix4.level = param.noise
+
+mix1.out -> mixer.in
+mix3.out -> mixer.in
+mix4.out -> mixer.in
+
+env1.out -> vca.levelCV
+env2.out -> vcf.cutoffCV
+
+pwm.pitch = param.pitch
+sub.pitch = param.pitch
+sub.detune = -1200
+
+mixer.out -> vcf.in
+vcf.out -> vca.in
+vca.out -> audio.in
+vcf.resonance = map(param.resonance,0,8)
+
+env1.level = param.level*param.volume
+env1.attack = 0.001
+env1.decay = 0.5
+env1.sustain = param.level*param.volume
+env1.release = 0.1
+
+env2.level = param.cutoff
+env2.attack = 0.01
+env2.decay = 0.5
+env2.sustain = param.cutoff*0.5
+env2.release = 0.1
+
+pwm.pulsewidth = 0.5
+
+# end
+
+
