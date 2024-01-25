@@ -224,6 +224,16 @@ function Ring:reverse()
     return Ring.new(array_copy)
 end
 
+-- selects values from a ring given a list of indices
+-- returns : a new Ring
+function Ring:choose(list)
+    local selected = {}
+    for _,idx in ipairs(list) do
+        table.insert(selected,self:get(idx))
+    end
+    return Ring.new(selected)
+end
+
 -- stretch the ring by duplicating each value
 -- returns : a new Ring
 function Ring:stretch()
@@ -478,81 +488,84 @@ end
 -- Scales
 -- ===============================================================
 
+scale_table = {}
+
 -- modes
 
-aeolian = { 2, 1, 2, 2, 1, 2, 2 }
-dorian = { 2, 1, 2, 2, 2, 1, 2 }
-ionian = { 2, 2, 1, 2, 2, 2, 1 }
-locrian = { 1, 2, 2, 1, 2, 2, 2 }
-lydian = { 2, 2, 2, 1, 2, 2, 1 }
-mixolydian = { 2, 2, 1, 2, 2, 1, 2 }
-phrygian = { 1, 2, 2, 2, 1, 2, 2 }
+scale_table["aeolian"] = { 2, 1, 2, 2, 1, 2, 2 }
+scale_table["dorian"] = { 2, 1, 2, 2, 2, 1, 2 }
+scale_table["ionian"] = { 2, 2, 1, 2, 2, 2, 1 }
+scale_table["locrian"] = { 1, 2, 2, 1, 2, 2, 2 }
+scale_table["lydian"] = { 2, 2, 2, 1, 2, 2, 1 }
+scale_table["mixolydian"] = { 2, 2, 1, 2, 2, 1, 2 }
+scale_table["phrygian"] = { 1, 2, 2, 2, 1, 2, 2 }
 
 -- common scales
 
-ascending_melodic_minor = { 2, 1, 2, 2, 2, 2, 1 }
-blues = { 3, 2, 1, 1, 3, 2 }
-harmonic_minor = { 2, 1, 2, 2, 1, 3, 1 }
-major = ionian
-major_pentatonic = { 2, 2, 3, 2, 3 }
-minor_pentatonic = { 3, 2, 2, 3, 2 }
-natural_minor = aeolian
-whole_tone = { 2, 2, 2, 2, 2, 2 }
+scale_table["ascending_melodic_minor"] = { 2, 1, 2, 2, 2, 2, 1 }
+scale_table["blues"] = { 3, 2, 1, 1, 3, 2 }
+scale_table["harmonic_minor"] = { 2, 1, 2, 2, 1, 3, 1 }
+scale_table["major"] = scale_table["ionian"]
+scale_table["major_pentatonic"] = { 2, 2, 3, 2, 3 }
+scale_table["minor_pentatonic"] = { 3, 2, 2, 3, 2 }
+scale_table["natural_minor"] = scale_table["aeolian"]
+scale_table["whole_tone"] = { 2, 2, 2, 2, 2, 2 }
 
 -- altered scales
 
-altered = { 1, 2, 1, 2, 2, 2, 2 }
-bebop_dominant = { 2, 2, 1, 2, 2, 1, 1, 1 }
-freygish = phrygian_dominant
-half_whole_diminished = { 1, 2, 1, 2, 1, 2, 1, 2 }
-lydian_augmented = { 2, 2, 2, 2, 1, 2, 1 }
-lydian_dominant = { 2, 2, 2, 1, 2, 1, 2 }
-phrygian_dominant = { 1, 3, 1, 2, 1, 2, 2 }
-whole_half_diminished = { 2, 1, 2, 1, 2, 1, 2, 1 }
+scale_table["altered"] = { 1, 2, 1, 2, 2, 2, 2 }
+scale_table["bebop_dominant"] = { 2, 2, 1, 2, 2, 1, 1, 1 }
+scale_table["freygish"] = scale_table["phrygian_dominant"]
+scale_table["half_whole_diminished"] = { 1, 2, 1, 2, 1, 2, 1, 2 }
+scale_table["lydian_augmented"] = { 2, 2, 2, 2, 1, 2, 1 }
+scale_table["lydian_dominant"] = { 2, 2, 2, 1, 2, 1, 2 }
+scale_table["phrygian_dominant"] = { 1, 3, 1, 2, 1, 2, 2 }
+scale_table["whole_half_diminished"] = { 2, 1, 2, 1, 2, 1, 2, 1 }
 
 -- Indian scales
 
-raga_bhairav = { 1, 3, 1, 2, 1, 3, 1 }
-raga_bhairavi = half_whole_diminished
-raga_hamsadhwani = lydian
-raga_malkauns = minor_pentatonic
-raga_marwa = { 3, 1, 2, 2, 1, 3, 1 }
-raga_yaman = ionian
+scale_table["raga_bhairav"] = { 1, 3, 1, 2, 1, 3, 1 }
+scale_table["raga_bhairavi"] = scale_table["half_whole_diminished"]
+scale_table["raga_hamsadhwani"] = scale_table["lydian"]
+scale_table["raga_malkauns"] = scale_table["minor_pentatonic"]
+scale_table["raga_marwa"] = { 3, 1, 2, 2, 1, 3, 1 }
+scale_table["raga_yaman"] = scale_table["ionian"]
 
 -- Middle Eastern
 
-byzantine = raga_bhairav
-double_harmonic = raga_bhairav
-maqam_hijaz = phrygian_dominant
+scale_table["byzantine"] = scale_table["raga_bhairav"]
+scale_table["double_harmonic"] = scale_table["raga_bhairav"]
+scale_table["maqam_hijaz"] = scale_table["phrygian_dominant"]
 
 -- Other world and exotic scales
 
-enigmatic = { 1, 3, 2, 2, 2, 1, 1 }
-hirajoshi = { 2, 1, 4, 1, 4 }
-hungarian_major_scale = { 3, 1, 2, 1, 2, 1, 2 }
-hungarian_minor = { 2, 1, 3, 1, 1, 3, 1 }
-neapolitan_major = { 1, 2, 2, 2, 2, 2, 1 }
-neapolitan_minor = { 1, 2, 2, 2, 1, 3, 1 }
-prometheus = { 2, 2, 2, 3, 1, 2 }
+scale_table["enigmatic"] = { 1, 3, 2, 2, 2, 1, 1 }
+scale_table["hirajoshi"] = { 2, 1, 4, 1, 4 }
+scale_table["hungarian_major_scale"] = { 3, 1, 2, 1, 2, 1, 2 }
+scale_table["hungarian_minor"] = { 2, 1, 3, 1, 1, 3, 1 }
+scale_table["neapolitan_major"] = { 1, 2, 2, 2, 2, 2, 1 }
+scale_table["neapolitan_minor"] = { 1, 2, 2, 2, 1, 3, 1 }
+scale_table["prometheus"] = { 2, 2, 2, 3, 1, 2 }
 
 -- Gamelan scales
 -- https://www.youtube.com/watch?v=_7ltggbNGZ8
 -- https://www.youtube.com/watch?v=-44PKBHPQG4
 -- divide cents by 100 and then subtract sucessive values to get MIDI note intervals
 
-pelog_begbeg = { 1.2, 1.14, 4.32, 0.81, 4.53 }
-pelog_sedeng = { 1.36, 1.55, 3.79, 1.34, 3.96 }
-pelog_tirus = { 1.97, 1.8, 3.47, 1.04, 3.72 }
+scale_table["pelog_begbeg"] = { 1.2, 1.14, 4.32, 0.81, 4.53 }
+scale_table["pelog_sedeng"] = { 1.36, 1.55, 3.79, 1.34, 3.96 }
+scale_table["pelog_tirus"] = { 1.97, 1.8, 3.47, 1.04, 3.72 }
 
-slendro_manisrenga = { 2.195, 2.665, 2.27, 2.335, 2.585 }
-slendro_rarasrum = { 2.295, 2.275, 2.53, 2.32, 2.615 }
-slendro_surak = { 2.06, 2.315, 2.385, 2.65, 2.645 }
+scale_table["slendro_manisrenga"] = { 2.195, 2.665, 2.27, 2.335, 2.585 }
+scale_table["slendro_rarasrum"] = { 2.295, 2.275, 2.53, 2.32, 2.615 }
+scale_table["slendro_surak"] = { 2.06, 2.315, 2.385, 2.65, 2.645 }
 
 -- Make a scale, which is returned as a Ring as in Sonic Pi
 -- intervals : table of intervals, passed directly or one of the defined scales
 -- root : the root note (MIDI number, note name or even a float, it doesn't matter)
 -- octaves : the number of octaves (optional, defaults to 1)
-function scale(intervals, root, octaves)
+function scale(name, root, octaves)
+    local intervals = scale_table[name] or major
     local num_octaves = octaves or 1
     local n = 1 + num_octaves * #intervals
     local array = {}
@@ -632,7 +645,10 @@ function play_pattern(notes, params)
                 note_params[key] = param_ring[i]
             end
         end
-        play(note,note_params)
+        -- updated 25/1/24 to allow rests (zero note values) in the patterns
+        if (note>0) then
+            play(note,note_params)
+        end
         sleep(dur)
     end
 end

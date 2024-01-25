@@ -290,7 +290,7 @@ moduleContext.Delay = class {
 // https://speakerdeck.com/stevengoldberg/pulse-waves-in-webaudio?slide=13
 
 moduleContext.PulseOsc = class extends Oscillator {
-  #monitor;
+  //#monitor;
   #osc2;
   #detuneNode;
   #freqNode;
@@ -381,6 +381,13 @@ moduleContext.PulseOsc = class extends Oscillator {
     this.#pwm.gain.value = 1 / this.#freqHz;
     this.#delay.delayTime.value = this.#pulsewidth / f;
     this.#freqNode.offset.value = f;
+  }
+
+  // we control the frequency of the pulse oscillator through the 
+  // constant source node, which is linked to both saw oscs
+  bend(startFreq,startTime,endFreq,endTime) {
+    this.#freqNode.offset.setValueAtTime(startFreq,startTime);
+    this.#freqNode.offset.exponentialRampToValueAtTime(endFreq,endTime);
   }
 
   // get the output node

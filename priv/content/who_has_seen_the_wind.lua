@@ -5,6 +5,37 @@ return {
     ]],
 
     markdown [[
+    ## Overdrive
+    
+    Overdrive and distortion are based on the same circuit with a pre gain (whack it
+    up for more distortion), a post gain (to adjust the level since it will get compressed
+    at high input gains) and a bandpass filter for shaping the tone. Overdrive has a gentle
+    nonlinearity and distortion has a steeper one.
+    ]],
+    
+    editor [[
+    push_fx("overdrive",{
+        preGain=0.5,
+        postGain=0.3,
+        frequency=1500,
+        bandwidth=50})
+    sample("loop_amen")
+    ]],
+        
+    markdown [[
+    ## Distortion
+    ]],
+        
+    editor [[
+    push_fx("distortion",{
+        preGain=0.8,
+        postGain=0.3,
+        frequency=800,
+        bandwidth=5})
+    sample("loop_amen")
+    ]],
+    
+    markdown [[
     Compressor test
     ]],
 
