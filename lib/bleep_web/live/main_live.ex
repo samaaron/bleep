@@ -225,11 +225,11 @@ defmodule BleepWeb.MainLive do
 
   @impl true
   def handle_info(
-        %{topic: "room:bleep-audio", payload: {time_s, tag, {:core_stop_fx, uuid, opts}}},
+        %{topic: "room:bleep-audio", payload: {time_s, run_id, tag, {:core_stop_fx, uuid, opts}}},
         socket
       ) do
     {:noreply,
-     sched_bleep_audio(socket, time_s, tag, %{
+     sched_bleep_audio(socket, time_s, run_id, tag, %{
        time_s: time_s,
        cmd: "releaseFX",
        uuid: uuid,
@@ -241,12 +241,12 @@ defmodule BleepWeb.MainLive do
   def handle_info(
         %{
           topic: "room:bleep-audio",
-          payload: {time_s, tag, {:core_control_fx, uuid, opts}}
+          payload: {time_s, run_id, tag, {:core_control_fx, uuid, opts}}
         },
         socket
       ) do
     {:noreply,
-     sched_bleep_audio(socket, time_s, tag, %{
+     sched_bleep_audio(socket, time_s, run_id, tag, %{
        time_s: time_s,
        cmd: "controlFX",
        uuid: uuid,
@@ -258,12 +258,12 @@ defmodule BleepWeb.MainLive do
   def handle_info(
         %{
           topic: "room:bleep-audio",
-          payload: {time_s, tag, {:core_start_fx, uuid, fx_id, output_id, opts}}
+          payload: {time_s, run_id, tag, {:core_start_fx, uuid, fx_id, output_id, opts}}
         },
         socket
       ) do
     {:noreply,
-     sched_bleep_audio(socket, time_s, tag, %{
+     sched_bleep_audio(socket, time_s, run_id, tag, %{
        time_s: time_s,
        cmd: "triggerFX",
        fx_id: fx_id,
@@ -277,12 +277,12 @@ defmodule BleepWeb.MainLive do
   def handle_info(
         %{
           topic: "room:bleep-audio",
-          payload: {time_s, tag, {:sample, sample_name, output_id, opts}}
+          payload: {time_s, run_id, tag, {:sample, sample_name, output_id, opts}}
         },
         socket
       ) do
     {:noreply,
-     sched_bleep_audio(socket, time_s, tag, %{
+     sched_bleep_audio(socket, time_s, run_id, tag, %{
        time_s: time_s,
        cmd: "triggerSample",
        sample_name: sample_name,
@@ -295,12 +295,12 @@ defmodule BleepWeb.MainLive do
   def handle_info(
         %{
           topic: "room:bleep-audio",
-          payload: {time_s, tag, {:synth, synth, output_id, opts}}
+          payload: {time_s, run_id, tag, {:synth, synth, output_id, opts}}
         },
         socket
       ) do
     {:noreply,
-     sched_bleep_audio(socket, time_s, tag, %{
+     sched_bleep_audio(socket, time_s, run_id, tag, %{
        time_s: time_s,
        cmd: "triggerOneshotSynth",
        synthdef_id: synth,
@@ -309,11 +309,12 @@ defmodule BleepWeb.MainLive do
      })}
   end
 
-  def sched_bleep_audio(socket, time_s, tag, msg) do
+  def sched_bleep_audio(socket, time_s, run_id, tag, msg) do
     msg = Map.put(msg, :time_s, time_s + 0.5)
 
     push_event(socket, "sched-bleep-audio", %{
       time_s: time_s,
+      run_id: run_id,
       tag: tag,
       msg: Jason.encode!(msg)
     })

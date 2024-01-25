@@ -15,73 +15,74 @@ defmodule Bleep.Lang do
     global_time_s + start_time_s
   end
 
-  def __bleep_ex_start_fx(lua, [uuid, fx_id]) do
-    __bleep_ex_start_fx(lua, [uuid, fx_id, []])
+  def __bleep_ex_start_fx(run_id, lua, [uuid, fx_id]) do
+    __bleep_ex_start_fx(run_id, lua, [uuid, fx_id, []])
   end
 
-  def __bleep_ex_start_fx(lua, [uuid, fx_id, opts_table]) do
+  def __bleep_ex_start_fx(run_id, lua, [uuid, fx_id, opts_table]) do
     output_id = fetch_current_output_id(lua)
     time_s = lua_time(lua)
     opts = Bleep.VM.lua_table_to_map(opts_table)
 
     tag = "*"
 
-    broadcast({time_s, tag, {:core_start_fx, uuid, fx_id, output_id, opts}})
+    broadcast({time_s, run_id, tag, {:core_start_fx, uuid, fx_id, output_id, opts}})
   end
 
-  def __bleep_ex_stop_fx(lua, [uuid]) do
+  def __bleep_ex_stop_fx(run_id, lua, [uuid]) do
     time_s = lua_time(lua)
     opts = %{}
     tag = "*"
 
-    broadcast({time_s, tag, {:core_stop_fx, uuid, opts}})
+    broadcast({time_s, run_id, tag, {:core_stop_fx, uuid, opts}})
   end
 
-  def __bleep_ex_sample(lua, [sample_name]) when is_binary(sample_name) do
-    __bleep_ex_sample(lua, [sample_name, []])
+  def __bleep_ex_sample(run_id, lua, [sample_name]) when is_binary(sample_name) do
+    __bleep_ex_sample(run_id, lua, [sample_name, []])
   end
 
-  def __bleep_ex_sample(lua, [sample_name, opts_table]) when is_list(opts_table) do
+  def __bleep_ex_sample(run_id, lua, [sample_name, opts_table]) when is_list(opts_table) do
     output_id = fetch_current_output_id(lua)
     time_s = lua_time(lua)
     opts = Bleep.VM.lua_table_to_map(opts_table)
     tag = "*"
 
-    broadcast({time_s, tag, {:sample, sample_name, output_id, opts}})
+    broadcast({time_s, run_id, tag, {:sample, sample_name, output_id, opts}})
   end
 
-  def __bleep_ex_play(lua, [note]) when is_integer(note) or is_float(note) do
-    __bleep_ex_play(lua, [note, []])
+  def __bleep_ex_play(run_id, lua, [note]) when is_integer(note) or is_float(note) do
+    __bleep_ex_play(run_id, lua, [note, []])
   end
 
-  def __bleep_ex_play(lua, [opts_table]) when is_list(opts_table) do
+  def __bleep_ex_play(run_id, lua, [opts_table]) when is_list(opts_table) do
     output_id = fetch_current_output_id(lua)
     time_s = lua_time(lua)
     opts = Bleep.VM.lua_table_to_map(opts_table)
     synth = Bleep.VM.get_global(lua, "current_synth")
+    run_id = Bleep.VM.get_global(lua, "run_id")
     tag = "*"
 
-    broadcast({time_s, tag, {:synth, synth, output_id, opts}})
+    broadcast({time_s, run_id, tag, {:synth, synth, output_id, opts}})
   end
 
-  def __bleep_ex_play(lua, [note, opts_table]) when is_integer(note) or is_float(note) do
-    __bleep_ex_play(lua, [[{"note", note} | opts_table]])
+  def __bleep_ex_play(run_id, lua, [note, opts_table]) when is_integer(note) or is_float(note) do
+    __bleep_ex_play(run_id, lua, [[{"note", note} | opts_table]])
   end
 
-  def __bleep_ex_control_fx(lua, [opts_table]) when is_list(opts_table) do
-    __bleep_ex_control_fx(lua, [fetch_current_output_id(lua), opts_table])
+  def __bleep_ex_control_fx(run_id, lua, [opts_table]) when is_list(opts_table) do
+    __bleep_ex_control_fx(run_id, lua, [fetch_current_output_id(lua), opts_table])
   end
 
-  def __bleep_ex_control_fx(lua, [uuid]) when is_binary(uuid) do
-    __bleep_ex_control_fx(lua, [uuid, []])
+  def __bleep_ex_control_fx(run_id, lua, [uuid]) when is_binary(uuid) do
+    __bleep_ex_control_fx(run_id, lua, [uuid, []])
   end
 
-  def __bleep_ex_control_fx(lua, [uuid, opts_table]) when is_list(opts_table) do
+  def __bleep_ex_control_fx(run_id, lua, [uuid, opts_table]) when is_list(opts_table) do
     time_s = lua_time(lua)
     opts = Bleep.VM.lua_table_to_map(opts_table)
     tag = "*"
 
-    broadcast({time_s, tag, {:core_control_fx, uuid, opts}})
+    broadcast({time_s, run_id, tag, {:core_control_fx, uuid, opts}})
   end
 
   def start_run(start_time_s, code, opts \\ %{}) do
@@ -94,20 +95,22 @@ defmodule Bleep.Lang do
       end
 
     bpm = opts[:bpm] || 60
+    run_id = UUID.uuid4()
 
     lua =
       Bleep.VM.make_vm(core_lua)
       ## Note that set_global prefixes with __bleep_core_ to avoid collisions
+      |> Bleep.VM.set_global("run_id", run_id)
       |> Bleep.VM.set_global("bpm", bpm)
       |> Bleep.VM.set_global("start_time", start_time_s)
       |> Bleep.VM.set_global("global_time", 0)
       |> Bleep.VM.set_global("current_synth", "fmbell")
       |> Bleep.VM.set_global("current_fx_stack", ["default"])
-      |> Bleep.VM.add_fn("__bleep_ex_play", &__bleep_ex_play/2)
-      |> Bleep.VM.add_fn("__bleep_ex_sample", &__bleep_ex_sample/2)
-      |> Bleep.VM.add_fn("__bleep_ex_control_fx", &__bleep_ex_control_fx/2)
-      |> Bleep.VM.add_fn("__bleep_ex_start_fx", &__bleep_ex_start_fx/2)
-      |> Bleep.VM.add_fn("__bleep_ex_stop_fx", &__bleep_ex_stop_fx/2)
+      |> Bleep.VM.add_fn("__bleep_ex_play", &__bleep_ex_play(run_id, &1, &2))
+      |> Bleep.VM.add_fn("__bleep_ex_sample", &__bleep_ex_sample(run_id, &1, &2))
+      |> Bleep.VM.add_fn("__bleep_ex_control_fx", &__bleep_ex_control_fx(run_id, &1, &2))
+      |> Bleep.VM.add_fn("__bleep_ex_start_fx", &__bleep_ex_start_fx(run_id, &1, &2))
+      |> Bleep.VM.add_fn("__bleep_ex_stop_fx", &__bleep_ex_stop_fx(run_id, &1, &2))
 
     res_or_exception =
       try do

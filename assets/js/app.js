@@ -87,6 +87,7 @@ window.addEventListener(`phx:sched-bleep-audio`, (e) => {
   try {
     const msg = JSON.parse(e.detail.msg);
     const time = e.detail.time_s;
+    const run_id = e.detail.run_id;
     const tag = e.detail.tag;
     prescheduler.schedule(time, tag, msg, window.bleep_time_info.delta);
   } catch (ex) {
