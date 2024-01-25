@@ -59,7 +59,6 @@ defmodule Bleep.Lang do
     time_s = lua_time(lua)
     opts = Bleep.VM.lua_table_to_map(opts_table)
     synth = Bleep.VM.get_global(lua, "current_synth")
-    run_id = Bleep.VM.get_global(lua, "run_id")
     tag = "*"
 
     broadcast({time_s, run_id, tag, {:synth, synth, output_id, opts}})

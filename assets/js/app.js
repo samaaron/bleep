@@ -89,7 +89,13 @@ window.addEventListener(`phx:sched-bleep-audio`, (e) => {
     const time = e.detail.time_s;
     const run_id = e.detail.run_id;
     const tag = e.detail.tag;
-    prescheduler.schedule(time, tag, msg, window.bleep_time_info.delta);
+
+    let sched_time_delta = prescheduler.time_delta(run_id);
+    if (!sched_time_delta) {
+      sched_time_delta = window.bleep_time_info.delta;
+      prescheduler.set_time_delta(run_id, sched_time_delta);
+    }
+    prescheduler.schedule(time, tag, msg, sched_time_delta);
   } catch (ex) {
     console.log(`Incoming bleep-audio event error ${ex.message}`);
     console.log(ex);
@@ -117,3 +123,5 @@ function bleep_animate_logo() {
 
 // Start the animation
 bleep_animate_logo();
+// Start the GC timer
+prescheduler.start_gc();
