@@ -42,6 +42,6 @@ You can now start the app in development mode and also open a live interactive s
 iex -S mix phx.server
 ```
 
-Once this has started, you should be able to open a browser to `localhost:4000` to see the running app. You can also use the terminal/console to evaluate Elixir code directly in the running process and see live log output.
+Once this has started, you should be able to open a browser to `localhost:4001` to see the running app. You can also use the terminal/console to evaluate Elixir code directly in the running process and see live log output.
 
 Have fun!
