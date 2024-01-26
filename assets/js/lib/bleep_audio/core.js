@@ -10,7 +10,7 @@ import { Reverb, REVERB_FILENAME } from "./reverb";
 import Utility from "./utility";
 import { Flanger } from "./flanger";
 import { AutoPan } from "./autopan";
-import {Compressor} from "./compressor";
+import { Compressor } from "./compressor";
 import { Distortion, Overdrive } from "./distortion";
 
 export default class BleepAudioCore {
