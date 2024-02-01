@@ -525,11 +525,11 @@ scale_table["whole_half_diminished"] = { 2, 1, 2, 1, 2, 1, 2, 1 }
 -- Indian scales
 
 scale_table["raga_bhairav"] = { 1, 3, 1, 2, 1, 3, 1 }
-scale_table["raga_bhairavi"] = scale_table["half_whole_diminished"]
-scale_table["raga_hamsadhwani"] = scale_table["lydian"]
-scale_table["raga_malkauns"] = scale_table["minor_pentatonic"]
-scale_table["raga_marwa"] = { 3, 1, 2, 2, 1, 3, 1 }
-scale_table["raga_yaman"] = scale_table["ionian"]
+scale_table["raga_bhairavi"] = { 1, 2, 2, 2, 1, 2, 2 }
+scale_table["raga_pahadi"] = { 2, 2, 3, 2, 3 }
+scale_table["raga_pilu"] = { 2, 1, 1, 1, 2, 1, 1, 1, 1, 1 }
+scale_table["raga_marwa"] = { 1, 3, 2, 3, 2, 1 }
+scale_table["raga_yaman"] = { 2, 2, 2, 1, 2, 2, 1 }
 
 -- Middle Eastern
 
