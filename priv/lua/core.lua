@@ -541,7 +541,7 @@ scale_table["maqam_hijaz"] = scale_table["phrygian_dominant"]
 
 scale_table["enigmatic"] = { 1, 3, 2, 2, 2, 1, 1 }
 scale_table["hirajoshi"] = { 2, 1, 4, 1, 4 }
-scale_table["hungarian_major_scale"] = { 3, 1, 2, 1, 2, 1, 2 }
+scale_table["hungarian_major"] = { 3, 1, 2, 1, 2, 1, 2 }
 scale_table["hungarian_minor"] = { 2, 1, 3, 1, 1, 3, 1 }
 scale_table["neapolitan_major"] = { 1, 2, 2, 2, 2, 2, 1 }
 scale_table["neapolitan_minor"] = { 1, 2, 2, 2, 1, 3, 1 }
