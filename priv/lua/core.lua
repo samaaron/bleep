@@ -236,11 +236,12 @@ end
 
 -- stretch the ring by duplicating each value
 -- returns : a new Ring
-function Ring:stretch()
+function Ring:stretch(n)
     local stretched = {}
     for _, value in ipairs(self.array) do
-        table.insert(stretched, value)
-        table.insert(stretched, value)
+        for k=1,n do
+            table.insert(stretched, value)
+        end
     end
     return Ring.new(stretched)
 end
