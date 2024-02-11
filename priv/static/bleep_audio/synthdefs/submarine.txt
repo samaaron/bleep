@@ -3,7 +3,27 @@ longname : Submarine
 type : synth
 author : Guy J Brown
 version : 1.0
-doc : Sounds a bit like sonar, noise and resonance
+doc : Sounds a bit like a sonar ping, with noise and resonance
+@end
+
+@param attack
+type : float
+mutable: yes
+step : 0.01
+min : 0
+max : 1
+default : 0.01
+doc : attack
+@end
+
+@param release
+type : float
+mutable: yes
+step : 0.01
+min : 0
+max : 2
+default : 0.1
+doc : release
 @end
 
 @param volume
@@ -51,11 +71,11 @@ volume.level = param.volume
 osc.pitch = param.pitch
 
 env.out -> vca.levelCV
-env.attack = 0.01
+env.attack = param.attack
 env.level = map(param.level,0,0.5)
 env.sustain = 0.5*map(param.level,0,0.5)
 env.decay = 0.1
-env.release = 0.1
+env.release = param.release
 
 
 # end

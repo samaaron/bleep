@@ -42,6 +42,7 @@ export default class BleepAudioCore {
       "/bleep_audio/synthdefs/fmbell.txt",
       "/bleep_audio/synthdefs/funkybass.txt",
       "/bleep_audio/synthdefs/hammond.txt",
+      "/bleep_audio/synthdefs/highnoise.txt",
       "/bleep_audio/synthdefs/ninth.txt",
       "/bleep_audio/synthdefs/noise.txt",
       "/bleep_audio/synthdefs/noisehat.txt",
@@ -53,6 +54,7 @@ export default class BleepAudioCore {
       "/bleep_audio/synthdefs/simplepulse.txt",
       "/bleep_audio/synthdefs/submarine.txt",
       "/bleep_audio/synthdefs/supersaw.txt",
+      "/bleep_audio/synthdefs/sweepbass.txt",
       "/bleep_audio/synthdefs/thickbass.txt",
       "/bleep_audio/synthdefs/voxhumana.txt",
     ];

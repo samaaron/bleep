@@ -1,0 +1,99 @@
+@synth highnoise
+longname : High-pass noise
+type : synth
+author : Guy J Brown
+version : 1.0
+doc : High pass modulated noise effect
+@end
+
+# parameters
+
+@param volume
+type : float
+mutable: yes
+step : 0.01
+min : 0
+max : 1
+default : 0.8
+doc : master volume control
+@end
+
+@param attack
+type : float
+mutable: yes
+step : 0.01
+min : 0
+max : 1
+default : 0.05
+doc : attack
+@end
+
+@param release
+type : float
+mutable: yes
+step : 0.01
+min : 0
+max : 1
+default : 0.05
+doc : release
+@end
+
+@param cutoff
+type : float
+mutable: yes
+step : 0.01
+min : 0
+max : 15000
+default : 8000
+doc : release
+@end
+
+@param resonance
+type : float
+mutable: yes
+step : 0.01
+min : 0
+max : 15
+default : 10
+doc : release
+@end
+
+# modules
+
+NOISE : noise
+SQR-OSC : osc
+LPF : filter1
+HPF : filter2
+VCA : vca
+ADSR : env
+SHAPER : shaper
+VCA : gain
+
+# carrier to audio 
+
+osc.out -> vca.levelCV
+osc.pitch = random(20,60)
+
+noise.out -> filter1.in
+filter1.out -> filter2.in
+filter2.out -> shaper.in
+shaper.out -> vca.in
+vca.out -> gain.in
+gain.out -> audio.in
+
+gain.level = param.level*param.volume
+
+filter1.cutoff = param.cutoff
+filter1.resonance = param.resonance
+
+filter2.cutoff = param.cutoff*0.8
+filter2.resonance = param.resonance
+
+env.level = 1
+env.attack = param.attack
+env.release = param.release
+env.sustain = 1
+env.decay = 0.1
+env.out -> vca.levelCV
+
+# end

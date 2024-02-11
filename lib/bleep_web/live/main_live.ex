@@ -2,7 +2,7 @@ defmodule BleepWeb.MainLive do
   require Logger
   use BleepWeb, :live_view
 
-  @content_path Path.join([:code.priv_dir(:bleep), "content", "who_has_seen_the_wind.lua"])
+  @content_path Path.join([:code.priv_dir(:bleep), "content", "circle_ov_daath.lua"])
 
   @impl true
   def mount(_params, _session, socket) do
@@ -13,7 +13,7 @@ defmodule BleepWeb.MainLive do
      socket
      |> assign(:kalman, kalman)
      |> assign(:bleep_latency, 50.0)
-     |> assign(:bleep_bpm, 80.0)
+     |> assign(:bleep_bpm, 96.0)
      |> assign(:data, data_from_lua(@content_path))}
   end
 

@@ -3,44 +3,44 @@ return {
     markdown "# Black Dog demo",
 
     editor [[
-    for i=1,4 do
+for i=1,4 do
     drum_pattern("x-- x-t x- x-- --t x-",{
         x="bishi_bass_drum",
         t="elec_flip",
         level={1,1,1,1,1,0.2,1,1,1,1,1,1,1,0.2,1,1},
         duration=0.25
     })
-    end
+end
     ]],
 
     editor [[
-    for i=1,4 do
+for i=1,4 do
     drum_pattern("--x- --x- --x- --x-",{
         x="hat_bdu",
         level=0.2,
         duration=0.25
     })
+end
+    ]],
+
+    editor [[
+for i=1,4 do
+    drum_pattern("--xx --x-",{
+        x="hat_cab",
+        level=0.1,
+        duration=0.25
+    })
+end
+    ]],
+
+    editor [[
+for i=1,4 do
+    drum_pattern("xxxx xxxx xxxx xxxx",{
+        x="bishi_closed_hat",
+        level={0.1,0.03,0.1,0.03},
+        duration=0.25
+    })
     end
-    ]],
-
-    editor [[
-    for i=1,4 do
-        drum_pattern("--xx --x-",{
-            x="hat_cab",
-            level=0.1,
-            duration=0.25
-        })
-        end
-    ]],
-
-    editor [[
-    for i=1,4 do
-        drum_pattern("xxxx xxxx xxxx xxxx",{
-            x="bishi_closed_hat",
-            level={0.1,0.03,0.1,0.03},
-            duration=0.25
-        })
-        end
         ]],
 
     editor [[
