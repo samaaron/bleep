@@ -1,0 +1,68 @@
+@synth breton
+longname : Breton electric piano
+type : synth
+author : Guy Brown
+version : 1.0
+doc : Breton electric piano
+@end
+
+@param release
+type: float
+mutable: no
+step: 0.01
+min: 0
+max: 1
+default: 0.2
+doc: release time
+@end
+
+@param volume
+type: float
+mutable: no
+step: 0.01
+min: 0
+max: 1
+default: 0.5
+doc: overall volume
+@end
+
+# modules
+
+PULSE-OSC : vco
+VCA : gain
+LPF : lpf
+HPF : hpf
+VCA : vca
+ADSR : env1
+ADSR : env2
+
+# patch
+
+vco.out -> hpf.in
+hpf.out -> lpf.in
+lpf.out -> vca.in
+env1.out -> vca.levelCV
+env2.out -> lpf.cutoffCV
+
+vca.out -> audio.in
+
+# tweak
+
+vco.pulsewidth = 0.55
+hpf.cutoff = 100
+lpf.resonance = 3
+vco.pitch = param.pitch
+
+env1.attack = 0
+env1.level = param.level*param.volume
+env1.decay = 2
+env1.sustain = 0
+env1.release = param.release
+
+env2.level = map(param.pitch,1200,1700)
+env2.attack = 0
+env2.decay = 0.2
+env2.sustain = map(param.pitch,840,1200)
+env2.release = param.release
+
+# end

@@ -30,6 +30,7 @@ export default class BleepAudioCore {
       "/bleep_audio/synthdefs/bishi-bass.txt",
       "/bleep_audio/synthdefs/bishi-wobble.txt",
       "/bleep_audio/synthdefs/brasspad.txt",
+      "/bleep_audio/synthdefs/breton.txt",
       "/bleep_audio/synthdefs/buzzer.txt",
       "/bleep_audio/synthdefs/catholicstyle.txt",
       "/bleep_audio/synthdefs/childhood.txt",
@@ -209,14 +210,13 @@ export default class BleepAudioCore {
   }
 
   #triggerBuffer(time, buffer, output_node, opts) {
-    // TODO : opts is always undefined @samaaron
     const audio_context_sched_s = this.#clockTimeToAudioTime(time);
     let source = this.#audio_context.createBufferSource();
-    // untested since opts isnt working yet - should set sample playback rate
-    source.playbackRate.value = opts.rate !== undefined ? opts.rate : 1; // untested
+    source.playbackRate.value = opts.rate !== undefined ? opts.rate : 1; 
+    // added loop parameter to allow (infinite) looping of a clip
+    source.loop = opts.loop !== undefined ? opts.loop : false;
     let gain = this.#audio_context.createGain();
-    // untested since opts isn't working yet - should set the playback level of the sample
-    gain.gain.value = opts.level !== undefined ? opts.level : 1; // untested
+    gain.gain.value = opts.level !== undefined ? opts.level : 1; 
     source.connect(gain);
     source.buffer = buffer;
 
