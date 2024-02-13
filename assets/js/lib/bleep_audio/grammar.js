@@ -6,6 +6,7 @@ const validTweaks = {
   "SIN-OSC": ["detune", "pitch"],
   "SQR-OSC": ["detune", "pitch"],
   "TRI-OSC": ["detune", "pitch"],
+  "RAND-OSC": ["detune", "pitch"],
   "PULSE-OSC": ["detune", "pitch", "pulsewidth"],
   LFO: ["pitch", "phase"],
   LPF: ["cutoff", "resonance"],
@@ -25,6 +26,7 @@ const validPatchInputs = {
   "SIN-OSC": ["pitchCV"],
   "SQR-OSC": ["pitchCV"],
   "TRI-OSC": ["pitchCV"],
+  "RAND-OSC": ["pitchCV"],
   "PULSE-OSC": ["pitchCV", "pulsewidthCV"],
   LPF: ["in", "cutoffCV"],
   HPF: ["in", "cutoffCV"],
@@ -41,6 +43,7 @@ const validPatchOutputs = {
   "SIN-OSC": ["out"],
   "SQR-OSC": ["out"],
   "TRI-OSC": ["out"],
+  "RAND-OSC": ["out"],
   "PULSE-OSC": ["out"],
   LFO: ["out"],
   NOISE: ["out"],
@@ -164,6 +167,7 @@ export default class Grammar {
   | "SIN-OSC"
   | "SQR-OSC"
   | "TRI-OSC"
+  | "RAND-OSC"
   | "PULSE-OSC"
   | "LFO"
   | "NOISE"

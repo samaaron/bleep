@@ -48,6 +48,7 @@ export default class BleepAudioCore {
       "/bleep_audio/synthdefs/noise.txt",
       "/bleep_audio/synthdefs/noisehat.txt",
       "/bleep_audio/synthdefs/pantest.txt",
+      "/bleep_audio/synthdefs/pluck.txt",
       "/bleep_audio/synthdefs/randomblips.txt",
       "/bleep_audio/synthdefs/rolandtb.txt",
       "/bleep_audio/synthdefs/saveaprayer.txt",
@@ -56,6 +57,7 @@ export default class BleepAudioCore {
       "/bleep_audio/synthdefs/submarine.txt",
       "/bleep_audio/synthdefs/supersaw.txt",
       "/bleep_audio/synthdefs/sweepbass.txt",
+      "/bleep_audio/synthdefs/tanpura.txt",
       "/bleep_audio/synthdefs/thickbass.txt",
       "/bleep_audio/synthdefs/voxhumana.txt",
     ];
