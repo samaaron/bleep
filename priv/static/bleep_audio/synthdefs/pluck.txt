@@ -1,0 +1,65 @@
+@synth pluck
+longname : Plucked string
+type : synth
+author : Guy J Brown
+version : 1.1
+doc : A plucked string based on a variant of Karplus String synthesis. The brightness of the pluck depends on the level.
+@end
+
+# parameters
+
+@param cutoff
+type : float
+mutable: yes
+step : 0.01
+min : 100
+max : 8000
+default : 1500
+doc : cutoff frequency in Hz
+@end
+
+@param decay
+type : float
+mutable: yes
+step : 0.01
+min : 0.1
+max : 12
+default : 4
+doc : filter decay time in sec
+@end
+
+@param volume
+type : float
+mutable: yes
+step : 0.01
+min : 0
+max : 1
+default : 0.8
+doc : master volume
+@end
+
+
+# modules
+
+RAND-OSC : osc
+LPF : lowpass
+VCA : vca
+DECAY : env
+
+# patch
+
+osc.out -> lowpass.in
+lowpass.out -> vca.in
+vca.out -> audio.in
+
+# tweak
+
+osc.pitch = param.pitch
+vca.level = param.volume*param.level
+env.level = 500+(param.cutoff-500)*param.level
+env.decay = param.decay
+env.attack = 0
+env.out -> lowpass.cutoffCV
+lowpass.resonance = 0
+
+# end
