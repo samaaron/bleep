@@ -1,0 +1,124 @@
+@synth bansuri
+longname : Bansuri
+type : synth
+author : Guy Brown
+version : 1.0
+doc : Indian flute sound
+@end
+
+@param cutoff
+type: float
+mutable: yes
+step: 0.01
+min: 0
+max: 4000
+default: 1800
+doc: filter cutoff
+@end
+
+@param resonance
+type: float
+mutable: yes
+step: 0.01
+min: 0
+max: 1
+default: 0.1
+doc: filter resonance
+@end
+
+@param noise
+type: float
+mutable: no
+step: 0.01
+min: 0
+max: 1
+default: 0.6
+doc: amount of noise
+@end
+
+@param rate
+type: float
+mutable: no
+step: 0.01
+min: 0
+max: 10
+default: 2.9
+doc: rate of tremolo (amplitude modulation)
+@end
+
+@param depth
+type: float
+mutable: no
+step: 0.01
+min: 0
+max: 1
+default: 0.22
+doc: depth of tremolo (amplitude modulation)
+@end
+
+@param chiff
+type: float
+mutable: no
+step: 0.01
+min: 0
+max: 1
+default: 0.5
+doc: high values give more chiff
+@end
+
+
+# modules
+
+TRI-OSC : vco
+SIN-OSC : lfo
+VCA : tremdepth
+LPF : filter
+VCA : vca
+ADSR : env
+NOISE : noise
+VCA : mix
+VCA : noisegain
+HPF : highpass
+ADSR : noiseenv
+VCA : tremolo
+
+# patch
+
+vco.out -> mix.in
+noise.out -> noisegain.in
+noisegain.out -> highpass.in
+highpass.out -> mix.in
+mix.out -> filter.in
+filter.out -> vca.in
+vca.out -> tremolo.in
+tremolo.out -> audio.in
+env.out -> vca.levelCV
+noiseenv.out -> noisegain.levelCV
+
+lfo.out -> tremdepth.in
+tremdepth.out -> tremolo.levelCV
+
+# tweak
+
+vco.pitch = param.pitch
+filter.cutoff = param.cutoff
+filter.resonance = map(param.resonance,0,30)
+highpass.cutoff = 3000
+tremdepth.level = param.depth
+lfo.pitch = param.rate
+
+# apply the envelope 
+
+env.attack = 0.02
+env.level = param.level
+env.sustain = param.level*(1-param.chiff)
+env.release = 0.1
+env.decay = 0.05
+
+noiseenv.level = param.noise
+noiseenv.attack = 0
+noiseenv.sustain = param.noise*0.5
+noiseenv.decay = 0.2
+noiseenv.release = 0.1
+
+# end
