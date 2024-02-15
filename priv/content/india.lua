@@ -71,7 +71,8 @@ for k=1,16 do
 
     for i=1,3 do
         bnd=0
-        if (i<3) and (d>0.25) then -- only bend longer notes
+        -- only bend longer notes, and dont bend too far
+        if (i<3) and (math.abs(delta)<2) and (d>0.125) then 
             bnd = triad[i+1]
         end
         play(triad[i],{bend=bnd,
