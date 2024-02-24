@@ -2,10 +2,13 @@ defmodule BleepWeb.MainLive do
   require Logger
   use BleepWeb, :live_view
 
-  @content_path Path.join([:code.priv_dir(:bleep), "content", "india.lua"])
+  @content_folder Path.join([:code.priv_dir(:bleep), "content"])
 
   @impl true
-  def mount(_params, _session, socket) do
+  def mount(params, _session, socket) do
+    artist = params["artist"] || "india"
+    artist_path = artist_lua_path(artist)
+
     BleepWeb.Endpoint.subscribe("room:bleep-audio")
     kalman = Kalman.new(q: 0.005, r: 1, x: 0.05)
 
@@ -14,7 +17,16 @@ defmodule BleepWeb.MainLive do
      |> assign(:kalman, kalman)
      |> assign(:bleep_latency, 50.0)
      |> assign(:bleep_bpm, 60.0)
-     |> assign(:data, Bleep.Content.data_from_lua(@content_path))}
+     |> assign(:data, Bleep.Content.data_from_lua(artist_path))}
+  end
+
+  def artist_lua_path(artist) do
+    normalised =
+      artist
+      |> String.normalize(:nfd)
+      |> String.replace(~r/[^0-9A-z-_]/u, "")
+
+    Path.join([@content_folder, "#{normalised}.lua"])
   end
 
   def render_frag(%{kind: "video"} = assigns) do

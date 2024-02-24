@@ -28,6 +28,7 @@ defmodule BleepWeb.Router do
     pipe_through(:browser)
 
     live("/", MainLive)
+    live("/artist/:artist", MainLive)
   end
 
   # Other scopes may use custom stacks.
