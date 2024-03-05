@@ -1,4 +1,4 @@
-return {
+content = {
 
 markdown [[
 ### Lua redux - Map function for rings and array indexing
@@ -157,7 +157,7 @@ Closely based on the approach in Sonic Pi, with the following implemented:
 * `sort()` - return a sorted ring
 * **NEW!** `alternate(n)` - make alternating intervals by duplicating each value and adding a constant
 * **NEW!** `merge(n)` - merge (intercalate) the values of two rings
-* **NEW!** `quantize(n)` - quantise values in the ring to nearest n 
+* **NEW!** `quantize(n)` - quantise values in the ring to nearest n
 * **NEW!** `const_ring(n,v)` - make a Ring of size n with constant value v
 * **NEW!** `rand_ring(n,min,max)` - make a Ring of n random values between min and max
 * **NEW!** `range_ring(n,min,max)` - make a range of n values between min and max
@@ -177,7 +177,7 @@ push_fx("stereo_delay", {leftDelay=0.5,rightDelay=0.25,wetLevel=0.1})
 notes = ring({G3,B3,C4,E4,G4}):clone(2)
 play_pattern(notes, {duration=0.125,gate=0.8})
 sleep(0.5)
-    
+
 -- reversing
 play_pattern(notes:reverse(), {duration=0.125,gate=0.8})
 sleep(0.5)
@@ -203,7 +203,7 @@ sleep(0.5)
 dur = rand_ring(16, 1 / 16, 1 / 2):quantize(1 / 16)
 play_pattern(scale(lydian, D3, 2), {
     duration = dur,
-    gate = 0.8})      
+    gate = 0.8})
 ]],
 markdown [[
 ### Scales

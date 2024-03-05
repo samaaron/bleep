@@ -1,4 +1,4 @@
-return {
+content =  {
 
 markdown "# Change Log",
 

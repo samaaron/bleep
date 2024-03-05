@@ -1,18 +1,24 @@
-return {
 
+init = [[
+  function hello(bar)
+    return "Hello " .. bar
+  end
+]]
+
+content = {
     markdown [[
     ### Who has seen the wind - Bishi
     ]],
 
     markdown [[
     ## Overdrive
-    
+
     Overdrive and distortion are based on the same circuit with a pre gain (whack it
     up for more distortion), a post gain (to adjust the level since it will get compressed
     at high input gains) and a bandpass filter for shaping the tone. Overdrive has a gentle
     nonlinearity and distortion has a steeper one.
     ]],
-    
+
     editor [[
     push_fx("overdrive",{
         preGain=0.5,
@@ -21,11 +27,11 @@ return {
         bandwidth=50})
     sample("loop_amen")
     ]],
-        
+
     markdown [[
     ## Distortion
     ]],
-        
+
     editor [[
     push_fx("distortion",{
         preGain=0.8,
@@ -34,7 +40,7 @@ return {
         bandwidth=5})
     sample("loop_amen")
     ]],
-    
+
     markdown [[
     Compressor test
     ]],

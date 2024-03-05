@@ -1,4 +1,4 @@
-return {
+content = {
 
 markdown [[
 # Circle Ov Daath Demo (96 BPM)
@@ -25,7 +25,7 @@ end
 markdown [[
 Synth bass with delay
 ]],
-    
+
 editor [[
 use_synth("sweepbass")
 push_fx("mono_delay",{delay=0.75,wetLevel=0.3})
@@ -48,7 +48,7 @@ end
 markdown [[
 Pulsed high frequency noise
 ]],
-    
+
 editor [[
 use_synth("highnoise")
 push_fx("auto_pan",{rate=0.1,wetLevel=1,dryLevel=0})
@@ -60,7 +60,7 @@ for k=1,8 do
         play(C4, {
             level=0.02,
             volume=0.1,
-            duration=dur, 
+            duration=dur,
         cutoff=cut[i]})
         sleep(dur)
     end
@@ -70,7 +70,7 @@ end
 markdown [[
 Hats
 ]],
-    
+
 editor [[
 push_fx("reverb_small",{wetLevel=0.4})
 for i=1,16 do
@@ -84,7 +84,7 @@ end
 markdown [[
 Random atmospherics
 ]],
-        
+
 editor [[
 use_synth("submarine")
 push_fx("reverb_massive",{wetLevel=0.3})

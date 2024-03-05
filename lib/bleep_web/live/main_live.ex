@@ -11,13 +11,16 @@ defmodule BleepWeb.MainLive do
 
     BleepWeb.Endpoint.subscribe("room:bleep-audio")
     kalman = Kalman.new(q: 0.005, r: 1, x: 0.05)
+    data = Bleep.Content.data_from_lua(artist_path)
 
     {:ok,
      socket
      |> assign(:kalman, kalman)
      |> assign(:bleep_latency, 50.0)
      |> assign(:bleep_bpm, 60.0)
-     |> assign(:data, Bleep.Content.data_from_lua(artist_path))}
+     |> assign(:frags, data[:frags])
+     |> assign(:init, data[:init])
+     |> assign(:author, data[:author])}
   end
 
   def artist_lua_path(artist) do
@@ -122,7 +125,7 @@ defmodule BleepWeb.MainLive do
       </div>
     </div>
     <div class="pt-20">
-      <%= for frag <- @data do %>
+      <%= for frag <- @frags do %>
         <.render_frag {frag} />
       <% end %>
     </div>

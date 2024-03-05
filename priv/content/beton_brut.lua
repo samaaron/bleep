@@ -1,4 +1,4 @@
-return {
+content = {
 
 markdown [[
 # Beton Brut Demo (60 BPM)
@@ -48,8 +48,8 @@ play_pattern({F4,F4,F4,F4,Ds4},{
     bend={0,Fs4,0,Fs4,0},
     bend_time=0.5,
     duration={0.7,0.3,0.7,0.3,0.7}
-})          
-    
+})
+
 sleep(1)
 
 -- noise swoosh
@@ -63,7 +63,7 @@ play_pattern({As5,As5,As5},{
     bend={0,As4,As4},
     bend_time={0.3}
     })
-    
+
 sleep(1)
 
 -- quiet bends
@@ -82,8 +82,8 @@ play_pattern({F4,F4,F4,F4,Ds4},{
     bend={0,Fs4,0,Fs4,Ds5},
     bend_time=0.5,
     duration={0.7,0.3,0.7,0.3,0.7}
-})                     
-                
+})
+
 ]],
 
 }

@@ -1,4 +1,4 @@
-return {
+content = {
 
     markdown "# Black Dog demo",
 
