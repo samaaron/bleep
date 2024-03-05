@@ -8,7 +8,6 @@ defmodule Bleep.Content do
         return {
           kind = "markdown",
           content = s,
-          uuid = __bleep_vm_uuid()
         }
       end
 
@@ -17,7 +16,6 @@ defmodule Bleep.Content do
           kind = "editor",
           content = s,
           lang = "lua",
-          uuid = __bleep_vm_uuid()
         }
       end
       """)
