@@ -10,8 +10,8 @@ defmodule Bleep.Lang do
   """
 
   def lua_time(lua) do
-    global_time_s = Bleep.VM.get_global(lua, "global_time")
-    start_time_s = Bleep.VM.get_global(lua, "start_time")
+    global_time_s = Bleep.VM.get_global(lua, "__bleep_core_global_time")
+    start_time_s = Bleep.VM.get_global(lua, "__bleep_core_start_time")
     global_time_s + start_time_s
   end
 
@@ -58,7 +58,7 @@ defmodule Bleep.Lang do
     output_id = fetch_current_output_id(lua)
     time_s = lua_time(lua)
     opts = Bleep.VM.lua_table_to_map(opts_table)
-    synth = Bleep.VM.get_global(lua, "current_synth")
+    synth = Bleep.VM.get_global(lua, "__bleep_core_current_synth")
     tag = "*"
 
     broadcast({time_s, run_id, tag, {:synth, synth, output_id, opts}})
@@ -99,12 +99,12 @@ defmodule Bleep.Lang do
     lua =
       Bleep.VM.make_vm(core_lua)
       ## Note that set_global prefixes with __bleep_core_ to avoid collisions
-      |> Bleep.VM.set_global("run_id", run_id)
-      |> Bleep.VM.set_global("bpm", bpm)
-      |> Bleep.VM.set_global("start_time", start_time_s)
-      |> Bleep.VM.set_global("global_time", 0)
-      |> Bleep.VM.set_global("current_synth", "fmbell")
-      |> Bleep.VM.set_global("current_fx_stack", ["default"])
+      |> Bleep.VM.set_global("__bleep_core_run_id", run_id)
+      |> Bleep.VM.set_global("__bleep_core_bpm", bpm)
+      |> Bleep.VM.set_global("__bleep_core_start_time", start_time_s)
+      |> Bleep.VM.set_global("__bleep_core_global_time", 0)
+      |> Bleep.VM.set_global("__bleep_core_current_synth", "fmbell")
+      |> Bleep.VM.set_global("__bleep_core_current_fx_stack", ["default"])
       |> Bleep.VM.add_fn("__bleep_ex_play", &__bleep_ex_play(run_id, &1, &2))
       |> Bleep.VM.add_fn("__bleep_ex_sample", &__bleep_ex_sample(run_id, &1, &2))
       |> Bleep.VM.add_fn("__bleep_ex_control_fx", &__bleep_ex_control_fx(run_id, &1, &2))
@@ -123,7 +123,10 @@ defmodule Bleep.Lang do
   end
 
   def fetch_current_output_id(lua_state) do
-    Bleep.VM.get_global(lua_state, "current_fx_stack[#__bleep_core_current_fx_stack]")
+    Bleep.VM.get_global(
+      lua_state,
+      "__bleep_core_current_fx_stack[#__bleep_core_current_fx_stack]"
+    )
   end
 
   def broadcast(msg) do

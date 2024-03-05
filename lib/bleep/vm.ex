@@ -39,12 +39,12 @@ defmodule Bleep.VM do
   end
 
   def get_global(vm, name) do
-    {:ok, [res | _rest], _vm} = eval(vm, <<"return __bleep_core_#{name}">>)
+    {:ok, [res | _rest], _vm} = eval(vm, <<"return #{name}">>)
     res
   end
 
   def set_global(vm, name, value) do
-    {:ok, _res, vm} = eval(vm, <<"__bleep_core_#{name} = #{elixir_term_to_lua(value)}">>)
+    {:ok, _res, vm} = eval(vm, <<"#{name} = #{elixir_term_to_lua(value)}">>)
     vm
   end
 
