@@ -84,7 +84,7 @@ defmodule Bleep.Lang do
     broadcast({time_s, run_id, tag, {:core_control_fx, uuid, opts}})
   end
 
-  def start_run(start_time_s, code, opts \\ %{}) do
+  def start_run(start_time_s, code, init_code, opts \\ %{}) do
     core_lua =
       if Application.get_env(:bleep, :reload_lua) do
         # for dev environments reload the lua file on each run
@@ -113,6 +113,7 @@ defmodule Bleep.Lang do
 
     res_or_exception =
       try do
+        {:ok, _res, lua} = Bleep.VM.eval(lua, init_code)
         Bleep.VM.eval(lua, code)
       rescue
         e ->

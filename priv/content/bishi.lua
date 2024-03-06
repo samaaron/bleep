@@ -1,8 +1,8 @@
+bpm = 80
 
 init = [[
-  function hello(bar)
-    return "Hello " .. bar
-  end
+  -- this code is automatically
+  -- inserted before every run
 ]]
 
 content = {

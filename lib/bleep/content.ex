@@ -26,6 +26,15 @@ defmodule Bleep.Content do
     content = Bleep.VM.get_global(lua_res, "content") || []
     init = Bleep.VM.get_global(lua_res, "init") || ""
     author = Bleep.VM.get_global(lua_res, "author") || ""
+    bpm = Bleep.VM.get_global(lua_res, "bpm")
+
+    bpm =
+      cond do
+        is_integer(bpm) -> bpm
+        is_float(bpm) -> bpm
+        is_binary(bpm) -> String.to_integer(bpm)
+        true -> 60
+      end
 
     content = Bleep.VM.lua_table_array_to_list(content)
 
@@ -36,6 +45,6 @@ defmodule Bleep.Content do
         frag_info
       end)
 
-    %{frags: frags, init: init, author: author}
+    %{frags: frags, init: init, author: author, default_bpm: bpm}
   end
 end
