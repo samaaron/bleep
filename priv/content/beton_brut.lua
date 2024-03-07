@@ -1,7 +1,9 @@
+bpm = 60
+
 content = {
 
 markdown [[
-# Beton Brut Demo (60 BPM)
+# The Black Dog : Beton Brut
 https://open.spotify.com/track/14VanlH81jnANRHQKMSqoV?si=c9421c97d40e4450
 ]],
 

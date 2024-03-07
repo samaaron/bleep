@@ -1,7 +1,9 @@
+bpm = 96
+
 content = {
 
 markdown [[
-# Circle Ov Daath Demo (96 BPM)
+# The Black Dog : Circle Ov Daath
 https://open.spotify.com/track/2jUzOnlJZ9TbFwOZIP8Y7M?si=fe0837843553480f
 ]],
 
@@ -10,7 +12,7 @@ Main drum loop
 ]],
 
 editor [[
-for k=1,4 do
+for k=1,8 do
     for i=1,8 do
         drum_pattern("B-xx Bxxx B-x- Bx--",{
             duration=0.25,
@@ -30,7 +32,7 @@ editor [[
 use_synth("sweepbass")
 push_fx("mono_delay",{delay=0.75,wetLevel=0.3})
 push_fx("reverb_large",{wetLevel=0.1})
-for k=1,4 do
+for k=1,8 do
     for i=1,4 do
         sleep(0.25)
         play(D3,{level=0.4,duration=0.75})
