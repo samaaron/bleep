@@ -15,8 +15,8 @@ push_fx("reverb_large",{wetLevel=0.3})
 -- background atmospherics
 sample("vinyl_hiss",{level=0.7,loop=true})
 use_synth("dognoise")
-play(Cs3,{duration=32,cutoff=100,rate=0.1,level=0.3})
-play(Cs3,{duration=32,cutoff=400,rate=0.05,level=0.2, resonance=25})
+play(Cs3,{duration=32,cutoff=100,rate=0.1,level=0.2})
+play(Cs3,{duration=32,cutoff=400,rate=0.05,level=0.15, resonance=25})
 
 -- phrase 1
 use_synth("breton")
