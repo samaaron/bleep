@@ -7,7 +7,7 @@ markdown [[
 ]],
 
 markdown [[
-Exercise 5 : Fix the code!
+Exercise 6 : Fix the code!
 ]],
 
 editor [[
