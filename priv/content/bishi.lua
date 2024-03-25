@@ -32,7 +32,7 @@ sample("bishi_ah_call")
 ]],
 
 markdown [[
-That's Bishi singing! You can mess about with samples in Bleep to make them sound different if you want to. For example, we can make Bishi's voice sound lower or higher by setting the rate at which the sample plays back. A rate of 1 is normal speed. If we set the rate to 2 then it is twice as fast, so sounds an octave higher. 
+That's Bishi singing! You can mess about with samples in Bleep to make them sound different if you want to. For example, we can make Bishi's voice sound lower or higher by setting the rate at which the sample plays back. A rate of 1 is normal speed. If we set the rate to 2 then it is twice as fast, so sounds an octave higher.
 ]],
 
 editor [[
@@ -40,16 +40,16 @@ sample("bishi_ah_call",{rate=2})
 ]],
 
 markdown [[
-Let's look at that line of code and break it down. Each line of the program is called a **statement**, and it does a small piece of work. The word ``sample`` is an instrution to play a sound sample. The name of the sample is a **string** of characters in quotes, in this case ``"bishi_ah_call"``. Finally, we can specify some **parameters** in curly brackets. In this case we set the parameter ``rate`` to a value by using the equals sign (which we call the **assignment operator**, since we assign a value to the parameter called rate). 
+Let's look at that line of code and break it down. Each line of the program is called a **statement**, and it does a small piece of work. The word ``sample`` is an instruction to play a sound sample. The name of the sample is a **string** of characters in quotes, in this case ``"bishi_ah_call"``. Finally, we can specify some **parameters** in curly brackets. In this case we set the parameter ``rate`` to a value by using the equals sign (which we call the **assignment operator**, since we assign a value to the parameter called ``rate``).
 ]],
 
 markdown [[
-**Experiment!** Try setting the rate to other values by changing the number and listen to the result by pressing Cue. You can try numbers less than 1 two as well, to make the sound really slow (try 0.2).
+**Experiment!** Try setting ``rate`` to other values by changing the number and listen to the result by pressing Cue. You can try numbers less than 1 two as well, to make the sound really slow (try 0.2).
 ]],
 
 markdown [[
 ### Using synths
-We can also make sounds in Bleep using a **synth** (short for synthesizer). We've created a synth for you called ``bishiwobble`` which makes the wobbly bass sound that you can hear in Bishi's track. Any time you want to call up a synth you can write ``use_synth`` and then put the name of the one you want. Then you can use an instruction called ``play`` to make a sound with it:
+We can also make sounds in Bleep using a **synth** (short for synthesizer). We've created a synth for you called ``bishiwobble`` which makes the wobbly bass sound that you can hear in Bishi's track. Any time you want to call up a synth you can write ``use_synth`` and then put the name of the one you want. Then you use an instruction called ``play`` to make a sound with it:
 ]],
 
 editor[[
@@ -74,17 +74,17 @@ Have another listen to the track all the way through if you want, this time payi
 
 markdown [[
 ### Making the beat
-Now let's make some cool beats. We can write a bass drum pattern in Bleep like this:
+Let's being by making some cool beats! We can write a bass drum pattern in Bleep like this:
 ]],
 
 editor[[
-drum_pattern("B--- B--- B--- B---", {
-    B="bishi_bass_drum",
+drum_pattern("b--- b--- b--- b---", {
+    b="bishi_bass_drum",
     duration=0.25})
 ]],
 
 markdown [[
-In the drum pattern string, "B" means a bass drum sound and "-" means a silent gap. We say that "B" corresponds to the sample called ``bishi_bass_drum`` and the duration of each step in the pattern is 0.25. 
+In the drum pattern string, `b` means a bass drum sound and `-` means a silent gap. We say that `b` corresponds to the sample called ``"bishi_bass_drum"` and the duration of each step in the pattern is 0.25.
 ]],
 
 markdown [[
@@ -96,13 +96,13 @@ The bass drum pattern in Bishi's track is simpler, with just one bass drum hit a
 ]],
 
 editor[[
-drum_pattern("B--- ---- ---- ----", {
-    B="bishi_bass_drum",
+drum_pattern("b--- ---- ---- ----", {
+    b="bishi_bass_drum",
     duration=0.25})
 ]],
 
 markdown [[
-**Experiment!** Are you going to use Bishi's bass drum pattern or make your own? You can decide. Put a "B" in the pattern string where you want one. It will sound best if the number of "B" and "-" characters in the string adds up to 16 (spaces are ignored). You can also experiment with different bass drum sounds. Try these: ``bd_sone``, ``bd_tek``,``bd_boom``,``bd_zome`` or ``bd_chip``.
+**Experiment!** Are you going to use Bishi's bass drum pattern or make your own? You can decide. Put a `b` in the pattern string where you want one. It will sound best if the number of `b` and `-` characters in the string add up to 16 (spaces are ignored). You can also experiment with different bass drum sounds. Try these: ``"bd_sone"``, ``"bd_tek"``,``"bd_boom"``,``"bd_zome"`` or ``"bd_chip"``.
 ]],
 
 markdown [[
@@ -110,25 +110,25 @@ Now we have a basic rhythm for the song but we can make it more interesting. Let
 ]],
 
 editor[[
-drum_pattern("B--- x--- x--- x---", {
-    B="bishi_bass_drum",
+drum_pattern("b--- x--- x--- x---", {
+    b="bishi_bass_drum",
     x="bishi_closed_hat",
     duration=0.25})
 ]],
 
 markdown [[
-That's OK but it sounds like a dance track because the hi-hat coincides with the bass drum hits. Let's move the hi-hat off the beat by waiting for an 8th note first, and then waiting for an 8th note after each hit. That's still playing the hi-hat every beat (quarter note) but now we're playing "between" the bass drum hits rather than at the same time.  We've created **syncopation** - the hi-hat is playing on weak beats rather than strong beats.
+That's OK but it sounds like a dance track because the hi-hat is on the beat. Let's move the hi-hat off the beat by waiting for an 8th note first, and then waiting for an 8th note after each hit. That's still playing the hi-hat every beat (quarter note) but now we're playing "between" the bass drum hits rather than at the same time.  We've created **syncopation** - the hi-hat is playing on weak beats rather than strong beats.
 ]],
 
 editor[[
-drum_pattern("B-x- --x- --x- --x-", {
-    B="bishi_bass_drum",
+drum_pattern("b-x- --x- --x- --x-", {
+    b="bishi_bass_drum",
     x="bishi_closed_hat",
     duration=0.25})
 ]],
 
 markdown [[
-** Experiment!** Try variations of this pattern before moving on. You can also try some different hi-hat sounds such as ``hat_raw``, ``hat_tap`` or ``hat_gnu``. You could also mix it up by defining another symbol in the drum pattern (such as y) and alternating between different hi-hat or bass drum sounds.
+** Experiment!** Try variations of this pattern before moving on. You can also try some different hi-hat sounds such as ``"hat_raw"``, ``"hat_tap"`` or ``"hat_gnu"``. You could also mix it up by defining another symbol in the drum pattern (such as `y`) and alternating between different hi-hat or bass drum sounds.
 ]],
 
 markdown [[
@@ -139,8 +139,8 @@ Let's put the main loop together now, by playing the bass wobble sound at the st
 editor [[
 use_synth("bishiwobble")
 play(C2)
-drum_pattern("B-x- --x- --x- --x-", {
-        B="bishi_bass_drum",
+drum_pattern("b-x- --x- --x- --x-", {
+        b="bishi_bass_drum",
         x="bishi_closed_hat",
         duration=0.25})
 ]],
@@ -153,8 +153,8 @@ editor [[
 use_synth("bishiwobble")
 for i=1,4 do
     play(C2)
-    drum_pattern("B-x- --x- --x- --x-", {
-            B="bishi_bass_drum",
+    drum_pattern("b-x- --x- --x- --x-", {
+            b="bishi_bass_drum",
             x="bishi_closed_hat",
             duration=0.25})
 end
@@ -165,7 +165,7 @@ The statements between the ``for`` and ``end`` words are repeated a number of ti
  ]],
 
  markdown [[
-Notice how we formatted the program code here. The statements inside ``for`` and ``end`` have been moved to the right (**indented**) by a few spaces. This shows that the ``play`` and ``drum_pattern`` statements are inside the loop and will be repeated. Using indentation is a good habit to develop as you write code; it makes your programs easier to read. 
+Notice how we formatted the program code here. The statements inside ``for`` and ``end`` have been moved to the right (**indented**) by a few spaces. This shows that the ``play`` and ``drum_pattern`` statements are inside the loop and will be repeated. Using indentation is a good habit to develop as you write code; it makes your programs easier to read.
  ]],
 
  markdown [[
@@ -176,8 +176,8 @@ Here is a really badly formatted program! It does the same thing but is much har
  use_synth("bishiwobble")
    for i=1,4 do
 play(C2)
-    drum_pattern("B-x- --x- --x- --x-", {
-B="bishi_bass_drum",
+    drum_pattern("b-x- --x- --x- --x-", {
+b="bishi_bass_drum",
       x="bishi_closed_hat",
    duration=0.25})
 end
@@ -188,146 +188,215 @@ end
 ]],
 
 
-
 markdown [[
-    # STOP HERE
+### Adding effects - reverb
+If you play this loop now you'll notice that it still doesn't sound quite right - it's got a sharp cut-off to the sounds. We can change this by adding reverberation ("reverb" for short) to the sound.
+
+Reverb is what happens when sound reflects off surfaces, and it can give us a sense of the space that the sound is happening in. In this case we want the original sound (sometimes called the "dry sound") to carry on and decay a bit longer so we're going to add reverb to that original sound signal. Dry sound with reverb added is called "wet sound"! So we set the amount of reverb using a parameter called `wetLevel` that takes a value between 0 and 1. As with all the values here, the higher the value, the more of the effect will be applied to the sound. We can add that to the start of this block of code so that it applies to the whole of this sound block. Here we go:
 ]],
 
+editor [[
+push_fx("reverb", {wetLevel=0.1})
+use_synth("bishiwobble")
+for i = 1, 4 do
+    play(C2)
+    drum_pattern("B-x- --x- --x- --x-", {
+            B="bishi_bass_drum",
+            x="bishi_closed_hat",
+            duration=0.25})
+end
+]],
 
-    editor [[
-    push_fx("reverb", {wetLevel=0.1})
-    use_synth("bishiwobble")
-    for i = 1, 32 do
-        play(C2)
-        drum_pattern("B-x- --x- --x- --x-", {
-                B="bishi_bass_drum",
-                x="bishi_closed_hat",
-                duration=0.25,
-                level=1})
-    end
-    ]],
+markdown [[
+**Experiment!** Try different amounts of reverb by setting ``wetLevel`` to a value between 0 and 1. You'll probably find that too much reverb sounds like the music is playing in a giant cave! With reverb, a little goes a long way.
+]],
 
-    markdown [[
-    Syncopated snare
-    ]],
+markdown [[
+### Creating interest with a syncopated snare drum pattern
+That's got a nice feel to it, good! Now we're going to add some snare hits. These have quite a complicated rhythm to give the track interest, so we're going to define a pattern for these using `s` to indicate where there is a snare hit:
+]],
 
-    editor [[
-    push_fx("reverb", {wetLevel=0.1})
-    for i = 1, 32 do
-        drum_pattern("xx-- x--x ---- ---x ---- -x-- ---- xx--", {
-                x="bishi_snare",
-                level=0.2,
-                duration=0.25})
-    end
-    ]],
-
-    markdown [[
-        Same again but through triplet delay and gated snare
-        ]],
-
-    editor [[
-    push_fx("mono_delay", {delay=0.375,wetLevel=0.2,dryLevel=0.8})
-    push_fx("ambience_gated", {wetLevel=1,dryLevel=0})
-    for i = 1, 32 do
+editor [[
+for i = 1, 2 do
     drum_pattern("xx-- x--x ---- ---x ---- -x-- ---- xx--", {
-                x="bishi_snare",
-                level=0.4,
-                duration=0.25})
-    end
-    ]],
+        x="bishi_snare",
+        level=0.2,
+        duration=0.25})
+end
+]],
 
-    markdown [[
-    Synths
-        ]],
+markdown[[
+Press the Cue button on the two boxes above, and you should hear both drum loops play together.
+]],
 
-    editor [[
-    use_synth("bishibass")
-    push_fx("mono_delay", {wetLevel=0.25,feedback=0.2,delay=0.375,pan=0.5})
-    for i = 1, 32 do
-        play_pattern({C3,C4,C3,C4,F3,G3,As3}, {
-                    duration={0.75,3.25,0.75,1.25,0.75,0.75,0.5},
-                    level=0.1})
-    end
-    ]],
+markdown [[
+**Experiment!** In the code above, notice that we used a parameter called `level` to set the sound level (volume) of the snare drum. Try setting that to different values between 0 and 1, and see how it changes the feel of the rhythm. You can also try different drum sounds such as `"elec_hi_snare"`, `"elec_flip"`,`"perc_snap"` or `"tabla_na_o"`.
+]],
 
-    markdown [[
-    Vocals
-    ]],
+markdown[[
+### Adding delay to the snare
+Delay is a very important effect in electronic music. We can introduce delay in the same way that we made reverb, by using the instruction ``push_fx`` to make a new audio effect. We set the delay time (in seconds), wet level and dry level:
+]],
 
-    editor [[
-    push_fx("reverb", {wetLevel=0.1})
-    for i = 1, 2 do
-        sample("bishi_ah")
-        sleep(3)
-        sample("bishi_ahah")
-        sleep(5)
-    end
-    ]],
+editor [[
+push_fx("mono_delay", {delay=0.375,wetLevel=0.2,dryLevel=0.8})
+for i = 1, 2 do
+drum_pattern("xx-- x--x ---- ---x ---- -x-- ---- xx--", {
+    x="bishi_snare",
+    level=0.2,
+    duration=0.25})
+end
+]],
 
-    editor [[
-        push_fx("reverb", {wetLevel=0.1})
-        for i = 1, 2 do
-            sample("bishi_ah")
-            sample("bishi_ah_harmony")
-            sleep(3)
-            sample("bishi_ahah")
-            sample("bishi_ahah_harmony")
-            sleep(5)
-        end
-    ]],
-    editor [[
-        push_fx("reverb_large", {wetLevel=0.25})
-        for i = 1, 2 do
-            sleep(1.25)
-            sample("bishi_ah_call",{level=0.5})
-            sleep(3.5)
-            sample("bishi_ah_reply",{level=0.5})
-            sleep(3.25)
-        end
-    ]],
-    editor [[
-        push_fx("reverb_large", {wetLevel=0.2})
-        sample("bishi_verse")
-    ]],
-    markdown [[
-        Cool synthy middle bit (what do we do about the sitar?)
-    ]],
-    editor [[
-    use_synth("sawlead")
-    push_fx("deep_phaser", {wetLevel=0.8,dryLevel=0.2})
-    push_fx("mono_delay", {wetLevel=0.1,delay=0.5,pan=0.9})
-    notes = ring({G5,F5,Ds5,C5})
-    freq = range_ring(8, 0.1, 0.5)
-    for i = 1, 16 do
-        play_pattern(notes, {
-            duration=0.25,
-            cutoff=freq[i],
-            gate=0.75,
-            filter_mod=0.4,
-            filter_attack=0.05,
-        level={0.2,0.1,0.1,0.1}})
-    end
-    ]],
-    editor [[
-    use_synth("sawlead")
-    push_fx("mono_delay", {wetLevel=0.1,delay=0.75,pan=- 0.9})
-    notes = ring({G4,As4,C5}):clone(2)
-    for i = 1, 4 do
-        play_pattern(notes, {
-            duration=0.25,
-            cutoff=0.3,
-            gate=0.9,
-            filter_attack=0.05,
-        level={0.1,0.05,0.05}})
-        sleep(2.5)
-    end
-    ]],
-    editor [[
-    for i=1,2 do
-        sample("bishi_down_dini")
-        sleep(8)
-    end
-    ]]
+markdown[[
+Play the delayed snare with the main drum loop and listen to the way that the echoes become part of the rhythm, giving it a bit more feel and motion.
+]],
 
+markdown[[
+### Adding Bishi's vocal harmonies to the mix
+The other sound we hear at the start is Bishi's voice. If you listen to the opening of the track again, you'll notice that it's not just Bishi's solo voice that we hear: she has layered her voice so that it creates harmonies.
+
+We've created Bishi's vocal harmonies as two samples: the first single harmony “ah” which we call `"bishi_ah"` and then the subsequent two-notes `"bishi_ahah"`. We want to put these together to create the whole phrase so we do this by playing the first sample and then waiting for a number of beats using the `sleep` instruction.
+
+Also, we want the vocals to have some reverb so we add that as well.
+]],
+
+editor[[
+push_fx("reverb", {wetLevel=0.1})
+sample("bishi_ah")
+sleep(3)
+sample("bishi_ahah")
+sleep(5)
+]],
+
+markdown[[
+Now we can play more samples to build up a harmony (a chord) in layers. The first sample plays the tonic, whereas the second sample adds the third note of the (major) scale, and another on the fifth of the scale.
+]],
+
+editor [[
+push_fx("reverb", {wetLevel=0.1})
+sample("bishi_ah")
+sample("bishi_ah_harmony")
+sleep(3)
+sample("bishi_ahah")
+sample("bishi_ahah_harmony")
+sleep(5)
+]],
+
+markdown[[
+There are also some lovely "call and reply" vocals that we can add. Let's add a bit more reverb to them too. We're going to do that by increasing `wetLevel` but also using a larger "room" for the reverberation, called `"reverb_large"`.
+]],
+
+editor[[
+push_fx("reverb_large", {wetLevel=0.3})
+sleep(1.25)
+sample("bishi_ah_call")
+sleep(3.5)
+sample("bishi_ah_reply")
+sleep(3.25)
+]],
+
+markdown[[
+### Creating a synth bass line
+You'll also notice that there is a repeating bass synth sound in Bishi's track. This is a looping sequence of notes that we can describe using a `play_pattern` statement. The general form of this is
+``play_pattern(list_of_notes,list_of_parameters)``
+Remember that we represent lists in curly brackets, using commas to separate the values. The first note has a duration of 0.75, the second has a duration of 3.25, and so on. So we can represent the bass sequence like this:
+]],
+
+editor[[
+use_synth("bishibass")
+play_pattern({C3,C4,C3,C4,F3,G3,As3}, {
+    duration={0.75,3.25,0.75,1.25,0.75,0.75,0.5},
+    level=0.1
+})
+]],
+
+markdown[[
+Hmmm, that's the right notes but it doesn't sound very good. This is another part of Bishi's track where the use of delay is really important to give the music a bit more rhythm and movement. Let's add delay to the synth to see this.
+]],
+
+editor[[
+push_fx("mono_delay",{wetLevel=0.3,delay=0.375})
+use_synth("bishibass")
+play_pattern({C3,C4,C3,C4,F3,G3,As3}, {
+    duration={0.75,3.25,0.75,1.25,0.75,0.75,0.5},
+    level=0.1
+})
+]],
+
+markdown[[
+### Putting it all together
+Finally, let's put everything we've done together to make the first verse of Bishi's song. Here are all the loops you need shown one after the other. You can press the Cue buttons to start each one. We've adjusted the loops in each code block to give the right number of repetitions for the first verse. Also, we've added a lead vocal with some reverb at the end. Listen to the track again, and then try playing the boxes at the right time to make the verse.
+]],
+
+editor[[
+push_fx("reverb", {wetLevel=0.1})
+use_synth("bishiwobble")
+for i = 1, 32 do
+    play(C2)
+    drum_pattern("b-x- --x- --x- --x-", {
+            b="bishi_bass_drum",
+            x="bishi_closed_hat",
+            duration=0.25})
+end
+]],
+
+editor[[
+push_fx("mono_delay", {delay=0.375,wetLevel=0.2,dryLevel=0.8})
+for i = 1, 32 do
+drum_pattern("xx-- x--x ---- ---x ---- -x-- ---- xx--", {
+    x="bishi_snare",
+    level=0.2,
+    duration=0.25})
+end
+]],
+
+editor[[
+push_fx("mono_delay",{wetLevel=0.3,delay=0.375})
+use_synth("bishibass")
+for i = 1, 32 do
+    play_pattern({C3,C4,C3,C4,F3,G3,As3}, {
+        duration={0.75,3.25,0.75,1.25,0.75,0.75,0.5},
+        level=0.1
+    })
+end
+]],
+
+editor[[
+push_fx("reverb", {wetLevel=0.1})
+sample("bishi_ah")
+sleep(3)
+sample("bishi_ahah")
+sleep(5)
+]],
+
+editor[[
+push_fx("reverb", {wetLevel=0.1})
+sample("bishi_ah")
+sample("bishi_ah_harmony")
+sleep(3)
+sample("bishi_ahah")
+sample("bishi_ahah_harmony")
+sleep(5)
+]],
+
+editor[[
+push_fx("reverb_large", {wetLevel=0.3})
+sleep(1.25)
+sample("bishi_ah_call")
+sleep(3.5)
+sample("bishi_ah_reply")
+sleep(3.25)
+]],
+
+editor[[
+push_fx("reverb_large", {wetLevel=0.25})
+sample("bishi_verse")
+]],
+
+markdown[[
+### Next steps
+We hope you enjoyed this first exercise in live coding with Bishi's music! Along the way you learned some important ideas in coding and music. Keep experimenting with the code on this page to make your own variations of Bishi's track, and remember - in live coding there are no mistakes, just creative opportunities!
+]],
 
 }
