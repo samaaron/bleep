@@ -2,7 +2,7 @@ import * as monaco from "../../vendor/monaco-editor/esm/vs/editor/editor.main";
 
 self.MonacoEnvironment = {
   getWorkerUrl: function (moduleId, label) {
-    return "assets/monaco-editor/editor.worker.js";
+    return "/assets/monaco-editor/editor.worker.js";
   },
 };
 
@@ -30,90 +30,4 @@ monaco.editor.defineTheme("bleep-dark", {
   },
 });
 
-const BleepEditor = {
-  mounted() {
-    const { path, language, content, runButtonId, cueButtonId } =
-      this.el.dataset;
-    const run_button = this.el.querySelector("#" + this.el.dataset.runButtonId);
-    const cue_button = this.el.querySelector("#" + this.el.dataset.cueButtonId);
-    const result_id = this.el.dataset.resultId;
-    const uuid = this.el.dataset.uuid;
-    const container = this.el.querySelector("[monaco-code-editor]");
 
-    this.editor = monaco.editor.create(container, {
-      theme: "bleep-dark",
-      value: content,
-      language: language,
-      matchBrackets: true,
-      bracketPairColorization: { enabled: true },
-      scrollbar: { vertical: "hidden" },
-      autoHeight: true,
-      minimap: {
-        enabled: false,
-      },
-      scrollBeyondLastLine: false,
-    });
-
-    this.editor.getDomNode().addEventListener(
-      "wheel",
-      function (e) {
-        window.scrollBy(0, e.deltaY);
-      },
-      { passive: false }
-    );
-
-    function autoResizeMonacoEditor(mon) {
-      const lineHeight = mon.getOption(monaco.editor.EditorOption.lineHeight);
-      const lineCount = mon.getModel().getLineCount();
-      const contentHeight = lineHeight * lineCount;
-
-      mon.layout({
-        width: container.clientWidth,
-        height: contentHeight,
-      });
-    }
-
-    this.editor.onDidChangeModelContent(() => {
-      autoResizeMonacoEditor(this.editor);
-    });
-
-    run_button.addEventListener("click", (e) => {
-      window.bleep.idempotentInit();
-      const code = this.editor.getValue();
-      const placeholder = "bleep_tmp_placeholder()";
-      const formatted = luamin.Beautify(`${code}\n${placeholder}`, {
-        RenameVariables: false,
-        RenameGlobals: false,
-        SolveMath: false,
-      }).slice(0, -(placeholder.length + 1));
-
-      this.editor.setValue(formatted);
-      this.pushEvent("eval-code", {
-        value: formatted,
-        path: path,
-        uuid: uuid,
-        result_id: result_id,
-      });
-      console.log(this.editor.getValue());
-    });
-
-    cue_button.addEventListener("click", (e) => {
-      window.bleep.idempotentInit();
-      this.pushEvent("cue-code", {
-        value: this.editor.getValue(),
-        path: path,
-        uuid: uuid,
-        result_id: result_id,
-      });
-      console.log(this.editor.getValue());
-    });
-
-    autoResizeMonacoEditor(this.editor);
-  },
-
-  destroyed() {
-    if (this.editor) this.editor.dispose();
-  },
-};
-
-export default BleepEditor;

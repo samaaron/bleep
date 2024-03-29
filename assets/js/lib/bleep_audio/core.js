@@ -64,7 +64,7 @@ export default class BleepAudioCore {
     ];
   }
 
-  idempotentInit() {
+  idempotentInitAudio() {
     if (!this.#started) {
       this.#audio_context = new AudioContext();
       this.#started = true;
@@ -215,11 +215,11 @@ export default class BleepAudioCore {
   #triggerBuffer(time, buffer, output_node, opts) {
     const audio_context_sched_s = this.#clockTimeToAudioTime(time);
     let source = this.#audio_context.createBufferSource();
-    source.playbackRate.value = opts.rate !== undefined ? opts.rate : 1; 
+    source.playbackRate.value = opts.rate !== undefined ? opts.rate : 1;
     // added loop parameter to allow (infinite) looping of a clip
     source.loop = opts.loop !== undefined ? opts.loop : false;
     let gain = this.#audio_context.createGain();
-    gain.gain.value = opts.level !== undefined ? opts.level : 1; 
+    gain.gain.value = opts.level !== undefined ? opts.level : 1;
     source.connect(gain);
     source.buffer = buffer;
 
@@ -235,7 +235,7 @@ export default class BleepAudioCore {
     // also need to register lifecycle with monitor
   }
 
-  triggerOneshotSynth(time, synthdef_id, output_id, opts) {
+  triggerOneShotSynth(time, synthdef_id, output_id, opts) {
     const audio_context_sched_s = this.#clockTimeToAudioTime(time);
 
     let output_node = this.#resolveOutputId(output_id);
@@ -275,8 +275,8 @@ export default class BleepAudioCore {
 
   jsonDispatch(time_delta_s, json) {
     switch (json.cmd) {
-      case "triggerOneshotSynth":
-        this.triggerOneshotSynth(
+      case "triggerOneShotSynth":
+        this.triggerOneShotSynth(
           json.time_s + time_delta_s,
           json.synthdef_id,
           json.output_id,
@@ -301,14 +301,14 @@ export default class BleepAudioCore {
         );
         break;
       case "controlFX":
-        this.controlFX(json.time_s + time_delta_s, json.uuid, json.opts);
+        this.controlFX(json.time_s + time_delta_s, json.fx_id, json.opts);
         break;
       case "releaseFX":
-        this.releaseFX(json.time_s + time_delta_s, json.uuid);
+        this.releaseFX(json.time_s + time_delta_s, json.fx_id);
         break;
 
       default:
-        console.log(`Bleep Audio Core - dispatch method unknown ${json.cmd}`);
+        console.log(`Bleep Audio Core - dispatch method unknown: ${json.cmd}`);
     }
   }
 

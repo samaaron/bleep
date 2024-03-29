@@ -6,21 +6,32 @@ defmodule BleepWeb.MainLive do
 
   @impl true
   def mount(params, _session, socket) do
-    artist = params["artist"] || "india"
+    user_id = get_connect_params(socket)["bleep_user_id"]
+
+    {:ok, _pid} = Registry.register(Registry.Bleep, user_id, self())
+
+    artist = params["artist"] || "lets_all_make_brutalism"
     artist_path = artist_lua_path(artist)
 
-    BleepWeb.Endpoint.subscribe("room:bleep-audio")
-    kalman = Kalman.new(q: 0.005, r: 1, x: 0.05)
-    data = Bleep.Content.data_from_lua(artist_path)
+    data =
+      case :ets.lookup(:lua_content_cache, artist_path) do
+        [{_, value}] ->
+          value
+
+        [] ->
+          res = Bleep.Content.data_from_lua(artist_path)
+          :ets.insert(:lua_content_cache, {artist_path, res})
+          res
+      end
 
     {:ok,
      socket
-     |> assign(:kalman, kalman)
+     |> assign(:user_id, user_id)
      |> assign(:bleep_latency, 50.0)
-     |> assign(:bleep_default_bpm, data[:default_bpm])
      |> assign(:frags, data[:frags])
      |> assign(:init_code, data[:init])
-     |> assign(:author, data[:author])}
+     |> assign(:author, data[:author])
+     |> assign(:bleep_default_bpm, data[:default_bpm])}
   end
 
   def artist_lua_path(artist) do
@@ -45,7 +56,7 @@ defmodule BleepWeb.MainLive do
     assigns = assign(assigns, :markdown, md)
 
     ~H"""
-    <div class="p-5 text-sm px-7 text-zinc-200">
+    <div class="p-2 text-sm px-7 text-zinc-200">
       <%= Phoenix.HTML.raw(@markdown) %>
     </div>
     """
@@ -54,7 +65,7 @@ defmodule BleepWeb.MainLive do
   def render_frag(%{kind: "mermaid"} = assigns) do
     ~H"""
     <div class="p-8 bg-blue-100 border border-zinc-600 rounded-xl dark:bg-slate-100">
-      <div class="mermaid" phx-update="ignore" id={@uuid}>
+      <div class="mermaid" phx-update="ignore" id={@frag_id}>
         <%= @content %>
       </div>
     </div>
@@ -62,26 +73,29 @@ defmodule BleepWeb.MainLive do
   end
 
   def render_frag(%{kind: "editor"} = assigns) do
-    assigns = assign(assigns, :run_button_id, "run-button-#{assigns[:uuid]}")
-    assigns = assign(assigns, :cue_button_id, "cue-button-#{assigns[:uuid]}")
-    assigns = assign(assigns, :monaco_path, "#{assigns[:uuid]}.lua")
-    assigns = assign(assigns, :monaco_id, "monaco-#{assigns[:uuid]}")
-    assigns = assign(assigns, :result_id, "result-#{assigns[:uuid]}")
+    frag_id = assigns[:frag_id]
+    assigns = assign(assigns, :run_button_id, "run-button-#{frag_id}")
+    assigns = assign(assigns, :cue_button_id, "cue-button-#{frag_id}")
+    assigns = assign(assigns, :stop_button_id, "stop-button-#{frag_id}")
+    assigns = assign(assigns, :monaco_path, "#{frag_id}.lua")
+    assigns = assign(assigns, :monaco_id, "monaco-#{frag_id}")
+    assigns = assign(assigns, :result_id, "result-#{frag_id}")
 
     ~H"""
-    <div class="h-full p-7">
+    <div class="h-full pt-2 p-7">
       <div
-        id={@uuid}
+        id={@frag_id}
         class=""
-        phx-hook="BleepEditor"
+        phx-hook="BleepEditorHook"
         phx-update="ignore"
         data-language="lua"
         data-content={@content}
-        data-monaco-id={@monaco_id}
+        data-editor-id={@frag_id}
         data-path={@monaco_path}
         data-result-id={@result_id}
         data-run-button-id={@run_button_id}
         data-cue-button-id={@cue_button_id}
+        data-stop-button-id={@stop_button_id}
       >
         <button
           class="hidden px-2 py-1 font-bold text-white bg-orange-600 rounded hover:bg-orange-800"
@@ -94,6 +108,12 @@ defmodule BleepWeb.MainLive do
           id={@cue_button_id}
         >
           Cue
+        </button>
+        <button
+          class="px-2 py-1 font-bold text-white bg-orange-600 rounded hover:bg-orange-800"
+          id={@stop_button_id}
+        >
+          Stop
         </button>
         <div class="h-full pt-3 pb-3 overflow-scroll bg-black border border-orange-600 rounded-sm">
           <div class="h-full" id={@monaco_id} monaco-code-editor></div>
@@ -112,13 +132,13 @@ defmodule BleepWeb.MainLive do
     <div class="fixed top-0 left-0 z-50 flex items-center justify-between w-full text-sm border-b shadow-lg border-zinc-100 bg-zinc-950 backdrop-blur-md bg-opacity-70 border-b-zinc-600">
       <div class="flex items-center pl-7 gap">
         <a href="/">
-          <img id="bleep-logo" src={~p"/images/bleep_logo.png"} width="200" phx-update="ignore" />
+          <img id="bleep-logo" src={~p"/images/cnotf.png"} width="200" phx-update="ignore" />
         </a>
         <p class="px-2 font-medium leading-6 rounded-full bg-brand/5 text-brand">
           v0.0.1
         </p>
       </div>
-      <div class="float-right pr-7 text-zinc-100" id="bleep-time" phx-hook="BleepTime">
+      <div class="float-right pr-7 text-zinc-100" id="bleep-time">
         <p class="font-mono text-xs text-zinc-200">
           Latency: <%= :erlang.float_to_binary(@bleep_latency, decimals: 2) %> ms
         </p>
@@ -133,38 +153,38 @@ defmodule BleepWeb.MainLive do
   end
 
   @impl true
-  def handle_event("bleep-time", %{"time_s" => time_s, "latency" => latency}, socket) do
-    socket = assign(socket, :kalman, Kalman.step(0, latency, socket.assigns.kalman))
-    latency_est = Kalman.estimate(socket.assigns.kalman)
-
-    {:noreply,
-     socket
-     |> assign(:bleep_latency, latency_est * 1000)
-     |> push_event("bleep-time-ack", %{
-       roundtrip_time: time_s,
-       latency_est: latency_est,
-       server_time: :erlang.system_time(:milli_seconds) / 1000
-     })}
+  def handle_event(
+        "eval-code",
+        %{"value" => code, "result_id" => result_id, "editor_id" => editor_id},
+        socket
+      ) do
+    start_time_s = :erlang.system_time(:milli_seconds) / 1000
+    {:noreply, eval_and_display(socket, editor_id, start_time_s, code, result_id)}
   end
 
   @impl true
-  def handle_event("cue-code", %{"value" => code, "result_id" => result_id}, socket) do
+  def handle_event(
+        "stop-editor-runs",
+        %{"editor_id" => editor_id},
+        socket
+      ) do
+    user_id = socket.assigns.user_id
+    Bleep.Lang.stop_editor_runs(user_id, editor_id)
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event(
+        "cue-code",
+        %{"code" => code, "result_id" => result_id, "editor_id" => editor_id},
+        socket
+      ) do
     bpm = socket.assigns.bleep_default_bpm
     start_time_ms = :erlang.system_time(:milli_seconds)
     bar_duration_ms = round(4 * (60.0 / bpm) * 1000)
     offset_ms = bar_duration_ms - rem(start_time_ms, bar_duration_ms)
     start_time_s = (start_time_ms + offset_ms) / 1000.0
-    {:noreply, eval_and_display(socket, start_time_s, code, result_id)}
-  end
-
-  @impl true
-  def handle_event(
-        "eval-code",
-        %{"value" => code, "result_id" => result_id},
-        socket
-      ) do
-    start_time_s = :erlang.system_time(:milli_seconds) / 1000
-    {:noreply, eval_and_display(socket, start_time_s, code, result_id)}
+    {:noreply, eval_and_display(socket, editor_id, start_time_s, code, result_id)}
   end
 
   def display_eval_result(socket, {:exception, e, trace}, result_id) do
@@ -199,107 +219,28 @@ defmodule BleepWeb.MainLive do
     })
   end
 
-  def eval_and_display(socket, start_time_s, code, result_id) do
+  def eval_and_display(socket, editor_id, start_time_s, code, result_id) do
     init_code = socket.assigns.init_code
     bpm = socket.assigns.bleep_default_bpm
-    res = Bleep.Lang.start_run(start_time_s, code, init_code, %{bpm: bpm})
+    user_id = socket.assigns.user_id
+    res = Bleep.Lang.start_run(user_id, editor_id, start_time_s, code, init_code, %{bpm: bpm})
     display_eval_result(socket, res, result_id)
   end
 
   @impl true
-  def handle_info(
-        %{topic: "room:bleep-audio", payload: {time_s, run_id, tag, {:core_stop_fx, uuid, opts}}},
-        socket
-      ) do
+  def handle_info({:latency_update, latency}, socket) do
     {:noreply,
-     sched_bleep_audio(socket, time_s, run_id, tag, %{
-       time_s: time_s,
-       cmd: "releaseFX",
-       uuid: uuid,
-       opts: opts
-     })}
+     socket
+     |> assign(:bleep_latency, latency)}
   end
 
-  @impl true
-  def handle_info(
-        %{
-          topic: "room:bleep-audio",
-          payload: {time_s, run_id, tag, {:core_control_fx, uuid, opts}}
-        },
-        socket
-      ) do
-    {:noreply,
-     sched_bleep_audio(socket, time_s, run_id, tag, %{
-       time_s: time_s,
-       cmd: "controlFX",
-       uuid: uuid,
-       opts: opts
-     })}
-  end
+  def id_send(user_id, msg) do
+    case Registry.lookup(Registry.Bleep, user_id) do
+      [{pid, _value}] ->
+        send(pid, msg)
 
-  @impl true
-  def handle_info(
-        %{
-          topic: "room:bleep-audio",
-          payload: {time_s, run_id, tag, {:core_start_fx, uuid, fx_id, output_id, opts}}
-        },
-        socket
-      ) do
-    {:noreply,
-     sched_bleep_audio(socket, time_s, run_id, tag, %{
-       time_s: time_s,
-       cmd: "triggerFX",
-       fx_id: fx_id,
-       uuid: uuid,
-       output_id: output_id,
-       opts: opts
-     })}
-  end
-
-  @impl true
-  def handle_info(
-        %{
-          topic: "room:bleep-audio",
-          payload: {time_s, run_id, tag, {:sample, sample_name, output_id, opts}}
-        },
-        socket
-      ) do
-    {:noreply,
-     sched_bleep_audio(socket, time_s, run_id, tag, %{
-       time_s: time_s,
-       cmd: "triggerSample",
-       sample_name: sample_name,
-       output_id: output_id,
-       opts: opts
-     })}
-  end
-
-  @impl true
-  def handle_info(
-        %{
-          topic: "room:bleep-audio",
-          payload: {time_s, run_id, tag, {:synth, synth, output_id, opts}}
-        },
-        socket
-      ) do
-    {:noreply,
-     sched_bleep_audio(socket, time_s, run_id, tag, %{
-       time_s: time_s,
-       cmd: "triggerOneshotSynth",
-       synthdef_id: synth,
-       output_id: output_id,
-       opts: opts
-     })}
-  end
-
-  def sched_bleep_audio(socket, time_s, run_id, tag, msg) do
-    msg = Map.put(msg, :time_s, time_s + 0.5)
-
-    push_event(socket, "sched-bleep-audio", %{
-      time_s: time_s,
-      run_id: run_id,
-      tag: tag,
-      msg: Jason.encode!(msg)
-    })
+      _ ->
+        Logger.error("No LiveView process found for user #{user_id}")
+    end
   end
 end

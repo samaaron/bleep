@@ -7,6 +7,8 @@ defmodule Bleep.Application do
 
   @impl true
   def start(_type, _args) do
+    :ets.new(:lua_content_cache, [:set, :public, :named_table])
+
     children = [
       # Start the Telemetry supervisor
       BleepWeb.Telemetry,
@@ -15,7 +17,10 @@ defmodule Bleep.Application do
       # Start Finch
       {Finch, name: Bleep.Finch},
       # Start the Endpoint (http/https)
-      BleepWeb.Endpoint
+      BleepWeb.Endpoint,
+      # Create a process registry
+      {Registry, keys: :unique, name: Registry.Bleep}
+
       # Start a worker by calling: Bleep.Worker.start_link(arg)
       # {Bleep.Worker, arg}
     ]

@@ -1,6 +1,6 @@
 // // End user API (provided for documentation)
 // export default class BleepAudioAPI {
-//   idempotentInit() {}
+//   idempotentInitAudio() {}
 
 //   loadSynthDef(synthdef) {}
 
@@ -20,7 +20,7 @@
 
 //   triggerSample(time, buffer_id, output_node_id, opts) {}
 
-//   triggerOneshotSynth(time, synthdef_id, output_node_id, opts) {}
+//   triggerOneShotSynth(time, synthdef_id, output_node_id, opts) {}
 
 //   triggerStayAliveSynth(time, synthdef_id, output_node_id, opts) {}
 

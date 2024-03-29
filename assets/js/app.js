@@ -1,54 +1,28 @@
-// If you want to use Phoenix channels, run `mix help phx.gen.channel`
-// to get started and then uncomment the line below.
-// import "./user_socket.js"
-
-// You can include dependencies in two ways.
-//
-// The simplest option is to put them in assets/vendor and
-// import them using relative paths:
-//
-//     import "../vendor/some-package.js"
-//
-// Alternatively, you can `npm install some-package --prefix assets` and import
-// them using a path starting with the package name:
-//
-//     import "some-package"
-//
-
-// Include phoenix_html to handle method=PUT/DELETE in forms and buttons.
 import "phoenix_html";
-// Establish Phoenix Socket and LiveView configuration.
 import { Socket } from "phoenix";
 import { LiveSocket } from "phoenix_live_view";
 
-// Vendored libs
-// import mermaid from "../vendor/mermaid";
+import { v4 as uuidv4 } from "../vendor/uuid/index";
 import topbar from "../vendor/topbar";
 import luamin from "../vendor/luamin";
 window.luamin = luamin;
 
-// Internal libs
-import BleepEditor from "./lib/bleep_editor";
-import BleepAudioCore from "./lib/bleep_audio/core";
-import BleepTime from "./lib/bleep_time";
-import BleepPrescheduler from "./lib/bleep_prescheduler";
-import "./lib/bleep_modal";
+import BleepEditorHook from "./lib/live_view_hooks/bleep_editor_hook";
+import Bleep from "./lib/bleep";
+import BleepModal from "./lib/bleep_modal";
 
-// mermaid.initialize({ startOnLoad: true });
+const bleep_user_id = uuidv4();
+window.bleep = new Bleep(bleep_user_id);
+window.bleep_modal = new BleepModal(window.bleep)
+window.bleep.join_jam_session(bleep_user_id);
 
-let bleep = new BleepAudioCore();
-window.bleep = bleep;
-
-let prescheduler = new BleepPrescheduler(bleep);
-
-let csrfToken = document
+const csrfToken = document
   .querySelector("meta[name='csrf-token']")
   .getAttribute("content");
 
-let Hooks = { BleepEditor, BleepTime };
 let liveSocket = new LiveSocket("/live", Socket, {
-  hooks: Hooks,
-  params: { _csrf_token: csrfToken },
+  hooks: { BleepEditorHook },
+  params: { _csrf_token: csrfToken, bleep_user_id: bleep_user_id },
 });
 
 // Show progress bar on live navigation and form submits
@@ -64,43 +38,13 @@ liveSocket.connect();
 // >> liveSocket.enableLatencySim(1000)  // enabled for duration of browser session
 // >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket;
+window.luamin = luamin;
 
 window.addEventListener(`phx:update-luareplres`, (e) => {
   document.getElementById(e.detail.result_id).innerHTML =
     e.detail.lua_repl_result;
 });
 
-window.addEventListener(`phx:bleep-time-ack`, (e) => {
-  const roundtrip_time1 = e.detail.roundtrip_time;
-  const server_time = e.detail.server_time;
-  const roundtrip_time2 = Date.now() / 1000;
-  const single_way_time = (roundtrip_time2 - roundtrip_time1) / 2;
-
-  window.bleep_time_info = {
-    delta: roundtrip_time2 - e.detail.latency_est - server_time,
-    latency: e.detail.latency_est,
-    latency_measurement: single_way_time,
-  };
-});
-
-window.addEventListener(`phx:sched-bleep-audio`, (e) => {
-  try {
-    const msg = JSON.parse(e.detail.msg);
-    const time = e.detail.time_s;
-    const run_id = e.detail.run_id;
-    const tag = e.detail.tag;
-
-    let sched_time_delta = prescheduler.time_delta(run_id);
-    if (!sched_time_delta) {
-      sched_time_delta = window.bleep_time_info.delta;
-      prescheduler.set_time_delta(run_id, sched_time_delta);
-    }
-    prescheduler.schedule(time, tag, msg, sched_time_delta);
-  } catch (ex) {
-    console.log(`Incoming bleep-audio event error ${ex.message}`);
-    console.log(ex);
-  }
-});
 let bleep_logo_hue_rotation = 0;
 const bleep_logo = document.getElementById("bleep-logo");
 
@@ -123,5 +67,3 @@ function bleep_animate_logo() {
 
 // Start the animation
 bleep_animate_logo();
-// Start the GC timer
-prescheduler.start_gc();

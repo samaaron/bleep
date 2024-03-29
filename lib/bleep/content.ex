@@ -36,13 +36,14 @@ defmodule Bleep.Content do
         true -> 60
       end
 
-    content = Bleep.VM.lua_table_array_to_list(content)
+    content_list = Bleep.VM.lua_table_array_to_list(content)
 
     frags =
-      Enum.map(content, fn frag_info ->
+      Enum.map(content_list, fn frag_info ->
         frag_info = Bleep.VM.lua_table_to_map(frag_info)
-        frag_info = Map.put(frag_info, :uuid, UUID.uuid4())
+
         frag_info
+        |> Map.put(:frag_id, UUID.uuid4())
       end)
 
     %{frags: frags, init: init, author: author, default_bpm: bpm}
