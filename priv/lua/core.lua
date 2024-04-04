@@ -36,6 +36,22 @@ function use_synth(s)
   __bleep_core_current_synth = s
 end
 
+function use_bpm(bpm)
+  if type(bpm) ~= "number" then
+    bpm = 60
+  end
+
+  if bpm < 1 then
+    bpm = 1
+  end
+
+  if bpm > 999 then
+    bpm = 999
+  end
+
+  __bleep_core_bpm = bpm
+end
+
 function shuffle(x)
   local shuffled = {}
   for i, v in ipairs(x) do
