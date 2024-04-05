@@ -224,7 +224,7 @@ defmodule BleepWeb.MainLive do
     socket
     |> push_event("update-luareplres", %{
 
-      lua_repl_result: "Error"
+      lua_repl_result: "Error",
       result_id: result_id
     })
   end
