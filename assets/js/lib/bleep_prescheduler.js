@@ -42,24 +42,6 @@ export default class BleepPrescheduler {
     }
   }
 
-  #gc() {
-    // stop this.#time_deltas from continuously growing
-    // by pruning things that are older than 5 seconds
-    const now = Date.now() / 1000;
-    for (let [key, [_delta, ts]] of this.#time_deltas) {
-      // If the timestamp is less than the given timestamp, delete the entry
-      if (ts + 5 < now) {
-        this.#time_deltas.delete(key);
-      }
-    }
-  }
-
-  #start_gc() {
-    setInterval(() => {
-      this.#gc();
-    }, 5000);
-  }
-
   cancel_tag(tag) {
     this.#scheduled_events = this.#scheduled_events.filter(
       (e) => e[1].tag !== tag
