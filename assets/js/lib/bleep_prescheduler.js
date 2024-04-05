@@ -98,6 +98,9 @@ export default class BleepPrescheduler {
     const now_s = Date.now() / 1000;
     const time_delta_s = time_s - now_s;
     if (time_delta_s < this.#minimum_schedule_requirement_s) {
+      if(time_delta_s < 0) {
+        console.log("Late audio event! ", (time_delta_s * -1).toFixed(3), msg)
+      }
       const [_time_delta_s, _ts] = this.#time_deltas.get(info.run_id);
       const temp_time_delta = 0.1;
       this.#scheduled_events.shift();
