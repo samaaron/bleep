@@ -190,7 +190,8 @@ defmodule BleepWeb.MainLive do
   def display_eval_result(socket, {:exception, e, trace}, result_id) do
     socket
     |> push_event("update-luareplres", %{
-      lua_repl_result: Exception.format(:error, e, trace),
+      # lua_repl_result: Exception.format(:error, e, trace),
+      lua_repl_result: "Exception",
       result_id: result_id
     })
   end
@@ -211,10 +212,19 @@ defmodule BleepWeb.MainLive do
     })
   end
 
+  def display_eval_result(socket, {:lua_error, e, _state}, result_id) do
+    socket
+    |> push_event("update-luareplres", %{
+      lua_repl_result: inspect(e),
+      result_id: result_id
+    })
+  end
+
   def display_eval_result(socket, error, result_id) do
     socket
     |> push_event("update-luareplres", %{
-      lua_repl_result: Kernel.inspect(error),
+
+      lua_repl_result: "Error"
       result_id: result_id
     })
   end

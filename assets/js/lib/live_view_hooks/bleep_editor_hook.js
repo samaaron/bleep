@@ -27,7 +27,6 @@ const BleepEditorHook = {
       },
       scrollBeyondLastLine: false,
     });
-    2;
 
     this.editor.getDomNode().addEventListener(
       "wheel",
@@ -80,24 +79,32 @@ const BleepEditorHook = {
       window.bleep.idempotentInitAudio();
       const code = this.editor.getValue();
       const placeholder = "bleep_tmp_placeholder()";
-      const formatted = luamin
-        .Beautify(`${code}\n${placeholder}`, {
-          RenameVariables: false,
-          RenameGlobals: false,
-          SolveMath: false,
-        })
-        .slice(0, -(placeholder.length + 1));
+      let formatted;
+      try {
+        formatted = luamin
+          .Beautify(`${code}\n${placeholder}`, {
+            RenameVariables: false,
+            RenameGlobals: false,
+            SolveMath: false,
+          })
+          .slice(0, -(placeholder.length + 1));
 
-      this.editor.setValue(formatted);
+        this.editor.setValue(formatted);
 
-      this.pushEvent("cue-code", {
-        code: formatted,
-        path: path,
-        result_id: result_id,
-        editor_id: editor_id,
-      });
+        this.pushEvent("cue-code", {
+          code: formatted,
+          path: path,
+          result_id: result_id,
+          editor_id: editor_id,
+        });
 
-      console.log(this.editor.getValue());
+        console.log(this.editor.getValue());
+      } catch (error) {
+        console.error("Cue code error: ", error);
+        formatted = code;
+        const error_msg = "Syntax Error<br/>" + error;
+        document.getElementById(result_id).innerHTML = error_msg;
+      }
     });
 
     stop_button.addEventListener("click", (e) => {
