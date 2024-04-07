@@ -83,7 +83,7 @@ for i=1,32 do
     ]],
 
     editor [[
-        sample("dogpad-a4",{level=0.4})
+        sample("dogpad-a4",{level=0.8})
         ]],
 
     editor [[

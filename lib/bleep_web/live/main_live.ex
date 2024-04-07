@@ -10,7 +10,7 @@ defmodule BleepWeb.MainLive do
 
     {:ok, _pid} = Registry.register(Registry.Bleep, user_id, self())
 
-    artist = params["artist"] || "lets_all_make_brutalism"
+    artist = params["artist"] || "init"
     artist_path = artist_lua_path(artist)
 
     data =

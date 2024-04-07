@@ -480,7 +480,7 @@ end
 -- steps - the total number of steps in the sequence
 -- phase (optional) - the phase offset (e.g. for phase=2 the pattern is right-shifted by two spaces)
 -- returns a string of the form x--x-x- in which the hits are equally spaced in time
-function euclidean_pattern(hits, steps, phase)
+function euclidean(hits, steps, phase)
     phase = phase or 0
     local pattern = {}
     local slope = hits / steps
@@ -492,13 +492,6 @@ function euclidean_pattern(hits, steps, phase)
     end
     -- concatenate the table into a string
     return table.concat(pattern)
-end
-
--- make a Euclidean rhythm
--- returns a Ring containing the pattern, with ones for hits and zeros for rests
-function euclidean(hits,steps,phase)
-    local seq = euclidean_pattern(hits,steps,phase)
-    return pattern(seq)
 end
 
 -- ===============================================================
