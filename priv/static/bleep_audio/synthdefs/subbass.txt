@@ -1,0 +1,167 @@
+@synth subbass
+longname : tBD subbass synth
+type : synth
+author : Guy J Brown
+version : 1.0
+doc : A subbass synth with triangle, saw and sin oscillators
+@end
+
+# parameters
+
+@param cutoff
+type : float
+mutable: yes
+step : 0.01
+min : 100
+max : 5000
+default : 200
+doc : Filter cutoff in Hz
+@end
+
+@param resonance
+type : float
+mutable: yes
+step : 0.01
+min : 0
+max : 25
+default : 0
+doc : Filter resonance
+@end
+
+@param sin_level
+type : float
+mutable: yes
+step : 0.01
+min : 0
+max : 1
+default : 0.8
+doc : Level of sin oscillator
+@end
+
+@param tri_level
+type : float
+mutable: yes
+step : 0.01
+min : 0
+max : 1
+default : 0
+doc : Level of triangle oscillator
+@end
+
+@param saw_level
+type : float
+mutable: yes
+step : 0.01
+min : 0
+max : 1
+default : 0.1
+doc : Level of saw oscillator
+@end
+
+
+@param volume
+type : float
+mutable: yes
+step : 0.01
+min : 0
+max : 1
+default : 0.8
+doc : Overall volume
+@end
+
+@param tracking
+type : float
+mutable: yes
+step : 0.01
+min : 0
+max : 1
+default : 0
+doc : Pitch tracking of filter cutoff. When tracking is 0 the filter cutoff is set to the given cutoff value. When tracking is 1 the filter cutoff tracks the pitch of the note. 
+@end
+
+@param attack
+type : float
+mutable: yes
+step : 0.01
+min : 0
+max : 5
+default : 0.05
+doc : Envelope attack time in seconds
+@end
+
+@param decay
+type : float
+mutable: yes
+step : 0.01
+min : 0
+max : 5
+default : 0.5
+doc : Envelope decay time in seconds
+@end
+
+@param sustain
+type : float
+mutable: yes
+step : 0.01
+min : 0
+max : 1
+default : 0.9
+doc : Envelope sustain level
+@end
+
+@param release
+type : float
+mutable: yes
+step : 0.01
+min : 0
+max : 5
+default : 0.1
+doc : Envelope release time in seconds
+@end
+
+# modules
+
+TRI-OSC : triosc
+SIN-OSC : sinosc
+SAW-OSC : sawosc
+VCA : trigain
+VCA : singain
+VCA : sawgain
+VCA : mix
+LPF : lowpass
+VCA : vca
+ADSR : env
+
+# patch
+
+triosc.out -> trigain.in
+trigain.out -> mix.in
+sinosc.out -> singain.in
+singain.out -> mix.in
+sawosc.out -> sawgain.in
+sawgain.out -> mix.in
+mix.out -> lowpass.in
+lowpass.out -> vca.in
+vca.out -> audio.in
+
+env.out -> vca.levelCV
+
+# tweak
+
+sinosc.pitch = param.pitch
+triosc.pitch = param.pitch
+sawosc.pitch = param.pitch
+lowpass.cutoff = param.pitch*param.tracking+(1-param.tracking)*param.cutoff
+lowpass.resonance = param.resonance
+
+trigain.level = param.tri_level
+singain.level = param.sin_level
+sawgain.level = param.saw_level
+
+env.level = param.level*param.volume
+env.attack = param.attack
+env.decay = param.decay
+env.sustain = param.sustain*param.level
+env.release = param.release
+
+# end
