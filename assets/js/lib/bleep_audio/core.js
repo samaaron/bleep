@@ -267,8 +267,10 @@ export default class BleepAudioCore {
 
   loadSynthDef(synthdef) {
     //create Synth for synthdef
-    let grammar = new Grammar();
-    let synthdef_json = grammar.parseStandard(synthdef);
+
+    // todo: should these be const?
+    const grammar = new Grammar();
+    const synthdef_json = grammar.parseStandard(synthdef);
     const gen = new Generator(synthdef_json);
     this.#loaded_synthgens.set(gen.shortname, gen);
     return gen.id;
