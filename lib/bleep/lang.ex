@@ -28,7 +28,7 @@ defmodule Bleep.Lang do
       user_id: user_id,
       editor_id: editor_id,
       run_id: run_id,
-      time_s: time_s,
+      server_time_s: time_s,
       cmd: "triggerFX",
       fx_id: fx_id,
       uuid: uuid,
@@ -46,8 +46,8 @@ defmodule Bleep.Lang do
       user_id: user_id,
       editor_id: editor_id,
       run_id: run_id,
+      server_time_s: time_s,
       fx_id: fx_id,
-      time_s: time_s,
       cmd: "releaseFX"
     }
 
@@ -69,7 +69,7 @@ defmodule Bleep.Lang do
       user_id: user_id,
       editor_id: editor_id,
       run_id: run_id,
-      time_s: time_s,
+      server_time_s: time_s,
       cmd: "triggerSample",
       sample_name: sample_name,
       output_id: output_id,
@@ -94,7 +94,7 @@ defmodule Bleep.Lang do
       user_id: user_id,
       editor_id: editor_id,
       run_id: run_id,
-      time_s: time_s,
+      server_time_s: time_s,
       cmd: "triggerOneShotSynth",
       synthdef_id: synth,
       output_id: output_id,
@@ -130,8 +130,8 @@ defmodule Bleep.Lang do
       user_id: user_id,
       editor_id: editor_id,
       run_id: run_id,
+      server_time_s: time_s,
       fx_id: fx_id,
-      time_s: time_s,
       cmd: "controlFX",
       opts: opts
     }

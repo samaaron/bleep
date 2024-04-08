@@ -1,3 +1,4 @@
+import BleepPrescheduler from "./bleep_prescheduler";
 import { Socket } from "phoenix";
 
 export default class BleepComms {
@@ -8,9 +9,9 @@ export default class BleepComms {
   #time_sync_channel;
   #server_time_info;
 
-  constructor(user_id, prescheduler) {
+  constructor(user_id, bleep_audio) {
     this.#user_id = user_id;
-    this.#prescheduler = prescheduler;
+    this.#prescheduler = new BleepPrescheduler(bleep_audio);
     this.#bleep_socket = new Socket("/bleep-socket", {
       params: { user_id: user_id },
     });
@@ -85,19 +86,6 @@ export default class BleepComms {
     return channel;
   }
 
-  #handle_server_event_time_ack(e) {
-    [delta_s, single_way_time] = this.#calculate_server_time_delta_and_latency(
-      e.client_timestamp,
-      e.server_timestamp
-    );
-
-    this.#server_time_info = {
-      delta_s: delta_s,
-      latency_s: e.latency_est,
-      latency_measurement_s: single_way_time,
-    };
-  }
-
   #prepopluate_server_time_info() {
     this.#time_sync_channel
       .push("time-ping", {
@@ -168,17 +156,32 @@ export default class BleepComms {
       });
   }
 
+  #handle_server_event_time_ack(e) {
+    [delta_s, single_way_time] = this.#calculate_server_time_delta_and_latency(
+      e.client_timestamp,
+      e.server_timestamp
+    );
+
+    this.#server_time_info = {
+      delta_s: delta_s,
+      latency_s: e.latency_est,
+      latency_measurement_s: single_way_time,
+    };
+
+    // this.#prescheduler.set_server_time_info(this.#server_time_info);
+  }
+
   #handle_server_event_sched_bleep_audio(e) {
     try {
       const user_id = e.user_id;
       const editor_id = e.editor_id;
       const run_id = e.run_id;
-      const time_s = e.time_s;
+      const server_time_s = e.server_time_s;
       this.#prescheduler.schedule(
         user_id,
         editor_id,
         run_id,
-        time_s,
+        server_time_s,
         this.#server_time_info.delta_s,
         e
       );

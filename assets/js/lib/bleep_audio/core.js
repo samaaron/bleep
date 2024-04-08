@@ -274,11 +274,11 @@ export default class BleepAudioCore {
     return gen.id;
   }
 
-  jsonDispatch(time_delta_s, json) {
+  jsonDispatch(adjusted_time_s, json) {
     switch (json.cmd) {
       case "triggerOneShotSynth":
         this.triggerOneShotSynth(
-          json.time_s + time_delta_s,
+          adjusted_time_s,
           json.synthdef_id,
           json.output_id,
           json.opts
@@ -286,7 +286,7 @@ export default class BleepAudioCore {
         break;
       case "triggerSample":
         this.triggerSample(
-          json.time_s + time_delta_s,
+          adjusted_time_s,
           json.sample_name,
           json.output_id,
           json.opts
@@ -294,7 +294,7 @@ export default class BleepAudioCore {
         break;
       case "triggerFX":
         this.triggerFX(
-          json.time_s + time_delta_s,
+          adjusted_time_s,
           json.fx_id,
           json.uuid,
           json.output_id,
@@ -302,10 +302,10 @@ export default class BleepAudioCore {
         );
         break;
       case "controlFX":
-        this.controlFX(json.time_s + time_delta_s, json.fx_id, json.opts);
+        this.controlFX(adjusted_time_s, json.fx_id, json.opts);
         break;
       case "releaseFX":
-        this.releaseFX(json.time_s + time_delta_s, json.fx_id);
+        this.releaseFX(adjusted_time_s, json.fx_id);
         break;
 
       default:
