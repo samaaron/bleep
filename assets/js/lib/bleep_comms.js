@@ -28,7 +28,7 @@ export default class BleepComms {
       latency_measurement_s: 0.05,
     };
 
-    this.#prepopluate_server_time_info();
+    this.#prepopulate_server_time_info();
     this.#start_server_time_info_updater();
   }
 
@@ -86,7 +86,7 @@ export default class BleepComms {
     return channel;
   }
 
-  #prepopluate_server_time_info() {
+  #prepopulate_server_time_info() {
     this.#time_sync_channel
       .push("time-ping", {
         time_s: Date.now() / 1000,
