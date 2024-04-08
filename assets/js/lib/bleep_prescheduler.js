@@ -98,7 +98,7 @@ export default class BleepPrescheduler {
       console.log("Error in run_next_event: no events scheduled");
       return;
     }
-    const [adjusted_time_s, info, msg] = this.#scheduled_events[0];
+    const [adjusted_time_s, _info, msg] = this.#scheduled_events[0];
     const now_s = Date.now() / 1000;
     const sched_delta_s = adjusted_time_s - now_s;
 

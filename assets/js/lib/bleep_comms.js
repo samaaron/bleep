@@ -1,5 +1,6 @@
 import BleepPrescheduler from "./bleep_prescheduler";
 import { Socket } from "phoenix";
+import RingBuffer from "../../vendor/ringbuffer";
 
 export default class BleepComms {
   #user_id;
@@ -23,12 +24,10 @@ export default class BleepComms {
     );
 
     this.#server_time_info = {
+      latency_s: 0,
       delta_s: 0,
-      latency_s: 0.05,
-      latency_measurement_s: 0.05,
+      ping_times: new RingBuffer(20),
     };
-
-    this.#prepopulate_server_time_info();
     this.#start_server_time_info_updater();
   }
 
@@ -86,89 +85,65 @@ export default class BleepComms {
     return channel;
   }
 
-  #prepopulate_server_time_info() {
-    this.#time_sync_channel
-      .push("time-ping", {
-        time_s: Date.now() / 1000,
-      })
-
-      .receive("ok", (resp) => {
-        [delta_s, single_way_time] =
-          this.#calculate_server_time_delta_and_latency(
-            resp.client_timestamp,
-            resp.server_timestamp
-          );
-        this.#server_time_info = {
-          delta_s: delta_s,
-          latency_s: single_way_time,
-          latency_measurement_s: single_way_time,
-        };
-      })
-      .receive("error", (resp) => {
-        console.log("Unable to send time sync", resp);
-      });
-  }
-
-  #calculate_server_time_delta_and_latency(
-    roundtrip_start_timestamp,
-    roundtrip_server_timestamp
-  ) {
-    const roundtrip_finish_timestamp = Date.now() / 1000;
-    const single_way_time =
-      (roundtrip_finish_timestamp - roundtrip_start_timestamp) / 2;
-    const delta_s =
-      roundtrip_finish_timestamp - single_way_time - roundtrip_server_timestamp;
-
-    return [delta_s, single_way_time];
-  }
-
   #start_server_time_info_updater() {
     // prepopluate time info
     [
-      2.0, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.5, 8.0, 8.5, 9.0, 9.5, 10.5, 11.0,
+      1.0, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.5, 8.0, 8.5, 9.0, 9.5, 10.5, 11.0,
       11.5, 12.0, 12.5, 13.0, 13.5, 14.0, 14.5,
     ].forEach((i) => {
       setTimeout(() => {
-        this.#time_sync();
+        this.#bleep_server_ping();
       }, i * 1000);
     });
 
     // then update every 10s
     setTimeout(() => {
       setInterval(() => {
-        this.#time_sync();
+        this.#bleep_server_ping();
       }, 10000);
     }, 15000);
   }
 
-  #time_sync() {
+  #average_ping_time() {
+    const ping_count = this.#server_time_info.ping_times.size();
+    const pings = this.#server_time_info.ping_times.peekN(ping_count).sort();
+
+    const non_outlier_pings = pings.length > 4 ? pings.slice(2, -2) : pings;
+
+    const sum = non_outlier_pings.reduce((a, b) => a + b, 0);
+    const average = sum / non_outlier_pings.length;
+    return average;
+  }
+
+  #bleep_server_ping() {
+    const start_time_s = Date.now() / 1000;
+    const latency_s = this.#server_time_info.latency_s;
+
     this.#time_sync_channel
-      .push("time-sync", {
-        time_s: Date.now() / 1000,
-        latency_s: this.#server_time_info.latency_measurement_s,
+
+      .push("time-ping", {
+        time_s: start_time_s,
+        latency_s: latency_s,
       })
 
       .receive("ok", (resp) => {
-        this.#handle_server_event_time_ack(resp);
+        const finish_time_s = Date.now() / 1000;
+        if (resp.client_timestamp !== start_time_s) {
+          console.log("Time sync error: client timestamp mismatch");
+        }
+
+        const roundtrip_time_s = finish_time_s - resp.client_timestamp;
+        const single_way_time = roundtrip_time_s / 2;
+        this.#server_time_info.ping_times.enq(single_way_time);
+        const average_ping_time = this.#average_ping_time();
+        const delta_s =
+          resp.server_timestamp - average_ping_time - start_time_s;
+        this.#server_time_info.latency_s = average_ping_time;
+        this.#server_time_info.delta_s = delta_s;
       })
       .receive("error", (resp) => {
         console.log("Unable to send time sync", resp);
       });
-  }
-
-  #handle_server_event_time_ack(e) {
-    [delta_s, single_way_time] = this.#calculate_server_time_delta_and_latency(
-      e.client_timestamp,
-      e.server_timestamp
-    );
-
-    this.#server_time_info = {
-      delta_s: delta_s,
-      latency_s: e.latency_est,
-      latency_measurement_s: single_way_time,
-    };
-
-    // this.#prescheduler.set_server_time_info(this.#server_time_info);
   }
 
   #handle_server_event_sched_bleep_audio(e) {

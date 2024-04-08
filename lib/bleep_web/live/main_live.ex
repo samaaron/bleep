@@ -140,7 +140,7 @@ defmodule BleepWeb.MainLive do
       </div>
       <div class="float-right pr-7 text-zinc-100" id="bleep-time">
         <p class="font-mono text-xs text-zinc-200">
-          Latency: <%= :erlang.float_to_binary(@bleep_latency, decimals: 2) %> ms
+          Latency: <%= :erlang.float_to_binary(@bleep_latency, decimals: 0) %> ms
         </p>
       </div>
     </div>
@@ -187,7 +187,7 @@ defmodule BleepWeb.MainLive do
     {:noreply, eval_and_display(socket, editor_id, start_time_s, code, result_id)}
   end
 
-  def display_eval_result(socket, {:exception, e, trace}, result_id) do
+  def display_eval_result(socket, {:exception, _e, trace}, result_id) do
     socket
     |> push_event("update-luareplres", %{
       # lua_repl_result: Exception.format(:error, e, trace),
@@ -220,10 +220,9 @@ defmodule BleepWeb.MainLive do
     })
   end
 
-  def display_eval_result(socket, error, result_id) do
+  def display_eval_result(socket, _error, result_id) do
     socket
     |> push_event("update-luareplres", %{
-
       lua_repl_result: "Error",
       result_id: result_id
     })

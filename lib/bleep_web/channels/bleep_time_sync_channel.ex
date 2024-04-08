@@ -4,16 +4,19 @@ defmodule BleepWeb.BleepTimeSyncChannel do
 
   @impl true
   def join("bleep-time-sync:" <> user_id, _payload, socket) do
-    kalman = Kalman.new(q: 0.005, r: 1, x: 0.05)
-
-    {:ok,
-     socket
-     |> assign(:user_id, user_id)
-     |> assign(:kalman, kalman)}
+    {
+      :ok,
+      socket
+      |> assign(:user_id, user_id)
+    }
   end
 
   @impl true
-  def handle_in("time-ping", %{"time_s" => time_s}, socket) do
+  def handle_in("time-ping", %{"time_s" => time_s, "latency_s" => latency_s}, socket) do
+    user_id = socket.assigns.user_id
+    Logger.info("latency_s: #{:erlang.float(latency_s)}")
+    BleepWeb.MainLive.id_send(user_id, {:latency_update, :erlang.float(latency_s) * 1000})
+
     msg = %{
       client_timestamp: time_s,
       server_timestamp: :erlang.system_time(:milli_seconds) / 1000.0
@@ -26,10 +29,8 @@ defmodule BleepWeb.BleepTimeSyncChannel do
   def handle_in("time-sync", %{"time_s" => time_s, "latency_s" => latency_s}, socket) do
     socket = assign(socket, :kalman, Kalman.step(0, latency_s, socket.assigns.kalman))
     latency_est_s = Kalman.estimate(socket.assigns.kalman)
-    user_id = socket.assigns.user_id
-    latency_est_ms = latency_est_s * 1000
 
-    BleepWeb.MainLive.id_send(user_id, {:latency_update, latency_est_ms})
+    latency_est_ms = latency_est_s * 1000
 
     msg = %{
       client_timestamp: time_s,
