@@ -8,7 +8,9 @@ defmodule BleepWeb.MainLive do
   def mount(params, _session, socket) do
     user_id = get_connect_params(socket)["bleep_user_id"]
 
-    {:ok, _pid} = Registry.register(Registry.Bleep, user_id, self())
+    if connected?(socket) do
+      {:ok, _pid} = Registry.register(Registry.Bleep, user_id, self())
+    end
 
     artist = params["artist"] || "init"
     artist_path = artist_lua_path(artist)
