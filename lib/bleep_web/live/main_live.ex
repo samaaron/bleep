@@ -115,24 +115,24 @@ defmodule BleepWeb.MainLive do
         data-stop-button-id={@stop_button_id}
       >
         <button
-          class="hidden px-2 py-1 font-bold text-white bg-orange-600 rounded hover:bg-orange-800"
+          class="hidden px-2 font-bold text-orange-600 border rounded p-top-1 border-zinc-600 bg-zinc-800 hover:bg-orange-600 hover:text-zinc-800"
           id={@run_button_id}
         >
           Run
         </button>
         <button
-          class="px-2 py-1 font-bold text-white bg-orange-600 rounded hover:bg-orange-800"
+          class="px-2 font-bold text-blue-600 border rounded p-top-1 border-zinc-600 bg-zinc-800 hover:bg-blue-600 hover:text-zinc-800"
           id={@cue_button_id}
         >
           Cue
         </button>
         <button
-          class="px-2 py-1 font-bold text-white bg-orange-600 rounded hover:bg-orange-800"
+          class="px-2 font-bold text-blue-600 border rounded p-top-1 border-zinc-600 bg-zinc-800 hover:bg-blue-600 hover:text-zinc-800"
           id={@stop_button_id}
         >
           Stop
         </button>
-        <div class="h-full pt-3 pb-3 overflow-scroll bg-black border border-orange-600 rounded-sm">
+        <div class="h-full pt-3 pb-3 bg-black border rounded-sm border-zinc-800 ">
           <div class="h-full" id={@monaco_id} monaco-code-editor></div>
         </div>
       </div>
