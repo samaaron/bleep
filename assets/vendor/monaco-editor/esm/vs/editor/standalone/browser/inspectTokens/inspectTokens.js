@@ -11,6 +11,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var InspectTokensController_1;
 import './inspectTokens.css';
 import { $, append, reset } from '../../../../base/browser/dom.js';
 import { Color } from '../../../../base/common/color.js';
@@ -22,9 +23,9 @@ import { NullState, nullTokenize, nullTokenizeEncoded } from '../../../common/la
 import { ILanguageService } from '../../../common/languages/language.js';
 import { IStandaloneThemeService } from '../../common/standaloneTheme.js';
 import { InspectTokensNLS } from '../../../common/standaloneStrings.js';
-let InspectTokensController = class InspectTokensController extends Disposable {
+let InspectTokensController = InspectTokensController_1 = class InspectTokensController extends Disposable {
     static get(editor) {
-        return editor.getContribution(InspectTokensController.ID);
+        return editor.getContribution(InspectTokensController_1.ID);
     }
     constructor(editor, standaloneColorService, languageService) {
         super();
@@ -57,7 +58,7 @@ let InspectTokensController = class InspectTokensController extends Disposable {
     }
 };
 InspectTokensController.ID = 'editor.contrib.inspectTokens';
-InspectTokensController = __decorate([
+InspectTokensController = InspectTokensController_1 = __decorate([
     __param(1, IStandaloneThemeService),
     __param(2, ILanguageService)
 ], InspectTokensController);

@@ -2,9 +2,9 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { SmartLinesDiffComputer } from './smartLinesDiffComputer.js';
-import { StandardLinesDiffComputer } from './standardLinesDiffComputer.js';
+import { LegacyLinesDiffComputer } from './legacyLinesDiffComputer.js';
+import { DefaultLinesDiffComputer } from './defaultLinesDiffComputer/defaultLinesDiffComputer.js';
 export const linesDiffComputers = {
-    smart: new SmartLinesDiffComputer(),
-    experimental: new StandardLinesDiffComputer(),
+    getLegacy: () => new LegacyLinesDiffComputer(),
+    getDefault: () => new DefaultLinesDiffComputer(),
 };

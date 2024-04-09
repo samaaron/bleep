@@ -11,15 +11,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 import '../../common/languages/languageConfigurationRegistry.js';
 import './standaloneCodeEditorService.js';
 import './standaloneLayoutService.js';
@@ -27,6 +18,7 @@ import '../../../platform/undoRedo/common/undoRedoService.js';
 import '../../common/services/languageFeatureDebounce.js';
 import '../../common/services/semanticTokensStylingService.js';
 import '../../common/services/languageFeaturesService.js';
+import '../../browser/services/hoverService.js';
 import * as strings from '../../../base/common/strings.js';
 import * as dom from '../../../base/browser/dom.js';
 import { StandardKeyboardEvent } from '../../../base/browser/keyboardEvent.js';
@@ -60,7 +52,7 @@ import { ILabelService } from '../../../platform/label/common/label.js';
 import { INotificationService, NoOpNotification } from '../../../platform/notification/common/notification.js';
 import { IEditorProgressService, IProgressService } from '../../../platform/progress/common/progress.js';
 import { ITelemetryService } from '../../../platform/telemetry/common/telemetry.js';
-import { IWorkspaceContextService, WorkspaceFolder } from '../../../platform/workspace/common/workspace.js';
+import { IWorkspaceContextService, WorkspaceFolder, STANDALONE_EDITOR_WORKSPACE_ID } from '../../../platform/workspace/common/workspace.js';
 import { ILayoutService } from '../../../platform/layout/browser/layoutService.js';
 import { StandaloneServicesNLS } from '../../common/standaloneStrings.js';
 import { basename } from '../../../base/common/resources.js';
@@ -99,10 +91,12 @@ import { IOpenerService } from '../../../platform/opener/common/opener.js';
 import { IQuickInputService } from '../../../platform/quickinput/common/quickInput.js';
 import { IStorageService, InMemoryStorageService } from '../../../platform/storage/common/storage.js';
 import { DefaultConfiguration } from '../../../platform/configuration/common/configurations.js';
-import { IAudioCueService } from '../../../platform/audioCues/browser/audioCueService.js';
+import { IAccessibilitySignalService } from '../../../platform/accessibilitySignal/browser/accessibilitySignalService.js';
 import { LogService } from '../../../platform/log/common/logService.js';
 import { getEditorFeatures } from '../../common/editorFeatures.js';
 import { onUnexpectedError } from '../../../base/common/errors.js';
+import { IEnvironmentService } from '../../../platform/environment/common/environment.js';
+import { mainWindow } from '../../../base/browser/window.js';
 class SimpleModel {
     constructor(model) {
         this.disposed = false;
@@ -136,10 +130,8 @@ class StandaloneEditorProgressService {
     show() {
         return StandaloneEditorProgressService.NULL_PROGRESS_RUNNER;
     }
-    showWhile(promise, delay) {
-        return __awaiter(this, void 0, void 0, function* () {
-            yield promise;
-        });
+    async showWhile(promise, delay) {
+        await promise;
     }
 }
 StandaloneEditorProgressService.NULL_PROGRESS_RUNNER = {
@@ -154,45 +146,45 @@ class StandaloneProgressService {
         });
     }
 }
+class StandaloneEnvironmentService {
+    constructor() {
+        this.isExtensionDevelopment = false;
+        this.isBuilt = false;
+    }
+}
 class StandaloneDialogService {
-    confirm(confirmation) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const confirmed = this.doConfirm(confirmation.message, confirmation.detail);
-            return {
-                confirmed,
-                checkboxChecked: false // unsupported
-            };
-        });
+    async confirm(confirmation) {
+        const confirmed = this.doConfirm(confirmation.message, confirmation.detail);
+        return {
+            confirmed,
+            checkboxChecked: false // unsupported
+        };
     }
     doConfirm(message, detail) {
         let messageText = message;
         if (detail) {
             messageText = messageText + '\n\n' + detail;
         }
-        return window.confirm(messageText);
+        return mainWindow.confirm(messageText);
     }
-    prompt(prompt) {
+    async prompt(prompt) {
         var _a, _b;
-        return __awaiter(this, void 0, void 0, function* () {
-            let result = undefined;
-            const confirmed = this.doConfirm(prompt.message, prompt.detail);
-            if (confirmed) {
-                const promptButtons = [...((_a = prompt.buttons) !== null && _a !== void 0 ? _a : [])];
-                if (prompt.cancelButton && typeof prompt.cancelButton !== 'string' && typeof prompt.cancelButton !== 'boolean') {
-                    promptButtons.push(prompt.cancelButton);
-                }
-                result = yield ((_b = promptButtons[0]) === null || _b === void 0 ? void 0 : _b.run({ checkboxChecked: false }));
+        let result = undefined;
+        const confirmed = this.doConfirm(prompt.message, prompt.detail);
+        if (confirmed) {
+            const promptButtons = [...((_a = prompt.buttons) !== null && _a !== void 0 ? _a : [])];
+            if (prompt.cancelButton && typeof prompt.cancelButton !== 'string' && typeof prompt.cancelButton !== 'boolean') {
+                promptButtons.push(prompt.cancelButton);
             }
-            return { result };
-        });
+            result = await ((_b = promptButtons[0]) === null || _b === void 0 ? void 0 : _b.run({ checkboxChecked: false }));
+        }
+        return { result };
     }
-    error(message, detail) {
-        return __awaiter(this, void 0, void 0, function* () {
-            yield this.prompt({ type: Severity.Error, message, detail });
-        });
+    async error(message, detail) {
+        await this.prompt({ type: Severity.Error, message, detail });
     }
 }
-class StandaloneNotificationService {
+export class StandaloneNotificationService {
     info(message) {
         return this.notify({ severity: Severity.Info, message });
     }
@@ -224,7 +216,6 @@ class StandaloneNotificationService {
     }
 }
 StandaloneNotificationService.NO_OP = new NoOpNotification();
-export { StandaloneNotificationService };
 let StandaloneCommandService = class StandaloneCommandService {
     constructor(instantiationService) {
         this._onWillExecuteCommand = new Emitter();
@@ -289,13 +280,13 @@ let StandaloneKeybindingService = class StandaloneKeybindingService extends Abst
             }
         };
         const addCodeEditor = (codeEditor) => {
-            if (codeEditor.getOption(58 /* EditorOption.inDiffEditor */)) {
+            if (codeEditor.getOption(61 /* EditorOption.inDiffEditor */)) {
                 return;
             }
             addContainer(codeEditor.getContainerDomNode());
         };
         const removeCodeEditor = (codeEditor) => {
-            if (codeEditor.getOption(58 /* EditorOption.inDiffEditor */)) {
+            if (codeEditor.getOption(61 /* EditorOption.inDiffEditor */)) {
                 return;
             }
             removeContainer(codeEditor.getContainerDomNode());
@@ -361,7 +352,7 @@ let StandaloneKeybindingService = class StandaloneKeybindingService extends Abst
         return this._cachedResolver;
     }
     _documentHasFocus() {
-        return document.hasFocus();
+        return mainWindow.document.hasFocus();
     }
     _toNormalizedKeybindingItems(items, isDefault) {
         const result = [];
@@ -436,7 +427,6 @@ export class StandaloneConfigurationService {
         if (changedKeys.length > 0) {
             const configurationChangeEvent = new ConfigurationChangeEvent({ keys: changedKeys, overrides: [] }, previous, this._configuration);
             configurationChangeEvent.source = 8 /* ConfigurationTarget.MEMORY */;
-            configurationChangeEvent.sourceConfig = null;
             this._onDidChangeConfiguration.fire(configurationChangeEvent);
         }
         return Promise.resolve();
@@ -502,17 +492,12 @@ StandaloneResourcePropertiesService = __decorate([
     __param(0, IConfigurationService)
 ], StandaloneResourcePropertiesService);
 class StandaloneTelemetryService {
-    publicLog(eventName, data) {
-        return Promise.resolve(undefined);
-    }
-    publicLog2(eventName, data) {
-        return this.publicLog(eventName, data);
-    }
+    publicLog2() { }
 }
 class StandaloneWorkspaceContextService {
     constructor() {
         const resource = URI.from({ scheme: StandaloneWorkspaceContextService.SCHEME, authority: 'model', path: '/' });
-        this.workspace = { id: '4064f6ec-cb38-4ad0-af64-ee6467e63c82', folders: [new WorkspaceFolder({ uri: resource, name: '', index: 0 })] };
+        this.workspace = { id: STANDALONE_EDITOR_WORKSPACE_ID, folders: [new WorkspaceFolder({ uri: resource, name: '', index: 0 })] };
     }
     getWorkspace() {
         return this.workspace;
@@ -550,42 +535,40 @@ let StandaloneBulkEditService = class StandaloneBulkEditService {
     hasPreviewHandler() {
         return false;
     }
-    apply(editsIn, _options) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const edits = Array.isArray(editsIn) ? editsIn : ResourceEdit.convert(editsIn);
-            const textEdits = new Map();
-            for (const edit of edits) {
-                if (!(edit instanceof ResourceTextEdit)) {
-                    throw new Error('bad edit - only text edits are supported');
-                }
-                const model = this._modelService.getModel(edit.resource);
-                if (!model) {
-                    throw new Error('bad edit - model not found');
-                }
-                if (typeof edit.versionId === 'number' && model.getVersionId() !== edit.versionId) {
-                    throw new Error('bad state - model changed in the meantime');
-                }
-                let array = textEdits.get(model);
-                if (!array) {
-                    array = [];
-                    textEdits.set(model, array);
-                }
-                array.push(EditOperation.replaceMove(Range.lift(edit.textEdit.range), edit.textEdit.text));
+    async apply(editsIn, _options) {
+        const edits = Array.isArray(editsIn) ? editsIn : ResourceEdit.convert(editsIn);
+        const textEdits = new Map();
+        for (const edit of edits) {
+            if (!(edit instanceof ResourceTextEdit)) {
+                throw new Error('bad edit - only text edits are supported');
             }
-            let totalEdits = 0;
-            let totalFiles = 0;
-            for (const [model, edits] of textEdits) {
-                model.pushStackElement();
-                model.pushEditOperations([], edits, () => []);
-                model.pushStackElement();
-                totalFiles += 1;
-                totalEdits += edits.length;
+            const model = this._modelService.getModel(edit.resource);
+            if (!model) {
+                throw new Error('bad edit - model not found');
             }
-            return {
-                ariaSummary: strings.format(StandaloneServicesNLS.bulkEditServiceSummary, totalEdits, totalFiles),
-                isApplied: totalEdits > 0
-            };
-        });
+            if (typeof edit.versionId === 'number' && model.getVersionId() !== edit.versionId) {
+                throw new Error('bad state - model changed in the meantime');
+            }
+            let array = textEdits.get(model);
+            if (!array) {
+                array = [];
+                textEdits.set(model, array);
+            }
+            array.push(EditOperation.replaceMove(Range.lift(edit.textEdit.range), edit.textEdit.text));
+        }
+        let totalEdits = 0;
+        let totalFiles = 0;
+        for (const [model, edits] of textEdits) {
+            model.pushStackElement();
+            model.pushEditOperations([], edits, () => []);
+            model.pushStackElement();
+            totalFiles += 1;
+            totalEdits += edits.length;
+        }
+        return {
+            ariaSummary: strings.format(StandaloneServicesNLS.bulkEditServiceSummary, totalEdits, totalFiles),
+            isApplied: totalEdits > 0
+        };
     }
 };
 StandaloneBulkEditService = __decorate([
@@ -654,10 +637,8 @@ StandaloneContextMenuService = __decorate([
     __param(4, IMenuService),
     __param(5, IContextKeyService)
 ], StandaloneContextMenuService);
-class StandaloneAudioService {
-    playAudioCue(cue, allowManyInParallel) {
-        return __awaiter(this, void 0, void 0, function* () {
-        });
+class StandaloneAccessbilitySignalService {
+    async playSignal(cue, options) {
     }
 }
 registerSingleton(IConfigurationService, StandaloneConfigurationService, 0 /* InstantiationType.Eager */);
@@ -667,6 +648,7 @@ registerSingleton(IWorkspaceContextService, StandaloneWorkspaceContextService, 0
 registerSingleton(ILabelService, StandaloneUriLabelService, 0 /* InstantiationType.Eager */);
 registerSingleton(ITelemetryService, StandaloneTelemetryService, 0 /* InstantiationType.Eager */);
 registerSingleton(IDialogService, StandaloneDialogService, 0 /* InstantiationType.Eager */);
+registerSingleton(IEnvironmentService, StandaloneEnvironmentService, 0 /* InstantiationType.Eager */);
 registerSingleton(INotificationService, StandaloneNotificationService, 0 /* InstantiationType.Eager */);
 registerSingleton(IMarkerService, MarkerService, 0 /* InstantiationType.Eager */);
 registerSingleton(ILanguageService, StandaloneLanguageService, 0 /* InstantiationType.Eager */);
@@ -692,7 +674,7 @@ registerSingleton(IOpenerService, OpenerService, 0 /* InstantiationType.Eager */
 registerSingleton(IClipboardService, BrowserClipboardService, 0 /* InstantiationType.Eager */);
 registerSingleton(IContextMenuService, StandaloneContextMenuService, 0 /* InstantiationType.Eager */);
 registerSingleton(IMenuService, MenuService, 0 /* InstantiationType.Eager */);
-registerSingleton(IAudioCueService, StandaloneAudioService, 0 /* InstantiationType.Eager */);
+registerSingleton(IAccessibilitySignalService, StandaloneAccessbilitySignalService, 0 /* InstantiationType.Eager */);
 /**
  * We don't want to eagerly instantiate services because embedders get a one time chance
  * to override services when they create the first editor.
@@ -706,6 +688,9 @@ export var StandaloneServices;
     const instantiationService = new InstantiationService(serviceCollection, true);
     serviceCollection.set(IInstantiationService, instantiationService);
     function get(serviceId) {
+        if (!initialized) {
+            initialize({});
+        }
         const r = serviceCollection.get(serviceId);
         if (!r) {
             throw new Error('Missing service ' + serviceId);
@@ -719,6 +704,7 @@ export var StandaloneServices;
     }
     StandaloneServices.get = get;
     let initialized = false;
+    const onDidInitialize = new Emitter();
     function initialize(overrides) {
         if (initialized) {
             return instantiationService;
@@ -751,7 +737,23 @@ export var StandaloneServices;
                 onUnexpectedError(err);
             }
         }
+        onDidInitialize.fire();
         return instantiationService;
     }
     StandaloneServices.initialize = initialize;
+    /**
+     * Executes callback once services are initialized.
+     */
+    function withServices(callback) {
+        if (initialized) {
+            return callback();
+        }
+        const disposable = new DisposableStore();
+        const listener = disposable.add(onDidInitialize.event(() => {
+            listener.dispose();
+            disposable.add(callback());
+        }));
+        return disposable;
+    }
+    StandaloneServices.withServices = withServices;
 })(StandaloneServices || (StandaloneServices = {}));

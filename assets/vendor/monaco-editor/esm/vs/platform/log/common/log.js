@@ -1,5 +1,6 @@
 import { Emitter } from '../../../base/common/event.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
+import { RawContextKey } from '../../contextkey/common/contextkey.js';
 import { createDecorator } from '../../instantiation/common/instantiation.js';
 export const ILogService = createDecorator('logService');
 export var LogLevel;
@@ -33,32 +34,60 @@ export class AbstractLogger extends Disposable {
     }
 }
 export class ConsoleLogger extends AbstractLogger {
-    constructor(logLevel = DEFAULT_LOG_LEVEL) {
+    constructor(logLevel = DEFAULT_LOG_LEVEL, useColors = true) {
         super();
+        this.useColors = useColors;
         this.setLevel(logLevel);
     }
     trace(message, ...args) {
         if (this.checkLogLevel(LogLevel.Trace)) {
-            console.log('%cTRACE', 'color: #888', message, ...args);
+            if (this.useColors) {
+                console.log('%cTRACE', 'color: #888', message, ...args);
+            }
+            else {
+                console.log(message, ...args);
+            }
         }
     }
     debug(message, ...args) {
         if (this.checkLogLevel(LogLevel.Debug)) {
-            console.log('%cDEBUG', 'background: #eee; color: #888', message, ...args);
+            if (this.useColors) {
+                console.log('%cDEBUG', 'background: #eee; color: #888', message, ...args);
+            }
+            else {
+                console.log(message, ...args);
+            }
         }
     }
     info(message, ...args) {
         if (this.checkLogLevel(LogLevel.Info)) {
-            console.log('%c INFO', 'color: #33f', message, ...args);
+            if (this.useColors) {
+                console.log('%c INFO', 'color: #33f', message, ...args);
+            }
+            else {
+                console.log(message, ...args);
+            }
+        }
+    }
+    warn(message, ...args) {
+        if (this.checkLogLevel(LogLevel.Warning)) {
+            if (this.useColors) {
+                console.log('%c WARN', 'color: #993', message, ...args);
+            }
+            else {
+                console.log(message, ...args);
+            }
         }
     }
     error(message, ...args) {
         if (this.checkLogLevel(LogLevel.Error)) {
-            console.log('%c  ERR', 'color: #f33', message, ...args);
+            if (this.useColors) {
+                console.log('%c  ERR', 'color: #f33', message, ...args);
+            }
+            else {
+                console.error(message, ...args);
+            }
         }
-    }
-    dispose() {
-        // noop
     }
 }
 export class MultiplexLogger extends AbstractLogger {
@@ -90,6 +119,11 @@ export class MultiplexLogger extends AbstractLogger {
             logger.info(message, ...args);
         }
     }
+    warn(message, ...args) {
+        for (const logger of this.loggers) {
+            logger.warn(message, ...args);
+        }
+    }
     error(message, ...args) {
         for (const logger of this.loggers) {
             logger.error(message, ...args);
@@ -99,5 +133,18 @@ export class MultiplexLogger extends AbstractLogger {
         for (const logger of this.loggers) {
             logger.dispose();
         }
+        super.dispose();
     }
 }
+export function LogLevelToString(logLevel) {
+    switch (logLevel) {
+        case LogLevel.Trace: return 'trace';
+        case LogLevel.Debug: return 'debug';
+        case LogLevel.Info: return 'info';
+        case LogLevel.Warning: return 'warn';
+        case LogLevel.Error: return 'error';
+        case LogLevel.Off: return 'off';
+    }
+}
+// Contexts
+export const CONTEXT_LOG_LEVEL = new RawContextKey('logLevel', LogLevelToString(LogLevel.Info));

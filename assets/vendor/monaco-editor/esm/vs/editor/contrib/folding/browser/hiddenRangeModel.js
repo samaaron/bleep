@@ -2,7 +2,7 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { findFirstInSorted } from '../../../../base/common/arrays.js';
+import { findFirstIdxMonotonousOrArrLen } from '../../../../base/common/arraysFind.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { Range } from '../../../common/core/range.js';
 import { countEOL } from '../../../common/core/eolCounter.js';
@@ -115,7 +115,7 @@ function isInside(line, range) {
     return line >= range.startLineNumber && line <= range.endLineNumber;
 }
 function findRange(ranges, line) {
-    const i = findFirstInSorted(ranges, r => line < r.startLineNumber) - 1;
+    const i = findFirstIdxMonotonousOrArrLen(ranges, r => line < r.startLineNumber) - 1;
     if (i >= 0 && ranges[i].endLineNumber >= line) {
         return ranges[i];
     }

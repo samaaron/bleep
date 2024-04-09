@@ -1,8 +1,4 @@
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
-import { once } from './functional.js';
+import { createSingleCallFunction } from './functional.js';
 import { Iterable } from './iterator.js';
 // #region Disposable Tracking
 /**
@@ -51,11 +47,11 @@ if (TRACK_DISPOSABLES) {
         markAsSingleton(disposable) { }
     });
 }
-function trackDisposable(x) {
+export function trackDisposable(x) {
     disposableTracker === null || disposableTracker === void 0 ? void 0 : disposableTracker.trackDisposable(x);
     return x;
 }
-function markAsDisposed(disposable) {
+export function markAsDisposed(disposable) {
     disposableTracker === null || disposableTracker === void 0 ? void 0 : disposableTracker.markAsDisposed(disposable);
 }
 function setParentOfDisposable(child, parent) {
@@ -118,10 +114,12 @@ export function combinedDisposable(...disposables) {
 }
 /**
  * Turn a function that implements dispose into an {@link IDisposable}.
+ *
+ * @param fn Clean up function, guaranteed to be called only **once**.
  */
 export function toDisposable(fn) {
     const self = trackDisposable({
-        dispose: once(() => {
+        dispose: createSingleCallFunction(() => {
             markAsDisposed(self);
             fn();
         })
@@ -135,7 +133,7 @@ export function toDisposable(fn) {
  * `IDisposable[]` as it considers edge cases, such as registering the same value multiple times or adding an item to a
  * store that has already been disposed of.
  */
-class DisposableStore {
+export class DisposableStore {
     constructor() {
         this._toDispose = new Set();
         this._isDisposed = false;
@@ -195,15 +193,26 @@ class DisposableStore {
         }
         return o;
     }
+    /**
+     * Deletes the value from the store, but does not dispose it.
+     */
+    deleteAndLeak(o) {
+        if (!o) {
+            return;
+        }
+        if (this._toDispose.has(o)) {
+            this._toDispose.delete(o);
+            setParentOfDisposable(o, null);
+        }
+    }
 }
 DisposableStore.DISABLE_DISPOSED_WARNING = false;
-export { DisposableStore };
 /**
  * Abstract base class for a {@link IDisposable disposable} object.
  *
  * Subclasses can {@linkcode _register} disposables that will be automatically cleaned up when this object is disposed of.
  */
-class Disposable {
+export class Disposable {
     constructor() {
         this._store = new DisposableStore();
         trackDisposable(this);
@@ -229,7 +238,6 @@ class Disposable {
  * TODO: This should not be a static property.
  */
 Disposable.None = Object.freeze({ dispose() { } });
-export { Disposable };
 /**
  * Manages the lifecycle of a disposable value that may be changed.
  *
@@ -268,18 +276,6 @@ export class MutableDisposable {
         (_a = this._value) === null || _a === void 0 ? void 0 : _a.dispose();
         this._value = undefined;
     }
-    /**
-     * Clears the value, but does not dispose it.
-     * The old value is returned.
-    */
-    clearAndLeak() {
-        const oldValue = this._value;
-        this._value = undefined;
-        if (oldValue) {
-            setParentOfDisposable(oldValue, null);
-        }
-        return oldValue;
-    }
 }
 export class RefCountedDisposable {
     constructor(_disposable) {
@@ -294,31 +290,6 @@ export class RefCountedDisposable {
         if (--this._counter === 0) {
             this._disposable.dispose();
         }
-        return this;
-    }
-}
-/**
- * A safe disposable can be `unset` so that a leaked reference (listener)
- * can be cut-off.
- */
-export class SafeDisposable {
-    constructor() {
-        this.dispose = () => { };
-        this.unset = () => { };
-        this.isset = () => false;
-        trackDisposable(this);
-    }
-    set(fn) {
-        let callback = fn;
-        this.unset = () => callback = undefined;
-        this.isset = () => callback !== undefined;
-        this.dispose = () => {
-            if (callback) {
-                callback();
-                callback = undefined;
-                markAsDisposed(this);
-            }
-        };
         return this;
     }
 }
@@ -373,6 +344,14 @@ export class DisposableMap {
             (_a = this._store.get(key)) === null || _a === void 0 ? void 0 : _a.dispose();
         }
         this._store.set(key, value);
+    }
+    /**
+     * Delete the value stored for `key` from this map and also dispose of it.
+     */
+    deleteAndDispose(key) {
+        var _a;
+        (_a = this._store.get(key)) === null || _a === void 0 ? void 0 : _a.dispose();
+        this._store.delete(key);
     }
     [Symbol.iterator]() {
         return this._store[Symbol.iterator]();

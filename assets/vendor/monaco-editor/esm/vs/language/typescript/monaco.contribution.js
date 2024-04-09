@@ -1,7 +1,7 @@
 import '../../editor/editor.api.js';
 /*!-----------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
- * Version: 0.36.1(6c56744c3419458f0dd48864520b759d1a3a1ca8)
+ * Version: 0.47.0(69991d66135e4a1fc1cf0b1ac4ad25d429866a0d)
  * Released under the MIT license
  * https://github.com/microsoft/monaco-editor/blob/main/LICENSE.txt
  *-----------------------------------------------------------------------------*/
@@ -21,7 +21,7 @@ var __copyProps = (to, from, except, desc) => {
 var __reExport = (target, mod, secondTarget) => (__copyProps(target, mod, "default"), secondTarget && __copyProps(secondTarget, mod, "default"));
 
 // src/language/typescript/lib/typescriptServicesMetadata.ts
-var typescriptVersion = "4.5.5";
+var typescriptVersion = "5.0.2";
 
 // src/fillers/monaco-editor-core.ts
 var monaco_editor_core_exports = {};
@@ -73,18 +73,9 @@ var ModuleResolutionKind = /* @__PURE__ */ ((ModuleResolutionKind2) => {
   return ModuleResolutionKind2;
 })(ModuleResolutionKind || {});
 var LanguageServiceDefaultsImpl = class {
-  _onDidChange = new monaco_editor_core_exports.Emitter();
-  _onDidExtraLibsChange = new monaco_editor_core_exports.Emitter();
-  _extraLibs;
-  _removedExtraLibs;
-  _eagerModelSync;
-  _compilerOptions;
-  _diagnosticsOptions;
-  _workerOptions;
-  _onDidExtraLibsChangeTimeout;
-  _inlayHintsOptions;
-  _modeConfiguration;
   constructor(compilerOptions, diagnosticsOptions, workerOptions, inlayHintsOptions, modeConfiguration) {
+    this._onDidChange = new monaco_editor_core_exports.Emitter();
+    this._onDidExtraLibsChange = new monaco_editor_core_exports.Emitter();
     this._extraLibs = /* @__PURE__ */ Object.create(null);
     this._removedExtraLibs = /* @__PURE__ */ Object.create(null);
     this._eagerModelSync = false;
@@ -234,8 +225,20 @@ var modeConfigurationDefault = {
   codeActions: true,
   inlayHints: true
 };
-var typescriptDefaults = new LanguageServiceDefaultsImpl({ allowNonTsExtensions: true, target: 99 /* Latest */ }, { noSemanticValidation: false, noSyntaxValidation: false, onlyVisible: false }, {}, {}, modeConfigurationDefault);
-var javascriptDefaults = new LanguageServiceDefaultsImpl({ allowNonTsExtensions: true, allowJs: true, target: 99 /* Latest */ }, { noSemanticValidation: true, noSyntaxValidation: false, onlyVisible: false }, {}, {}, modeConfigurationDefault);
+var typescriptDefaults = new LanguageServiceDefaultsImpl(
+  { allowNonTsExtensions: true, target: 99 /* Latest */ },
+  { noSemanticValidation: false, noSyntaxValidation: false, onlyVisible: false },
+  {},
+  {},
+  modeConfigurationDefault
+);
+var javascriptDefaults = new LanguageServiceDefaultsImpl(
+  { allowNonTsExtensions: true, allowJs: true, target: 99 /* Latest */ },
+  { noSemanticValidation: true, noSyntaxValidation: false, onlyVisible: false },
+  {},
+  {},
+  modeConfigurationDefault
+);
 var getTypeScriptWorker = () => {
   return getMode().then((mode) => mode.getTypeScriptWorker());
 };

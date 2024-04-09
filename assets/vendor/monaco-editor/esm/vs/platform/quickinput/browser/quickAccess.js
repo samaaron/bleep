@@ -13,7 +13,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 import { DeferredPromise } from '../../../base/common/async.js';
 import { CancellationTokenSource } from '../../../base/common/cancellation.js';
-import { once } from '../../../base/common/functional.js';
+import { Event } from '../../../base/common/event.js';
 import { Disposable, DisposableStore, toDisposable } from '../../../base/common/lifecycle.js';
 import { IInstantiationService } from '../../instantiation/common/instantiation.js';
 import { DefaultQuickAccessFilterValue, Extensions } from '../common/quickAccess.js';
@@ -88,15 +88,12 @@ let QuickAccessController = class QuickAccessController extends Disposable {
         }
         picker.contextKey = descriptor === null || descriptor === void 0 ? void 0 : descriptor.contextKey;
         picker.filterValue = (value) => value.substring(descriptor ? descriptor.prefix.length : 0);
-        if (descriptor === null || descriptor === void 0 ? void 0 : descriptor.placeholder) {
-            picker.ariaLabel = descriptor === null || descriptor === void 0 ? void 0 : descriptor.placeholder;
-        }
         // Pick mode: setup a promise that can be resolved
         // with the selected items and prevent execution
         let pickPromise = undefined;
         if (pick) {
             pickPromise = new DeferredPromise();
-            disposables.add(once(picker.onWillAccept)(e => {
+            disposables.add(Event.once(picker.onWillAccept)(e => {
                 e.veto();
                 picker.hide();
             }));
@@ -112,7 +109,7 @@ let QuickAccessController = class QuickAccessController extends Disposable {
         }
         // Finally, trigger disposal and cancellation when the picker
         // hides depending on items selected or not.
-        once(picker.onDidHide)(() => {
+        Event.once(picker.onDidHide)(() => {
             if (picker.selectedItems.length === 0) {
                 cts.cancel();
             }

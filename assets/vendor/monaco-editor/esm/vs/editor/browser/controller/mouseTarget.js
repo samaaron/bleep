@@ -125,32 +125,36 @@ class ElementPath {
     static isTextArea(path) {
         return (path.length === 2
             && path[0] === 3 /* PartFingerprint.OverflowGuard */
-            && path[1] === 6 /* PartFingerprint.TextArea */);
+            && path[1] === 7 /* PartFingerprint.TextArea */);
     }
     static isChildOfViewLines(path) {
         return (path.length >= 4
             && path[0] === 3 /* PartFingerprint.OverflowGuard */
-            && path[3] === 7 /* PartFingerprint.ViewLines */);
+            && path[3] === 8 /* PartFingerprint.ViewLines */);
     }
     static isStrictChildOfViewLines(path) {
         return (path.length > 4
             && path[0] === 3 /* PartFingerprint.OverflowGuard */
-            && path[3] === 7 /* PartFingerprint.ViewLines */);
+            && path[3] === 8 /* PartFingerprint.ViewLines */);
     }
     static isChildOfScrollableElement(path) {
         return (path.length >= 2
             && path[0] === 3 /* PartFingerprint.OverflowGuard */
-            && path[1] === 5 /* PartFingerprint.ScrollableElement */);
+            && path[1] === 6 /* PartFingerprint.ScrollableElement */);
     }
     static isChildOfMinimap(path) {
         return (path.length >= 2
             && path[0] === 3 /* PartFingerprint.OverflowGuard */
-            && path[1] === 8 /* PartFingerprint.Minimap */);
+            && path[1] === 9 /* PartFingerprint.Minimap */);
     }
     static isChildOfContentWidgets(path) {
         return (path.length >= 4
             && path[0] === 3 /* PartFingerprint.OverflowGuard */
             && path[3] === 1 /* PartFingerprint.ContentWidgets */);
+    }
+    static isChildOfOverflowGuard(path) {
+        return (path.length >= 1
+            && path[0] === 3 /* PartFingerprint.OverflowGuard */);
     }
     static isChildOfOverflowingContentWidgets(path) {
         return (path.length >= 1
@@ -161,16 +165,20 @@ class ElementPath {
             && path[0] === 3 /* PartFingerprint.OverflowGuard */
             && path[1] === 4 /* PartFingerprint.OverlayWidgets */);
     }
+    static isChildOfOverflowingOverlayWidgets(path) {
+        return (path.length >= 1
+            && path[0] === 5 /* PartFingerprint.OverflowingOverlayWidgets */);
+    }
 }
 export class HitTestContext {
     constructor(context, viewHelper, lastRenderData) {
         this.viewModel = context.viewModel;
         const options = context.configuration.options;
-        this.layoutInfo = options.get(138 /* EditorOption.layoutInfo */);
+        this.layoutInfo = options.get(144 /* EditorOption.layoutInfo */);
         this.viewDomNode = viewHelper.viewDomNode;
-        this.lineHeight = options.get(63 /* EditorOption.lineHeight */);
-        this.stickyTabStops = options.get(110 /* EditorOption.stickyTabStops */);
-        this.typicalHalfwidthCharacterWidth = options.get(47 /* EditorOption.fontInfo */).typicalHalfwidthCharacterWidth;
+        this.lineHeight = options.get(67 /* EditorOption.lineHeight */);
+        this.stickyTabStops = options.get(116 /* EditorOption.stickyTabStops */);
+        this.typicalHalfwidthCharacterWidth = options.get(50 /* EditorOption.fontInfo */).typicalHalfwidthCharacterWidth;
         this.lastRenderData = lastRenderData;
         this._context = context;
         this._viewHelper = viewHelper;
@@ -253,7 +261,7 @@ export class HitTestContext {
         return HitTestContext._findAttribute(element, attr, this._viewHelper.viewDomNode);
     }
     static _findAttribute(element, attr, stopAt) {
-        while (element && element !== document.body) {
+        while (element && element !== element.ownerDocument.body) {
             if (element.hasAttribute && element.hasAttribute(attr)) {
                 return element.getAttribute(attr);
             }
@@ -366,7 +374,7 @@ export class MouseTargetFactory {
             return true;
         }
         // Is it an overlay widget?
-        if (ElementPath.isChildOfOverlayWidgets(path)) {
+        if (ElementPath.isChildOfOverlayWidgets(path) || ElementPath.isChildOfOverflowingOverlayWidgets(path)) {
             return true;
         }
         return false;
@@ -409,6 +417,10 @@ export class MouseTargetFactory {
         // we know for a fact that request.target is not null
         const resolvedRequest = request;
         let result = null;
+        if (!ElementPath.isChildOfOverflowGuard(request.targetPath) && !ElementPath.isChildOfOverflowingContentWidgets(request.targetPath) && !ElementPath.isChildOfOverflowingOverlayWidgets(request.targetPath)) {
+            // We only render dom nodes inside the overflow guard or in the overflowing content widgets
+            result = result || request.fulfillUnknown();
+        }
         result = result || MouseTargetFactory._hitTestContentWidget(ctx, resolvedRequest);
         result = result || MouseTargetFactory._hitTestOverlayWidget(ctx, resolvedRequest);
         result = result || MouseTargetFactory._hitTestMinimap(ctx, resolvedRequest);
@@ -436,7 +448,7 @@ export class MouseTargetFactory {
     }
     static _hitTestOverlayWidget(ctx, request) {
         // Is it an overlay widget?
-        if (ElementPath.isChildOfOverlayWidgets(request.targetPath)) {
+        if (ElementPath.isChildOfOverlayWidgets(request.targetPath) || ElementPath.isChildOfOverflowingOverlayWidgets(request.targetPath)) {
             const widgetId = ctx.findAttribute(request.target, 'widgetId');
             if (widgetId) {
                 return request.fulfillOverlayWidget(widgetId);
@@ -516,6 +528,9 @@ export class MouseTargetFactory {
             offset -= ctx.layoutInfo.glyphMarginLeft;
             if (offset <= ctx.layoutInfo.glyphMarginWidth) {
                 // On the glyph margin
+                const modelCoordinate = ctx.viewModel.coordinatesConverter.convertViewPositionToModelPosition(res.range.getStartPosition());
+                const lanes = ctx.viewModel.glyphLanes.getLanesAtLine(modelCoordinate.lineNumber);
+                detail.glyphMarginLane = lanes[Math.floor(offset / ctx.lineHeight)];
                 return request.fulfillMargin(2 /* MouseTargetType.GUTTER_GLYPH_MARGIN */, pos, res.range, detail);
             }
             offset -= ctx.layoutInfo.glyphMarginWidth;
@@ -602,9 +617,9 @@ export class MouseTargetFactory {
     }
     getMouseColumn(relativePos) {
         const options = this._context.configuration.options;
-        const layoutInfo = options.get(138 /* EditorOption.layoutInfo */);
+        const layoutInfo = options.get(144 /* EditorOption.layoutInfo */);
         const mouseContentHorizontalOffset = this._context.viewLayout.getCurrentScrollLeft() + relativePos.x - layoutInfo.contentLeft;
-        return MouseTargetFactory._getMouseColumn(mouseContentHorizontalOffset, options.get(47 /* EditorOption.fontInfo */).typicalHalfwidthCharacterWidth);
+        return MouseTargetFactory._getMouseColumn(mouseContentHorizontalOffset, options.get(50 /* EditorOption.fontInfo */).typicalHalfwidthCharacterWidth);
     }
     static _getMouseColumn(mouseContentHorizontalOffset, typicalHalfwidthCharacterWidth) {
         if (mouseContentHorizontalOffset < 0) {
@@ -645,7 +660,7 @@ export class MouseTargetFactory {
             }
         }
         points.sort((a, b) => a.offset - b.offset);
-        const mouseCoordinates = request.pos.toClientCoordinates();
+        const mouseCoordinates = request.pos.toClientCoordinates(dom.getWindow(ctx.viewDomNode));
         const spanNodeClientRect = spanNode.getBoundingClientRect();
         const mouseIsOverSpanNode = (spanNodeClientRect.left <= mouseCoordinates.clientX && mouseCoordinates.clientX <= spanNodeClientRect.right);
         let rng = null;
@@ -688,13 +703,13 @@ export class MouseTargetFactory {
                 adjustedPageY = request.editorPos.y + request.editorPos.height - 1;
             }
             const adjustedPage = new PageCoordinates(request.pos.x, adjustedPageY);
-            const r = this._actualDoHitTestWithCaretRangeFromPoint(ctx, adjustedPage.toClientCoordinates());
+            const r = this._actualDoHitTestWithCaretRangeFromPoint(ctx, adjustedPage.toClientCoordinates(dom.getWindow(ctx.viewDomNode)));
             if (r.type === 1 /* HitTestResultType.Content */) {
                 return r;
             }
         }
         // Also try to hit test without the adjustment (for the edge cases that we are near the top or bottom)
-        return this._actualDoHitTestWithCaretRangeFromPoint(ctx, request.pos.toClientCoordinates());
+        return this._actualDoHitTestWithCaretRangeFromPoint(ctx, request.pos.toClientCoordinates(dom.getWindow(ctx.viewDomNode)));
     }
     static _actualDoHitTestWithCaretRangeFromPoint(ctx, coords) {
         const shadowRoot = dom.getShadowRoot(ctx.viewDomNode);
@@ -708,7 +723,7 @@ export class MouseTargetFactory {
             }
         }
         else {
-            range = document.caretRangeFromPoint(coords.clientX, coords.clientY);
+            range = ctx.viewDomNode.ownerDocument.caretRangeFromPoint(coords.clientX, coords.clientY);
         }
         if (!range || !range.startContainer) {
             return new UnknownHitTestResult();
@@ -746,7 +761,7 @@ export class MouseTargetFactory {
      * Most probably Gecko
      */
     static _doHitTestWithCaretPositionFromPoint(ctx, coords) {
-        const hitResult = document.caretPositionFromPoint(coords.clientX, coords.clientY);
+        const hitResult = ctx.viewDomNode.ownerDocument.caretPositionFromPoint(coords.clientX, coords.clientY);
         if (hitResult.offsetNode.nodeType === hitResult.offsetNode.TEXT_NODE) {
             // offsetNode is expected to be the token text
             const parent1 = hitResult.offsetNode.parentNode; // expected to be the token span
@@ -792,11 +807,11 @@ export class MouseTargetFactory {
     }
     static _doHitTest(ctx, request) {
         let result = new UnknownHitTestResult();
-        if (typeof document.caretRangeFromPoint === 'function') {
+        if (typeof ctx.viewDomNode.ownerDocument.caretRangeFromPoint === 'function') {
             result = this._doHitTestWithCaretRangeFromPoint(ctx, request);
         }
-        else if (document.caretPositionFromPoint) {
-            result = this._doHitTestWithCaretPositionFromPoint(ctx, request.pos.toClientCoordinates());
+        else if (ctx.viewDomNode.ownerDocument.caretPositionFromPoint) {
+            result = this._doHitTestWithCaretPositionFromPoint(ctx, request.pos.toClientCoordinates(dom.getWindow(ctx.viewDomNode)));
         }
         if (result.type === 1 /* HitTestResultType.Content */) {
             const injectedText = ctx.viewModel.getInjectedTextAt(result.position);
@@ -821,8 +836,15 @@ function shadowCaretRangeFromPoint(shadowRoot, x, y) {
         }
         // Grab its rect
         const rect = el.getBoundingClientRect();
-        // And its font
-        const font = window.getComputedStyle(el, null).getPropertyValue('font');
+        // And its font (the computed shorthand font property might be empty, see #3217)
+        const elWindow = dom.getWindow(el);
+        const fontStyle = elWindow.getComputedStyle(el, null).getPropertyValue('font-style');
+        const fontVariant = elWindow.getComputedStyle(el, null).getPropertyValue('font-variant');
+        const fontWeight = elWindow.getComputedStyle(el, null).getPropertyValue('font-weight');
+        const fontSize = elWindow.getComputedStyle(el, null).getPropertyValue('font-size');
+        const lineHeight = elWindow.getComputedStyle(el, null).getPropertyValue('line-height');
+        const fontFamily = elWindow.getComputedStyle(el, null).getPropertyValue('font-family');
+        const font = `${fontStyle} ${fontVariant} ${fontWeight} ${fontSize}/${lineHeight} ${fontFamily}`;
         // And also its txt content
         const text = el.innerText;
         // Position the pixel cursor at the left of the element

@@ -11,6 +11,7 @@ import { ScrollableElement } from '../scrollbar/scrollableElement.js';
 import { Widget } from '../widget.js';
 import { Emitter, Event } from '../../../common/event.js';
 import { HistoryNavigator } from '../../../common/history.js';
+import { equals } from '../../../common/objects.js';
 import './inputBox.css';
 import * as nls from '../../../../nls.js';
 const $ = dom.$;
@@ -70,9 +71,9 @@ export class InputBox extends Widget {
             this._register(this.scrollableElement);
             // from ScrollableElement to DOM
             this._register(this.scrollableElement.onScroll(e => this.input.scrollTop = e.scrollTop));
-            const onSelectionChange = this._register(new DomEmitter(document, 'selectionchange'));
+            const onSelectionChange = this._register(new DomEmitter(container.ownerDocument, 'selectionchange'));
             const onAnchoredSelectionChange = Event.filter(onSelectionChange.event, () => {
-                const selection = document.getSelection();
+                const selection = container.ownerDocument.getSelection();
                 return (selection === null || selection === void 0 ? void 0 : selection.anchorNode) === wrapper;
             });
             // from DOM to ScrollableElement
@@ -124,18 +125,6 @@ export class InputBox extends Widget {
         this.tooltip = tooltip;
         this.input.title = tooltip;
     }
-    setAriaLabel(label) {
-        this.ariaLabel = label;
-        if (label) {
-            this.input.setAttribute('aria-label', this.ariaLabel);
-        }
-        else {
-            this.input.removeAttribute('aria-label');
-        }
-    }
-    getAriaLabel() {
-        return this.ariaLabel;
-    }
     get inputElement() {
         return this.input;
     }
@@ -158,7 +147,7 @@ export class InputBox extends Widget {
         this.input.blur();
     }
     hasFocus() {
-        return document.activeElement === this.input;
+        return dom.isActiveElement(this.input);
     }
     select(range = null) {
         this.input.select();
@@ -198,6 +187,10 @@ export class InputBox extends Widget {
         this.scrollableElement.setScrollPosition({ scrollTop });
     }
     showMessage(message, force) {
+        if (this.state === 'open' && equals(this.message, message)) {
+            // Already showing
+            return;
+        }
         this.message = message;
         this.element.classList.remove('idle');
         this.element.classList.remove('info');
@@ -380,9 +373,14 @@ export class InputBox extends Widget {
 }
 export class HistoryInputBox extends InputBox {
     constructor(container, contextViewProvider, options) {
-        const NLS_PLACEHOLDER_HISTORY_HINT = nls.localize({ key: 'history.inputbox.hint', comment: ['Text will be prefixed with \u21C5 plus a single space, then used as a hint where input field keeps history'] }, "for history");
-        const NLS_PLACEHOLDER_HISTORY_HINT_SUFFIX = ` or \u21C5 ${NLS_PLACEHOLDER_HISTORY_HINT}`;
-        const NLS_PLACEHOLDER_HISTORY_HINT_SUFFIX_IN_PARENS = ` (\u21C5 ${NLS_PLACEHOLDER_HISTORY_HINT})`;
+        const NLS_PLACEHOLDER_HISTORY_HINT_SUFFIX_NO_PARENS = nls.localize({
+            key: 'history.inputbox.hint.suffix.noparens',
+            comment: ['Text is the suffix of an input field placeholder coming after the action the input field performs, this will be used when the input field ends in a closing parenthesis ")", for example "Filter (e.g. text, !exclude)". The character inserted into the final string is \u21C5 to represent the up and down arrow keys.']
+        }, ' or {0} for history', `\u21C5`);
+        const NLS_PLACEHOLDER_HISTORY_HINT_SUFFIX_IN_PARENS = nls.localize({
+            key: 'history.inputbox.hint.suffix.inparens',
+            comment: ['Text is the suffix of an input field placeholder coming after the action the input field performs, this will be used when the input field does NOT end in a closing parenthesis (eg. "Find"). The character inserted into the final string is \u21C5 to represent the up and down arrow keys.']
+        }, ' ({0} for history)', `\u21C5`);
         super(container, contextViewProvider, options);
         this._onDidFocus = this._register(new Emitter());
         this.onDidFocus = this._onDidFocus.event;
@@ -391,10 +389,10 @@ export class HistoryInputBox extends InputBox {
         this.history = new HistoryNavigator(options.history, 100);
         // Function to append the history suffix to the placeholder if necessary
         const addSuffix = () => {
-            if (options.showHistoryHint && options.showHistoryHint() && !this.placeholder.endsWith(NLS_PLACEHOLDER_HISTORY_HINT_SUFFIX) && !this.placeholder.endsWith(NLS_PLACEHOLDER_HISTORY_HINT_SUFFIX_IN_PARENS) && this.history.getHistory().length) {
-                const suffix = this.placeholder.endsWith(')') ? NLS_PLACEHOLDER_HISTORY_HINT_SUFFIX : NLS_PLACEHOLDER_HISTORY_HINT_SUFFIX_IN_PARENS;
+            if (options.showHistoryHint && options.showHistoryHint() && !this.placeholder.endsWith(NLS_PLACEHOLDER_HISTORY_HINT_SUFFIX_NO_PARENS) && !this.placeholder.endsWith(NLS_PLACEHOLDER_HISTORY_HINT_SUFFIX_IN_PARENS) && this.history.getHistory().length) {
+                const suffix = this.placeholder.endsWith(')') ? NLS_PLACEHOLDER_HISTORY_HINT_SUFFIX_NO_PARENS : NLS_PLACEHOLDER_HISTORY_HINT_SUFFIX_IN_PARENS;
                 const suffixedPlaceholder = this.placeholder + suffix;
-                if (options.showPlaceholderOnFocus && document.activeElement !== this.input) {
+                if (options.showPlaceholderOnFocus && !dom.isActiveElement(this.input)) {
                     this.placeholder = suffixedPlaceholder;
                 }
                 else {
@@ -430,7 +428,7 @@ export class HistoryInputBox extends InputBox {
                 }
             };
             if (!resetPlaceholder(NLS_PLACEHOLDER_HISTORY_HINT_SUFFIX_IN_PARENS)) {
-                resetPlaceholder(NLS_PLACEHOLDER_HISTORY_HINT_SUFFIX);
+                resetPlaceholder(NLS_PLACEHOLDER_HISTORY_HINT_SUFFIX_NO_PARENS);
             }
         });
     }
@@ -460,10 +458,8 @@ export class HistoryInputBox extends InputBox {
         if (next) {
             next = next === this.value ? this.getNextValue() : next;
         }
-        if (next) {
-            this.value = next;
-            aria.status(this.value);
-        }
+        this.value = next !== null && next !== void 0 ? next : '';
+        aria.status(this.value ? this.value : nls.localize('clearedInput', "Cleared Input"));
     }
     showPreviousValue() {
         if (!this.history.has(this.value)) {
@@ -477,6 +473,10 @@ export class HistoryInputBox extends InputBox {
             this.value = previous;
             aria.status(this.value);
         }
+    }
+    setPlaceHolder(placeHolder) {
+        super.setPlaceHolder(placeHolder);
+        this.setTooltip(placeHolder);
     }
     onBlur() {
         super.onBlur();
@@ -498,6 +498,6 @@ export class HistoryInputBox extends InputBox {
         return this.history.previous() || this.history.first();
     }
     getNextValue() {
-        return this.history.next() || this.history.last();
+        return this.history.next();
     }
 }

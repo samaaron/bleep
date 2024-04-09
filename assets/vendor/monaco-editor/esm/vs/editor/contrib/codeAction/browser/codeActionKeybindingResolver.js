@@ -11,18 +11,19 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var CodeActionKeybindingResolver_1;
 import { Lazy } from '../../../../base/common/lazy.js';
 import { codeActionCommandId, fixAllCommandId, organizeImportsCommandId, refactorCommandId, sourceActionCommandId } from './codeAction.js';
 import { CodeActionCommandArgs, CodeActionKind } from '../common/types.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
-let CodeActionKeybindingResolver = class CodeActionKeybindingResolver {
+let CodeActionKeybindingResolver = CodeActionKeybindingResolver_1 = class CodeActionKeybindingResolver {
     constructor(keybindingService) {
         this.keybindingService = keybindingService;
     }
     getResolver() {
         // Lazy since we may not actually ever read the value
         const allCodeActionBindings = new Lazy(() => this.keybindingService.getKeybindings()
-            .filter(item => CodeActionKeybindingResolver.codeActionCommands.indexOf(item.command) >= 0)
+            .filter(item => CodeActionKeybindingResolver_1.codeActionCommands.indexOf(item.command) >= 0)
             .filter(item => item.resolvedKeybinding)
             .map((item) => {
             // Special case these commands since they come built-in with VS Code and don't use 'commandArgs'
@@ -33,10 +34,13 @@ let CodeActionKeybindingResolver = class CodeActionKeybindingResolver {
             else if (item.command === fixAllCommandId) {
                 commandArgs = { kind: CodeActionKind.SourceFixAll.value };
             }
-            return Object.assign({ resolvedKeybinding: item.resolvedKeybinding }, CodeActionCommandArgs.fromUser(commandArgs, {
-                kind: CodeActionKind.None,
-                apply: "never" /* CodeActionAutoApply.Never */
-            }));
+            return {
+                resolvedKeybinding: item.resolvedKeybinding,
+                ...CodeActionCommandArgs.fromUser(commandArgs, {
+                    kind: CodeActionKind.None,
+                    apply: "never" /* CodeActionAutoApply.Never */
+                })
+            };
         }));
         return (action) => {
             if (action.kind) {
@@ -76,7 +80,7 @@ CodeActionKeybindingResolver.codeActionCommands = [
     organizeImportsCommandId,
     fixAllCommandId
 ];
-CodeActionKeybindingResolver = __decorate([
+CodeActionKeybindingResolver = CodeActionKeybindingResolver_1 = __decorate([
     __param(0, IKeybindingService)
 ], CodeActionKeybindingResolver);
 export { CodeActionKeybindingResolver };

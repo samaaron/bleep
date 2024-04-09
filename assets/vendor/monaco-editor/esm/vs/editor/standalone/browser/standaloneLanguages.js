@@ -2,15 +2,6 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 import { Color } from '../../../base/common/color.js';
 import { Range } from '../../common/core/range.js';
 import * as languages from '../../common/languages.js';
@@ -46,20 +37,41 @@ export function getEncodedLanguageId(languageId) {
     return languageService.languageIdCodec.encodeLanguageId(languageId);
 }
 /**
- * An event emitted when a language is needed for the first time (e.g. a model has it set).
+ * An event emitted when a language is associated for the first time with a text model.
  * @event
  */
 export function onLanguage(languageId, callback) {
-    const languageService = StandaloneServices.get(ILanguageService);
-    const disposable = languageService.onDidEncounterLanguage((encounteredLanguageId) => {
-        if (encounteredLanguageId === languageId) {
-            // stop listening
-            disposable.dispose();
-            // invoke actual listener
-            callback();
-        }
+    return StandaloneServices.withServices(() => {
+        const languageService = StandaloneServices.get(ILanguageService);
+        const disposable = languageService.onDidRequestRichLanguageFeatures((encounteredLanguageId) => {
+            if (encounteredLanguageId === languageId) {
+                // stop listening
+                disposable.dispose();
+                // invoke actual listener
+                callback();
+            }
+        });
+        return disposable;
     });
-    return disposable;
+}
+/**
+ * An event emitted when a language is associated for the first time with a text model or
+ * when a language is encountered during the tokenization of another language.
+ * @event
+ */
+export function onLanguageEncountered(languageId, callback) {
+    return StandaloneServices.withServices(() => {
+        const languageService = StandaloneServices.get(ILanguageService);
+        const disposable = languageService.onDidRequestBasicLanguageFeatures((encounteredLanguageId) => {
+            if (encounteredLanguageId === languageId) {
+                // stop listening
+                disposable.dispose();
+                // invoke actual listener
+                callback();
+            }
+        });
+        return disposable;
+    });
 }
 /**
  * Set the editing configuration for a language.
@@ -79,6 +91,9 @@ export class EncodedTokenizationSupportAdapter {
     constructor(languageId, actual) {
         this._languageId = languageId;
         this._actual = actual;
+    }
+    dispose() {
+        // NOOP
     }
     getInitialState() {
         return this._actual.getInitialState();
@@ -103,6 +118,9 @@ export class TokenizationSupportAdapter {
         this._actual = _actual;
         this._languageService = _languageService;
         this._standaloneThemeService = _standaloneThemeService;
+    }
+    dispose() {
+        // NOOP
     }
     getInitialState() {
         return this._actual.getInitialState();
@@ -151,7 +169,7 @@ export class TokenizationSupportAdapter {
         let previousStartIndex = 0;
         for (let i = 0, len = tokens.length; i < len; i++) {
             const t = tokens[i];
-            const metadata = tokenTheme.match(languageId, t.scopes);
+            const metadata = tokenTheme.match(languageId, t.scopes) | 1024 /* MetadataConsts.BALANCED_BRACKETS_MASK */;
             if (resultLen > 0 && result[resultLen - 1] === metadata) {
                 // same metadata
                 continue;
@@ -233,18 +251,16 @@ function createTokenizationSupportAdapter(languageId, provider) {
  * with a tokens provider set using `registerDocumentSemanticTokensProvider` or `registerDocumentRangeSemanticTokensProvider`.
  */
 export function registerTokensProviderFactory(languageId, factory) {
-    const adaptedFactory = {
-        createTokenizationSupport: () => __awaiter(this, void 0, void 0, function* () {
-            const result = yield Promise.resolve(factory.create());
-            if (!result) {
-                return null;
-            }
-            if (isATokensProvider(result)) {
-                return createTokenizationSupportAdapter(languageId, result);
-            }
-            return new MonarchTokenizer(StandaloneServices.get(ILanguageService), StandaloneServices.get(IStandaloneThemeService), languageId, compile(languageId, result), StandaloneServices.get(IConfigurationService));
-        })
-    };
+    const adaptedFactory = new languages.LazyTokenizationSupport(async () => {
+        const result = await Promise.resolve(factory.create());
+        if (!result) {
+            return null;
+        }
+        if (isATokensProvider(result)) {
+            return createTokenizationSupportAdapter(languageId, result);
+        }
+        return new MonarchTokenizer(StandaloneServices.get(ILanguageService), StandaloneServices.get(IStandaloneThemeService), languageId, compile(languageId, result), StandaloneServices.get(IConfigurationService));
+    });
     return languages.TokenizationRegistry.registerFactory(languageId, adaptedFactory);
 }
 /**
@@ -291,6 +307,13 @@ export function registerReferenceProvider(languageSelector, provider) {
 export function registerRenameProvider(languageSelector, provider) {
     const languageFeaturesService = StandaloneServices.get(ILanguageFeaturesService);
     return languageFeaturesService.renameProvider.register(languageSelector, provider);
+}
+/**
+ * Register a new symbol-name provider (e.g., when a symbol is being renamed, show new possible symbol-names)
+ */
+export function registerNewSymbolNameProvider(languageSelector, provider) {
+    const languageFeaturesService = StandaloneServices.get(ILanguageFeaturesService);
+    return languageFeaturesService.newSymbolNamesProvider.register(languageSelector, provider);
 }
 /**
  * Register a signature help provider (used by e.g. parameter hints).
@@ -481,6 +504,10 @@ export function registerInlineCompletionsProvider(languageSelector, provider) {
     const languageFeaturesService = StandaloneServices.get(ILanguageFeaturesService);
     return languageFeaturesService.inlineCompletionsProvider.register(languageSelector, provider);
 }
+export function registerInlineEditProvider(languageSelector, provider) {
+    const languageFeaturesService = StandaloneServices.get(ILanguageFeaturesService);
+    return languageFeaturesService.inlineEditProvider.register(languageSelector, provider);
+}
 /**
  * Register an inlay hints provider.
  */
@@ -496,6 +523,7 @@ export function createMonacoLanguagesAPI() {
         register: register,
         getLanguages: getLanguages,
         onLanguage: onLanguage,
+        onLanguageEncountered: onLanguageEncountered,
         getEncodedLanguageId: getEncodedLanguageId,
         // provider methods
         setLanguageConfiguration: setLanguageConfiguration,
@@ -505,6 +533,7 @@ export function createMonacoLanguagesAPI() {
         setMonarchTokensProvider: setMonarchTokensProvider,
         registerReferenceProvider: registerReferenceProvider,
         registerRenameProvider: registerRenameProvider,
+        registerNewSymbolNameProvider: registerNewSymbolNameProvider,
         registerCompletionItemProvider: registerCompletionItemProvider,
         registerSignatureHelpProvider: registerSignatureHelpProvider,
         registerHoverProvider: registerHoverProvider,
@@ -527,6 +556,7 @@ export function createMonacoLanguagesAPI() {
         registerDocumentSemanticTokensProvider: registerDocumentSemanticTokensProvider,
         registerDocumentRangeSemanticTokensProvider: registerDocumentRangeSemanticTokensProvider,
         registerInlineCompletionsProvider: registerInlineCompletionsProvider,
+        registerInlineEditProvider: registerInlineEditProvider,
         registerInlayHintsProvider: registerInlayHintsProvider,
         // enums
         DocumentHighlightKind: standaloneEnums.DocumentHighlightKind,
@@ -540,8 +570,11 @@ export function createMonacoLanguagesAPI() {
         SignatureHelpTriggerKind: standaloneEnums.SignatureHelpTriggerKind,
         InlayHintKind: standaloneEnums.InlayHintKind,
         InlineCompletionTriggerKind: standaloneEnums.InlineCompletionTriggerKind,
+        InlineEditTriggerKind: standaloneEnums.InlineEditTriggerKind,
         CodeActionTriggerType: standaloneEnums.CodeActionTriggerType,
+        NewSymbolNameTag: standaloneEnums.NewSymbolNameTag,
         // classes
         FoldingRangeKind: languages.FoldingRangeKind,
+        SelectedSuggestionInfo: languages.SelectedSuggestionInfo,
     };
 }

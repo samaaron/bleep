@@ -11,6 +11,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var PersistedMenuHideState_1, MenuInfo_1;
 import { RunOnceScheduler } from '../../../base/common/async.js';
 import { DebounceEmitter, Emitter } from '../../../base/common/event.js';
 import { DisposableStore } from '../../../base/common/lifecycle.js';
@@ -27,7 +28,7 @@ let MenuService = class MenuService {
         this._hiddenStates = new PersistedMenuHideState(storageService);
     }
     createMenu(id, contextKeyService, options) {
-        return new MenuImpl(id, this._hiddenStates, Object.assign({ emitEventsForSubmenuChanges: false, eventDebounceDelay: 50 }, options), this._commandService, contextKeyService);
+        return new MenuImpl(id, this._hiddenStates, { emitEventsForSubmenuChanges: false, eventDebounceDelay: 50, ...options }, this._commandService, contextKeyService);
     }
     resetHiddenStates(ids) {
         this._hiddenStates.reset(ids);
@@ -38,7 +39,7 @@ MenuService = __decorate([
     __param(1, IStorageService)
 ], MenuService);
 export { MenuService };
-let PersistedMenuHideState = class PersistedMenuHideState {
+let PersistedMenuHideState = PersistedMenuHideState_1 = class PersistedMenuHideState {
     constructor(_storageService) {
         this._storageService = _storageService;
         this._disposables = new DisposableStore();
@@ -47,19 +48,16 @@ let PersistedMenuHideState = class PersistedMenuHideState {
         this._ignoreChangeEvent = false;
         this._hiddenByDefaultCache = new Map();
         try {
-            const raw = _storageService.get(PersistedMenuHideState._key, 0 /* StorageScope.PROFILE */, '{}');
+            const raw = _storageService.get(PersistedMenuHideState_1._key, 0 /* StorageScope.PROFILE */, '{}');
             this._data = JSON.parse(raw);
         }
         catch (err) {
             this._data = Object.create(null);
         }
-        this._disposables.add(_storageService.onDidChangeValue(e => {
-            if (e.key !== PersistedMenuHideState._key) {
-                return;
-            }
+        this._disposables.add(_storageService.onDidChangeValue(0 /* StorageScope.PROFILE */, PersistedMenuHideState_1._key, this._disposables)(() => {
             if (!this._ignoreChangeEvent) {
                 try {
-                    const raw = _storageService.get(PersistedMenuHideState._key, 0 /* StorageScope.PROFILE */, '{}');
+                    const raw = _storageService.get(PersistedMenuHideState_1._key, 0 /* StorageScope.PROFILE */, '{}');
                     this._data = JSON.parse(raw);
                 }
                 catch (err) {
@@ -138,7 +136,7 @@ let PersistedMenuHideState = class PersistedMenuHideState {
         try {
             this._ignoreChangeEvent = true;
             const raw = JSON.stringify(this._data);
-            this._storageService.store(PersistedMenuHideState._key, raw, 0 /* StorageScope.PROFILE */, 0 /* StorageTarget.USER */);
+            this._storageService.store(PersistedMenuHideState_1._key, raw, 0 /* StorageScope.PROFILE */, 0 /* StorageTarget.USER */);
         }
         finally {
             this._ignoreChangeEvent = false;
@@ -146,10 +144,10 @@ let PersistedMenuHideState = class PersistedMenuHideState {
     }
 };
 PersistedMenuHideState._key = 'menu.hiddenCommands';
-PersistedMenuHideState = __decorate([
+PersistedMenuHideState = PersistedMenuHideState_1 = __decorate([
     __param(0, IStorageService)
 ], PersistedMenuHideState);
-let MenuInfo = class MenuInfo {
+let MenuInfo = MenuInfo_1 = class MenuInfo {
     constructor(_id, _hiddenStates, _collectContextKeysForSubmenus, _commandService, _contextKeyService) {
         this._id = _id;
         this._hiddenStates = _hiddenStates;
@@ -179,7 +177,7 @@ let MenuInfo = class MenuInfo {
         this._toggledContextKeys.clear();
         const menuItems = MenuRegistry.getMenuItems(this._id);
         let group;
-        menuItems.sort(MenuInfo._compareMenuItems);
+        menuItems.sort(MenuInfo_1._compareMenuItems);
         for (const item of menuItems) {
             // group by groupId
             const groupName = item.group || '';
@@ -193,16 +191,16 @@ let MenuInfo = class MenuInfo {
         }
     }
     _collectContextKeys(item) {
-        MenuInfo._fillInKbExprKeys(item.when, this._structureContextKeys);
+        MenuInfo_1._fillInKbExprKeys(item.when, this._structureContextKeys);
         if (isIMenuItem(item)) {
             // keep precondition keys for event if applicable
             if (item.command.precondition) {
-                MenuInfo._fillInKbExprKeys(item.command.precondition, this._preconditionContextKeys);
+                MenuInfo_1._fillInKbExprKeys(item.command.precondition, this._preconditionContextKeys);
             }
             // keep toggled keys for event if applicable
             if (item.command.toggled) {
                 const toggledExpression = item.command.toggled.condition || item.command.toggled;
-                MenuInfo._fillInKbExprKeys(toggledExpression, this._toggledContextKeys);
+                MenuInfo_1._fillInKbExprKeys(toggledExpression, this._toggledContextKeys);
             }
         }
         else if (this._collectContextKeysForSubmenus) {
@@ -229,7 +227,7 @@ let MenuInfo = class MenuInfo {
                     }
                     else {
                         // SubmenuItemAction
-                        const groups = new MenuInfo(item.submenu, this._hiddenStates, this._collectContextKeysForSubmenus, this._commandService, this._contextKeyService).createActionGroups(options);
+                        const groups = new MenuInfo_1(item.submenu, this._hiddenStates, this._collectContextKeysForSubmenus, this._commandService, this._contextKeyService).createActionGroups(options);
                         const submenuActions = Separator.join(...groups.map(g => g[1]));
                         if (submenuActions.length > 0) {
                             activeActions.push(new SubmenuItemAction(item, menuHide, submenuActions));
@@ -284,7 +282,7 @@ let MenuInfo = class MenuInfo {
             return 1;
         }
         // sort on titles
-        return MenuInfo._compareTitles(isIMenuItem(a) ? a.command.title : a.title, isIMenuItem(b) ? b.command.title : b.title);
+        return MenuInfo_1._compareTitles(isIMenuItem(a) ? a.command.title : a.title, isIMenuItem(b) ? b.command.title : b.title);
     }
     static _compareTitles(a, b) {
         const aStr = typeof a === 'string' ? a : a.original;
@@ -292,7 +290,7 @@ let MenuInfo = class MenuInfo {
         return aStr.localeCompare(bStr);
     }
 };
-MenuInfo = __decorate([
+MenuInfo = MenuInfo_1 = __decorate([
     __param(3, ICommandService),
     __param(4, IContextKeyService)
 ], MenuInfo);

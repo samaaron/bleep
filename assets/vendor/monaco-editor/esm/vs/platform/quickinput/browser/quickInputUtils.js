@@ -14,7 +14,7 @@ import './media/quickInput.css';
 import { localize } from '../../../nls.js';
 const iconPathToClass = {};
 const iconClassGenerator = new IdGenerator('quick-input-button-icon-');
-export function getIconClass(iconPath) {
+function getIconClass(iconPath) {
     if (!iconPath) {
         return undefined;
     }
@@ -30,6 +30,20 @@ export function getIconClass(iconPath) {
         iconPathToClass[key] = iconClass;
     }
     return iconClass;
+}
+export function quickInputButtonToAction(button, id, run) {
+    let cssClasses = button.iconClass || getIconClass(button.iconPath);
+    if (button.alwaysVisible) {
+        cssClasses = cssClasses ? `${cssClasses} always-visible` : 'always-visible';
+    }
+    return {
+        id,
+        label: '',
+        tooltip: button.tooltip || '',
+        class: cssClasses,
+        enabled: true,
+        run
+    };
 }
 export function renderQuickInputDescription(description, container, actionHandler) {
     dom.reset(container);
@@ -57,10 +71,10 @@ export function renderQuickInputDescription(description, container, actionHandle
             };
             const onClick = actionHandler.disposables.add(new DomEmitter(anchor, dom.EventType.CLICK)).event;
             const onKeydown = actionHandler.disposables.add(new DomEmitter(anchor, dom.EventType.KEY_DOWN)).event;
-            const onSpaceOrEnter = actionHandler.disposables.add(Event.chain(onKeydown)).filter(e => {
+            const onSpaceOrEnter = Event.chain(onKeydown, $ => $.filter(e => {
                 const event = new StandardKeyboardEvent(e);
                 return event.equals(10 /* KeyCode.Space */) || event.equals(3 /* KeyCode.Enter */);
-            }).event;
+            }));
             actionHandler.disposables.add(Gesture.addTarget(anchor));
             const onTap = actionHandler.disposables.add(new DomEmitter(anchor, GestureEventType.Tap)).event;
             Event.any(onClick, onTap, onSpaceOrEnter)(handleOpen, null, actionHandler.disposables);

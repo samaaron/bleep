@@ -2,15 +2,6 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 import { ActionBar } from '../actionbar/actionbar.js';
 import { DropdownMenuActionViewItem } from '../dropdown/dropdownActionViewItem.js';
 import { Action, SubmenuAction } from '../../../common/actions.js';
@@ -18,20 +9,22 @@ import { Codicon } from '../../../common/codicons.js';
 import { ThemeIcon } from '../../../common/themables.js';
 import { EventMultiplexer } from '../../../common/event.js';
 import { Disposable, DisposableStore } from '../../../common/lifecycle.js';
-import { withNullAsUndefined } from '../../../common/types.js';
 import './toolbar.css';
 import * as nls from '../../../../nls.js';
+import { getDefaultHoverDelegate } from '../hover/hoverDelegate.js';
 /**
  * A widget that combines an action bar for primary actions and a dropdown for secondary actions.
  */
 export class ToolBar extends Disposable {
     constructor(container, contextMenuProvider, options = { orientation: 0 /* ActionsOrientation.HORIZONTAL */ }) {
+        var _a;
         super();
         this.submenuActionViewItems = [];
         this.hasSecondaryActions = false;
         this._onDidChangeDropdownVisibility = this._register(new EventMultiplexer());
         this.onDidChangeDropdownVisibility = this._onDidChangeDropdownVisibility.event;
-        this.disposables = new DisposableStore();
+        this.disposables = this._register(new DisposableStore());
+        options.hoverDelegate = (_a = options.hoverDelegate) !== null && _a !== void 0 ? _a : this._register(getDefaultHoverDelegate('element', true));
         this.options = options;
         this.lookupKeybindings = typeof this.options.getKeyBinding === 'function';
         this.toggleMenuAction = this._register(new ToggleMenuAction(() => { var _a; return (_a = this.toggleMenuActionViewItem) === null || _a === void 0 ? void 0 : _a.show(); }, options.toggleMenuTitle));
@@ -43,6 +36,8 @@ export class ToolBar extends Disposable {
             ariaLabel: options.ariaLabel,
             actionRunner: options.actionRunner,
             allowContextMenu: options.allowContextMenu,
+            highlightToggledItems: options.highlightToggledItems,
+            hoverDelegate: options.hoverDelegate,
             actionViewItemProvider: (action, viewItemOptions) => {
                 var _a;
                 if (action.id === ToggleMenuAction.ID) {
@@ -52,7 +47,10 @@ export class ToolBar extends Disposable {
                         keybindingProvider: this.options.getKeyBinding,
                         classNames: ThemeIcon.asClassNameArray((_a = options.moreIcon) !== null && _a !== void 0 ? _a : Codicon.toolBarMore),
                         anchorAlignmentProvider: this.options.anchorAlignmentProvider,
-                        menuAsChild: !!this.options.renderDropdownAsChildElement
+                        menuAsChild: !!this.options.renderDropdownAsChildElement,
+                        skipTelemetry: this.options.skipTelemetry,
+                        isMenu: true,
+                        hoverDelegate: this.options.hoverDelegate
                     });
                     this.toggleMenuActionViewItem.setActionContext(this.actionBar.context);
                     this.disposables.add(this._onDidChangeDropdownVisibility.add(this.toggleMenuActionViewItem.onDidChangeVisibility));
@@ -71,7 +69,9 @@ export class ToolBar extends Disposable {
                         keybindingProvider: this.options.getKeyBinding,
                         classNames: action.class,
                         anchorAlignmentProvider: this.options.anchorAlignmentProvider,
-                        menuAsChild: !!this.options.renderDropdownAsChildElement
+                        menuAsChild: !!this.options.renderDropdownAsChildElement,
+                        skipTelemetry: this.options.skipTelemetry,
+                        hoverDelegate: this.options.hoverDelegate
                     });
                     result.setActionContext(this.actionBar.context);
                     this.submenuActionViewItems.push(result);
@@ -108,9 +108,9 @@ export class ToolBar extends Disposable {
         });
     }
     getKeybindingLabel(action) {
-        var _a, _b;
+        var _a, _b, _c;
         const key = this.lookupKeybindings ? (_b = (_a = this.options).getKeyBinding) === null || _b === void 0 ? void 0 : _b.call(_a, action) : undefined;
-        return withNullAsUndefined(key === null || key === void 0 ? void 0 : key.getLabel());
+        return (_c = key === null || key === void 0 ? void 0 : key.getLabel()) !== null && _c !== void 0 ? _c : undefined;
     }
     clear() {
         this.submenuActionViewItems = [];
@@ -119,20 +119,19 @@ export class ToolBar extends Disposable {
     }
     dispose() {
         this.clear();
+        this.disposables.dispose();
         super.dispose();
     }
 }
-class ToggleMenuAction extends Action {
+export class ToggleMenuAction extends Action {
     constructor(toggleDropdownMenu, title) {
         title = title || nls.localize('moreActions', "More Actions...");
         super(ToggleMenuAction.ID, title, undefined, true);
         this._menuActions = [];
         this.toggleDropdownMenu = toggleDropdownMenu;
     }
-    run() {
-        return __awaiter(this, void 0, void 0, function* () {
-            this.toggleDropdownMenu();
-        });
+    async run() {
+        this.toggleDropdownMenu();
     }
     get menuActions() {
         return this._menuActions;
@@ -142,4 +141,3 @@ class ToggleMenuAction extends Action {
     }
 }
 ToggleMenuAction.ID = 'toolbar.toggle.more';
-export { ToggleMenuAction };

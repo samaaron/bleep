@@ -16,6 +16,7 @@ import { Extensions as ThemingExtensions } from '../../../platform/theme/common/
 import { Disposable } from '../../../base/common/lifecycle.js';
 import { ColorScheme, isDark, isHighContrast } from '../../../platform/theme/common/theme.js';
 import { getIconsStyleSheet, UnthemedProductIconTheme } from '../../../platform/theme/browser/iconsStyleSheet.js';
+import { mainWindow } from '../../../base/browser/window.js';
 export const VS_LIGHT_THEME_NAME = 'vs';
 export const VS_DARK_THEME_NAME = 'vs-dark';
 export const HC_BLACK_THEME_NAME = 'hc-black';
@@ -185,7 +186,7 @@ export class StandaloneThemeService extends Disposable {
         this._knownThemes.set(VS_DARK_THEME_NAME, newBuiltInTheme(VS_DARK_THEME_NAME));
         this._knownThemes.set(HC_BLACK_THEME_NAME, newBuiltInTheme(HC_BLACK_THEME_NAME));
         this._knownThemes.set(HC_LIGHT_THEME_NAME, newBuiltInTheme(HC_LIGHT_THEME_NAME));
-        const iconsStyleSheet = getIconsStyleSheet(this);
+        const iconsStyleSheet = this._register(getIconsStyleSheet(this));
         this._codiconCSS = iconsStyleSheet.getCSS();
         this._themeCSS = '';
         this._allCSS = `${this._codiconCSS}\n${this._themeCSS}`;
@@ -194,11 +195,11 @@ export class StandaloneThemeService extends Disposable {
         this._colorMapOverride = null;
         this.setTheme(VS_LIGHT_THEME_NAME);
         this._onOSSchemeChanged();
-        iconsStyleSheet.onDidChange(() => {
+        this._register(iconsStyleSheet.onDidChange(() => {
             this._codiconCSS = iconsStyleSheet.getCSS();
             this._updateCSS();
-        });
-        addMatchMediaChangeListener('(forced-colors: active)', () => {
+        }));
+        addMatchMediaChangeListener(mainWindow, '(forced-colors: active)', () => {
             this._onOSSchemeChanged();
         });
     }
@@ -210,17 +211,19 @@ export class StandaloneThemeService extends Disposable {
     }
     _registerRegularEditorContainer() {
         if (!this._globalStyleElement) {
-            this._globalStyleElement = dom.createStyleSheet();
-            this._globalStyleElement.className = 'monaco-colors';
-            this._globalStyleElement.textContent = this._allCSS;
+            this._globalStyleElement = dom.createStyleSheet(undefined, style => {
+                style.className = 'monaco-colors';
+                style.textContent = this._allCSS;
+            });
             this._styleElements.push(this._globalStyleElement);
         }
         return Disposable.None;
     }
     _registerShadowDomContainer(domNode) {
-        const styleElement = dom.createStyleSheet(domNode);
-        styleElement.className = 'monaco-colors';
-        styleElement.textContent = this._allCSS;
+        const styleElement = dom.createStyleSheet(domNode, style => {
+            style.className = 'monaco-colors';
+            style.textContent = this._allCSS;
+        });
         this._styleElements.push(styleElement);
         return {
             dispose: () => {
@@ -280,7 +283,7 @@ export class StandaloneThemeService extends Disposable {
     }
     _onOSSchemeChanged() {
         if (this._autoDetectHighContrast) {
-            const wantsHighContrast = window.matchMedia(`(forced-colors: active)`).matches;
+            const wantsHighContrast = mainWindow.matchMedia(`(forced-colors: active)`).matches;
             if (wantsHighContrast !== isHighContrast(this._theme.type)) {
                 // switch to high contrast or non-high contrast but stick to dark or light
                 let newThemeName;
@@ -317,7 +320,7 @@ export class StandaloneThemeService extends Disposable {
                 colorVariables.push(`${asCssVariableName(item.id)}: ${color.toString()};`);
             }
         }
-        ruleCollector.addRule(`.monaco-editor { ${colorVariables.join('\n')} }`);
+        ruleCollector.addRule(`.monaco-editor, .monaco-diff-editor, .monaco-component { ${colorVariables.join('\n')} }`);
         const colorMap = this._colorMapOverride || this._theme.tokenTheme.getColorMap();
         ruleCollector.addRule(generateTokensCSSForColorMap(colorMap));
         this._themeCSS = cssRules.join('\n');

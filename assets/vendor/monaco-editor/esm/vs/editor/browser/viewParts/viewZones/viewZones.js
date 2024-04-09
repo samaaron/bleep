@@ -11,8 +11,8 @@ export class ViewZones extends ViewPart {
     constructor(context) {
         super(context);
         const options = this._context.configuration.options;
-        const layoutInfo = options.get(138 /* EditorOption.layoutInfo */);
-        this._lineHeight = options.get(63 /* EditorOption.lineHeight */);
+        const layoutInfo = options.get(144 /* EditorOption.layoutInfo */);
+        this._lineHeight = options.get(67 /* EditorOption.lineHeight */);
         this._contentWidth = layoutInfo.contentWidth;
         this._contentLeft = layoutInfo.contentLeft;
         this.domNode = createFastDomNode(document.createElement('div'));
@@ -58,11 +58,11 @@ export class ViewZones extends ViewPart {
     }
     onConfigurationChanged(e) {
         const options = this._context.configuration.options;
-        const layoutInfo = options.get(138 /* EditorOption.layoutInfo */);
-        this._lineHeight = options.get(63 /* EditorOption.lineHeight */);
+        const layoutInfo = options.get(144 /* EditorOption.layoutInfo */);
+        this._lineHeight = options.get(67 /* EditorOption.lineHeight */);
         this._contentWidth = layoutInfo.contentWidth;
         this._contentLeft = layoutInfo.contentLeft;
-        if (e.hasChanged(63 /* EditorOption.lineHeight */)) {
+        if (e.hasChanged(67 /* EditorOption.lineHeight */)) {
             this._recomputeWhitespacesProps();
         }
         return true;
@@ -84,10 +84,8 @@ export class ViewZones extends ViewPart {
     }
     // ---- end view event handlers
     _getZoneOrdinal(zone) {
-        if (typeof zone.afterColumn !== 'undefined') {
-            return zone.afterColumn;
-        }
-        return 10000;
+        var _a, _b;
+        return (_b = (_a = zone.ordinal) !== null && _a !== void 0 ? _a : zone.afterColumn) !== null && _b !== void 0 ? _b : 10000;
     }
     _computeWhitespaceProps(zone) {
         if (zone.afterLineNumber === 0) {
@@ -125,8 +123,8 @@ export class ViewZones extends ViewPart {
                 column: zoneAfterModelPosition.column + 1
             });
         }
-        const viewPosition = this._context.viewModel.coordinatesConverter.convertModelPositionToViewPosition(zoneAfterModelPosition, zone.afterColumnAffinity);
-        const isVisible = this._context.viewModel.coordinatesConverter.modelPositionIsVisible(zoneBeforeModelPosition);
+        const viewPosition = this._context.viewModel.coordinatesConverter.convertModelPositionToViewPosition(zoneAfterModelPosition, zone.afterColumnAffinity, true);
+        const isVisible = zone.showInHiddenAreas || this._context.viewModel.coordinatesConverter.modelPositionIsVisible(zoneBeforeModelPosition);
         return {
             isInHiddenArea: !isVisible,
             afterViewLineNumber: viewPosition.lineNumber,

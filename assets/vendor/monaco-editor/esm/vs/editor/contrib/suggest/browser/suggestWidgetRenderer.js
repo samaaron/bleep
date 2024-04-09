@@ -35,17 +35,20 @@ export function getAriaId(index) {
 const suggestMoreInfoIcon = registerIcon('suggest-more-info', Codicon.chevronRight, nls.localize('suggestMoreInfoIcon', 'Icon for more information in the suggest widget.'));
 const _completionItemColor = new (_a = class ColorExtractor {
         extract(item, out) {
-            if (item.textLabel.match(ColorExtractor._regexStrict)) {
+            if (item.textLabel.match(_a._regexStrict)) {
                 out[0] = item.textLabel;
                 return true;
             }
-            if (item.completion.detail && item.completion.detail.match(ColorExtractor._regexStrict)) {
+            if (item.completion.detail && item.completion.detail.match(_a._regexStrict)) {
                 out[0] = item.completion.detail;
                 return true;
             }
-            if (typeof item.completion.documentation === 'string') {
-                const match = ColorExtractor._regexRelaxed.exec(item.completion.documentation);
-                if (match && (match.index === 0 || match.index + match[0].length === item.completion.documentation.length)) {
+            if (item.completion.documentation) {
+                const value = typeof item.completion.documentation === 'string'
+                    ? item.completion.documentation
+                    : item.completion.documentation.value;
+                const match = _a._regexRelaxed.exec(value);
+                if (match && (match.index === 0 || match.index + match[0].length === value.length)) {
                     out[0] = match[0];
                     return true;
                 }
@@ -89,11 +92,11 @@ let ItemRenderer = class ItemRenderer {
         readMore.title = nls.localize('readMore', "Read More");
         const configureFont = () => {
             const options = this._editor.getOptions();
-            const fontInfo = options.get(47 /* EditorOption.fontInfo */);
+            const fontInfo = options.get(50 /* EditorOption.fontInfo */);
             const fontFamily = fontInfo.getMassagedFontFamily();
             const fontFeatureSettings = fontInfo.fontFeatureSettings;
-            const fontSize = options.get(113 /* EditorOption.suggestFontSize */) || fontInfo.fontSize;
-            const lineHeight = options.get(114 /* EditorOption.suggestLineHeight */) || fontInfo.lineHeight;
+            const fontSize = options.get(119 /* EditorOption.suggestFontSize */) || fontInfo.fontSize;
+            const lineHeight = options.get(120 /* EditorOption.suggestLineHeight */) || fontInfo.lineHeight;
             const fontWeight = fontInfo.fontWeight;
             const letterSpacing = fontInfo.letterSpacing;
             const fontSizePx = `${fontSize}px`;
@@ -110,15 +113,10 @@ let ItemRenderer = class ItemRenderer {
             readMore.style.height = lineHeightPx;
             readMore.style.width = lineHeightPx;
         };
-        configureFont();
-        disposables.add(this._editor.onDidChangeConfiguration(e => {
-            if (e.hasChanged(47 /* EditorOption.fontInfo */) || e.hasChanged(113 /* EditorOption.suggestFontSize */) || e.hasChanged(114 /* EditorOption.suggestLineHeight */)) {
-                configureFont();
-            }
-        }));
-        return { root, left, right, icon, colorspan, iconLabel, iconContainer, parametersLabel, qualifierLabel, detailsLabel, readMore, disposables };
+        return { root, left, right, icon, colorspan, iconLabel, iconContainer, parametersLabel, qualifierLabel, detailsLabel, readMore, disposables, configureFont };
     }
     renderElement(element, index, data) {
+        data.configureFont();
         const { completion } = element;
         data.root.id = getAriaId(index);
         data.colorspan.style.backgroundColor = '';
@@ -171,7 +169,7 @@ let ItemRenderer = class ItemRenderer {
             data.detailsLabel.textContent = stripNewLines(completion.label.description || '');
             data.root.classList.remove('string-label');
         }
-        if (this._editor.getOption(112 /* EditorOption.suggest */).showInlineDetails) {
+        if (this._editor.getOption(118 /* EditorOption.suggest */).showInlineDetails) {
             show(data.detailsLabel);
         }
         else {

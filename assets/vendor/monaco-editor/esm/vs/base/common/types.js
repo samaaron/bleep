@@ -117,9 +117,3 @@ export function validateConstraint(arg, constraint) {
         throw new Error(`argument does not match one of these constraints: arg instanceof constraint, arg.constructor === constraint, nor constraint(arg) === true`);
     }
 }
-/**
- * Converts null to undefined, passes all other values through.
- */
-export function withNullAsUndefined(x) {
-    return x === null ? undefined : x;
-}

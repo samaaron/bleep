@@ -1,4 +1,10 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+import { Lazy } from './lazy.js';
 const hasBuffer = (typeof Buffer !== 'undefined');
+const indexOfTable = new Lazy(() => new Uint8Array(256));
 let textDecoder;
 export class VSBuffer {
     /**
@@ -40,9 +46,9 @@ export function writeUInt16LE(destination, value, offset) {
     destination[offset + 1] = (value & 0b11111111);
 }
 export function readUInt32BE(source, offset) {
-    return (source[offset] * Math.pow(2, 24)
-        + source[offset + 1] * Math.pow(2, 16)
-        + source[offset + 2] * Math.pow(2, 8)
+    return (source[offset] * 2 ** 24
+        + source[offset + 1] * 2 ** 16
+        + source[offset + 2] * 2 ** 8
         + source[offset + 3]);
 }
 export function writeUInt32BE(destination, value, offset) {

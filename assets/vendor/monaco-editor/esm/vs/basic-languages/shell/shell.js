@@ -1,9 +1,10 @@
 /*!-----------------------------------------------------------------------------
  * Copyright (c) Microsoft Corporation. All rights reserved.
- * Version: 0.36.1(6c56744c3419458f0dd48864520b759d1a3a1ca8)
+ * Version: 0.47.0(69991d66135e4a1fc1cf0b1ac4ad25d429866a0d)
  * Released under the MIT license
  * https://github.com/microsoft/monaco-editor/blob/main/LICENSE.txt
  *-----------------------------------------------------------------------------*/
+
 
 // src/basic-languages/shell/shell.ts
 var conf = {
@@ -132,7 +133,9 @@ var language = {
   ],
   startingWithDash: /\-+\w+/,
   identifiersWithDashes: /[a-zA-Z]\w+(?:@startingWithDash)+/,
+  // we include these common regular expressions
   symbols: /[=><!~?&|+\-*\/\^;\.,]+/,
+  // The main tokenizer for our languages
   tokenizer: {
     root: [
       [/@identifiersWithDashes/, ""],
@@ -166,6 +169,7 @@ var language = {
       [/0[xX][0-9a-fA-F_]*[0-9a-fA-F]/, "number.hex"],
       [/\d+/, "number"]
     ],
+    // Recognize strings, including those broken across lines
     strings: [
       [/'/, "string", "@stringBody"],
       [/"/, "string", "@dblStringBody"]

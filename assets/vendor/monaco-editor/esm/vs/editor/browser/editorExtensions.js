@@ -15,15 +15,16 @@ import { IInstantiationService } from '../../platform/instantiation/common/insta
 import { KeybindingsRegistry } from '../../platform/keybinding/common/keybindingsRegistry.js';
 import { Registry } from '../../platform/registry/common/platform.js';
 import { ITelemetryService } from '../../platform/telemetry/common/telemetry.js';
-import { withNullAsUndefined, assertType } from '../../base/common/types.js';
+import { assertType } from '../../base/common/types.js';
 import { ILogService } from '../../platform/log/common/log.js';
+import { getActiveElement } from '../../base/browser/dom.js';
 export class Command {
     constructor(opts) {
         this.id = opts.id;
         this.precondition = opts.precondition;
         this._kbOpts = opts.kbOpts;
         this._menuOpts = opts.menuOpts;
-        this._description = opts.description;
+        this.metadata = opts.metadata;
     }
     register() {
         if (Array.isArray(this._menuOpts)) {
@@ -61,7 +62,7 @@ export class Command {
         CommandsRegistry.registerCommand({
             id: this.id,
             handler: (accessor, args) => this.runCommand(accessor, args),
-            description: this._description
+            metadata: this.metadata
         });
     }
     _registerMenuItem(item) {
@@ -86,8 +87,8 @@ export class MultiCommand extends Command {
     /**
      * A higher priority gets to be looked at first
      */
-    addImplementation(priority, name, implementation) {
-        this._implementations.push({ priority, name, implementation });
+    addImplementation(priority, name, implementation, when) {
+        this._implementations.push({ priority, name, implementation, when });
         this._implementations.sort((a, b) => b.priority - a.priority);
         return {
             dispose: () => {
@@ -102,8 +103,16 @@ export class MultiCommand extends Command {
     }
     runCommand(accessor, args) {
         const logService = accessor.get(ILogService);
+        const contextKeyService = accessor.get(IContextKeyService);
         logService.trace(`Executing Command '${this.id}' which has ${this._implementations.length} bound.`);
         for (const impl of this._implementations) {
+            if (impl.when) {
+                const context = contextKeyService.getContext(getActiveElement());
+                const value = impl.when.evaluate(context);
+                if (!value) {
+                    continue;
+                }
+            }
             const result = impl.implementation(accessor, args);
             if (result) {
                 logService.trace(`Command '${this.id}' was handled by '${impl.name}'.`);
@@ -159,7 +168,7 @@ export class EditorCommand extends Command {
         }
         return editor.invokeWithinContext((editorAccessor) => {
             const kbService = editorAccessor.get(IContextKeyService);
-            if (!kbService.contextMatchesRules(withNullAsUndefined(precondition))) {
+            if (!kbService.contextMatchesRules(precondition !== null && precondition !== void 0 ? precondition : undefined)) {
                 // precondition does not hold
                 return;
             }
@@ -261,10 +270,15 @@ export class EditorAction2 extends Action2 {
         }
         // precondition does hold
         return editor.invokeWithinContext((editorAccessor) => {
+            var _a, _b;
             const kbService = editorAccessor.get(IContextKeyService);
-            if (kbService.contextMatchesRules(withNullAsUndefined(this.desc.precondition))) {
-                return this.runEditorCommand(editorAccessor, editor, ...args);
+            const logService = editorAccessor.get(ILogService);
+            const enabled = kbService.contextMatchesRules((_a = this.desc.precondition) !== null && _a !== void 0 ? _a : undefined);
+            if (!enabled) {
+                logService.debug(`[EditorAction2] NOT running command because its precondition is FALSE`, this.desc.id, (_b = this.desc.precondition) === null || _b === void 0 ? void 0 : _b.serialize());
+                return;
             }
+            return this.runEditorCommand(editorAccessor, editor, ...args);
         });
     }
 }

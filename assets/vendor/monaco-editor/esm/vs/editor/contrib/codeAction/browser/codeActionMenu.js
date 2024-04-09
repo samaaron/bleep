@@ -9,24 +9,26 @@ import '../../symbolIcons/browser/symbolIcons.js'; // The codicon symbol colors 
 import { localize } from '../../../../nls.js';
 const uncategorizedCodeActionGroup = Object.freeze({ kind: CodeActionKind.Empty, title: localize('codeAction.widget.id.more', 'More Actions...') });
 const codeActionGroups = Object.freeze([
-    { kind: CodeActionKind.QuickFix, title: localize('codeAction.widget.id.quickfix', 'Quick Fix...') },
-    { kind: CodeActionKind.RefactorExtract, title: localize('codeAction.widget.id.extract', 'Extract...'), icon: Codicon.wrench },
-    { kind: CodeActionKind.RefactorInline, title: localize('codeAction.widget.id.inline', 'Inline...'), icon: Codicon.wrench },
-    { kind: CodeActionKind.RefactorRewrite, title: localize('codeAction.widget.id.convert', 'Rewrite...'), icon: Codicon.wrench },
-    { kind: CodeActionKind.RefactorMove, title: localize('codeAction.widget.id.move', 'Move...'), icon: Codicon.wrench },
-    { kind: CodeActionKind.SurroundWith, title: localize('codeAction.widget.id.surround', 'Surround With...'), icon: Codicon.symbolSnippet },
-    { kind: CodeActionKind.Source, title: localize('codeAction.widget.id.source', 'Source Action...'), icon: Codicon.symbolFile },
+    { kind: CodeActionKind.QuickFix, title: localize('codeAction.widget.id.quickfix', 'Quick Fix') },
+    { kind: CodeActionKind.RefactorExtract, title: localize('codeAction.widget.id.extract', 'Extract'), icon: Codicon.wrench },
+    { kind: CodeActionKind.RefactorInline, title: localize('codeAction.widget.id.inline', 'Inline'), icon: Codicon.wrench },
+    { kind: CodeActionKind.RefactorRewrite, title: localize('codeAction.widget.id.convert', 'Rewrite'), icon: Codicon.wrench },
+    { kind: CodeActionKind.RefactorMove, title: localize('codeAction.widget.id.move', 'Move'), icon: Codicon.wrench },
+    { kind: CodeActionKind.SurroundWith, title: localize('codeAction.widget.id.surround', 'Surround With'), icon: Codicon.surroundWith },
+    { kind: CodeActionKind.Source, title: localize('codeAction.widget.id.source', 'Source Action'), icon: Codicon.symbolFile },
     uncategorizedCodeActionGroup,
 ]);
 export function toMenuItems(inputCodeActions, showHeaders, keybindingResolver) {
     if (!showHeaders) {
         return inputCodeActions.map((action) => {
+            var _a;
             return {
                 kind: "action" /* ActionListItemKind.Action */,
                 item: action,
                 group: uncategorizedCodeActionGroup,
                 disabled: !!action.action.disabled,
-                label: action.action.disabled || action.action.title
+                label: action.action.disabled || action.action.title,
+                canPreview: !!((_a = action.action.edit) === null || _a === void 0 ? void 0 : _a.edits.length),
             };
         });
     }
@@ -46,10 +48,11 @@ export function toMenuItems(inputCodeActions, showHeaders, keybindingResolver) {
         if (menuEntry.actions.length) {
             allMenuItems.push({ kind: "header" /* ActionListItemKind.Header */, group: menuEntry.group });
             for (const action of menuEntry.actions) {
+                const group = menuEntry.group;
                 allMenuItems.push({
                     kind: "action" /* ActionListItemKind.Action */,
                     item: action,
-                    group: menuEntry.group,
+                    group: action.action.isAI ? { title: group.title, kind: group.kind, icon: Codicon.sparkle } : group,
                     label: action.action.title,
                     disabled: !!action.action.disabled,
                     keybinding: keybindingResolver(action.action),

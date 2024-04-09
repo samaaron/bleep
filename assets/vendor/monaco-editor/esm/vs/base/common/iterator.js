@@ -30,6 +30,12 @@ export var Iterable;
         return iterable || _empty;
     }
     Iterable.from = from;
+    function* reverse(array) {
+        for (let i = array.length - 1; i >= 0; i--) {
+            yield array[i];
+        }
+    }
+    Iterable.reverse = reverse;
     function isEmpty(iterable) {
         return !iterable || iterable[Symbol.iterator]().next().done === true;
     }
@@ -73,9 +79,7 @@ export var Iterable;
     Iterable.map = map;
     function* concat(...iterables) {
         for (const iterable of iterables) {
-            for (const element of iterable) {
-                yield element;
-            }
+            yield* iterable;
         }
     }
     Iterable.concat = concat;
@@ -125,4 +129,12 @@ export var Iterable;
         return [consumed, { [Symbol.iterator]() { return iterator; } }];
     }
     Iterable.consume = consume;
+    async function asyncToArray(iterable) {
+        const result = [];
+        for await (const item of iterable) {
+            result.push(item);
+        }
+        return Promise.resolve(result);
+    }
+    Iterable.asyncToArray = asyncToArray;
 })(Iterable || (Iterable = {}));

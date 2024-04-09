@@ -6,7 +6,7 @@ import { Disposable, DisposableStore, toDisposable } from '../../../../base/comm
 import { getCodeEditor } from '../../../browser/editorBrowser.js';
 import { AbstractEditorNavigationQuickAccessProvider } from './editorNavigationQuickAccess.js';
 import { localize } from '../../../../nls.js';
-class AbstractGotoLineQuickAccessProvider extends AbstractEditorNavigationQuickAccessProvider {
+export class AbstractGotoLineQuickAccessProvider extends AbstractEditorNavigationQuickAccessProvider {
     constructor() {
         super({ canAcceptInBackground: true });
     }
@@ -61,7 +61,7 @@ class AbstractGotoLineQuickAccessProvider extends AbstractEditorNavigationQuickA
         const codeEditor = getCodeEditor(editor);
         if (codeEditor) {
             const options = codeEditor.getOptions();
-            const lineNumbers = options.get(64 /* EditorOption.lineNumbers */);
+            const lineNumbers = options.get(68 /* EditorOption.lineNumbers */);
             if (lineNumbers.renderType === 2 /* RenderLineNumbersType.Relative */) {
                 codeEditor.updateOptions({ lineNumbers: 'on' });
                 disposables.add(toDisposable(() => codeEditor.updateOptions({ lineNumbers: 'relative' })));
@@ -125,4 +125,3 @@ class AbstractGotoLineQuickAccessProvider extends AbstractEditorNavigationQuickA
     }
 }
 AbstractGotoLineQuickAccessProvider.PREFIX = ':';
-export { AbstractGotoLineQuickAccessProvider };

@@ -51,6 +51,8 @@ let SuggestWidgetStatus = class SuggestWidgetStatus {
     }
     dispose() {
         this._menuDisposables.dispose();
+        this._leftActions.dispose();
+        this._rightActions.dispose();
         this.element.remove();
     }
     show() {

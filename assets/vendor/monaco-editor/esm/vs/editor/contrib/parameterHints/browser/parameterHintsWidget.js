@@ -11,6 +11,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var ParameterHintsWidget_1;
 import * as dom from '../../../../base/browser/dom.js';
 import * as aria from '../../../../base/browser/ui/aria/aria.js';
 import { DomScrollableElement } from '../../../../base/browser/ui/scrollbar/scrollableElement.js';
@@ -21,7 +22,7 @@ import { escapeRegExpCharacters } from '../../../../base/common/strings.js';
 import { assertIsDefined } from '../../../../base/common/types.js';
 import './parameterHints.css';
 import { ILanguageService } from '../../../common/languages/language.js';
-import { MarkdownRenderer } from '../../markdownRenderer/browser/markdownRenderer.js';
+import { MarkdownRenderer } from '../../../browser/widget/markdownRenderer/browser/markdownRenderer.js';
 import { Context } from './provideSignatureHelp.js';
 import * as nls from '../../../../nls.js';
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
@@ -32,7 +33,7 @@ import { ThemeIcon } from '../../../../base/common/themables.js';
 const $ = dom.$;
 const parameterHintsNextIcon = registerIcon('parameter-hints-next', Codicon.chevronDown, nls.localize('parameterHintsNextIcon', 'Icon for show next parameter hint.'));
 const parameterHintsPreviousIcon = registerIcon('parameter-hints-previous', Codicon.chevronUp, nls.localize('parameterHintsPreviousIcon', 'Icon for show previous parameter hint.'));
-let ParameterHintsWidget = class ParameterHintsWidget extends Disposable {
+let ParameterHintsWidget = ParameterHintsWidget_1 = class ParameterHintsWidget extends Disposable {
     constructor(editor, model, contextKeyService, openerService, languageService) {
         super();
         this.editor = editor;
@@ -89,14 +90,12 @@ let ParameterHintsWidget = class ParameterHintsWidget extends Disposable {
             if (!this.domNodes) {
                 return;
             }
-            const fontInfo = this.editor.getOption(47 /* EditorOption.fontInfo */);
+            const fontInfo = this.editor.getOption(50 /* EditorOption.fontInfo */);
             this.domNodes.element.style.fontSize = `${fontInfo.fontSize}px`;
             this.domNodes.element.style.lineHeight = `${fontInfo.lineHeight / fontInfo.fontSize}`;
         };
         updateFont();
-        this._register(Event.chain(this.editor.onDidChangeConfiguration.bind(this.editor))
-            .filter(e => e.hasChanged(47 /* EditorOption.fontInfo */))
-            .on(updateFont, null));
+        this._register(Event.chain(this.editor.onDidChangeConfiguration.bind(this.editor), $ => $.filter(e => e.hasChanged(50 /* EditorOption.fontInfo */)))(updateFont));
         this._register(this.editor.onDidLayoutChange(e => this.updateMaxHeight()));
         this.updateMaxHeight();
     }
@@ -152,7 +151,7 @@ let ParameterHintsWidget = class ParameterHintsWidget extends Disposable {
             return;
         }
         const code = dom.append(this.domNodes.signature, $('.code'));
-        const fontInfo = this.editor.getOption(47 /* EditorOption.fontInfo */);
+        const fontInfo = this.editor.getOption(50 /* EditorOption.fontInfo */);
         code.style.fontSize = `${fontInfo.fontSize}px`;
         code.style.fontFamily = fontInfo.fontFamily;
         const hasParameters = signature.parameters.length > 0;
@@ -287,7 +286,7 @@ let ParameterHintsWidget = class ParameterHintsWidget extends Disposable {
         return this.domNodes.element;
     }
     getId() {
-        return ParameterHintsWidget.ID;
+        return ParameterHintsWidget_1.ID;
     }
     updateMaxHeight() {
         if (!this.domNodes) {
@@ -303,7 +302,7 @@ let ParameterHintsWidget = class ParameterHintsWidget extends Disposable {
     }
 };
 ParameterHintsWidget.ID = 'editor.widget.parameterHintsWidget';
-ParameterHintsWidget = __decorate([
+ParameterHintsWidget = ParameterHintsWidget_1 = __decorate([
     __param(2, IContextKeyService),
     __param(3, IOpenerService),
     __param(4, ILanguageService)

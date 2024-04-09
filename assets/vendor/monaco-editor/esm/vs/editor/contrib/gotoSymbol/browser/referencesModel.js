@@ -2,15 +2,6 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { defaultGenerator } from '../../../../base/common/idGenerator.js';
@@ -43,10 +34,10 @@ export class OneReference {
         var _a;
         const preview = (_a = this.parent.getPreview(this)) === null || _a === void 0 ? void 0 : _a.preview(this.range);
         if (!preview) {
-            return localize('aria.oneReference', "symbol in {0} on line {1} at column {2}", basename(this.uri), this.range.startLineNumber, this.range.startColumn);
+            return localize('aria.oneReference', "in {0} on line {1} at column {2}", basename(this.uri), this.range.startLineNumber, this.range.startColumn);
         }
         else {
-            return localize({ key: 'aria.oneReference.preview', comment: ['Placeholders are: 0: filename, 1:line number, 2: column number, 3: preview snippet of source code'] }, "symbol in {0} on line {1} at column {2}, {3}", basename(this.uri), this.range.startLineNumber, this.range.startColumn, preview.value);
+            return localize({ key: 'aria.oneReference.preview', comment: ['Placeholders are: 0: filename, 1:line number, 2: column number, 3: preview snippet of source code'] }, "{0} in {1} on line {2} at column {3}", preview.value, basename(this.uri), this.range.startLineNumber, this.range.startColumn);
         }
     }
 }
@@ -98,25 +89,23 @@ export class FileReferences {
             return localize('aria.fileReferences.N', "{0} symbols in {1}, full path {2}", len, basename(this.uri), this.uri.fsPath);
         }
     }
-    resolve(textModelResolverService) {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (this._previews.size !== 0) {
-                return this;
-            }
-            for (const child of this.children) {
-                if (this._previews.has(child.uri)) {
-                    continue;
-                }
-                try {
-                    const ref = yield textModelResolverService.createModelReference(child.uri);
-                    this._previews.set(child.uri, new FilePreview(ref));
-                }
-                catch (err) {
-                    onUnexpectedError(err);
-                }
-            }
+    async resolve(textModelResolverService) {
+        if (this._previews.size !== 0) {
             return this;
-        });
+        }
+        for (const child of this.children) {
+            if (this._previews.has(child.uri)) {
+                continue;
+            }
+            try {
+                const ref = await textModelResolverService.createModelReference(child.uri);
+                this._previews.set(child.uri, new FilePreview(ref));
+            }
+            catch (err) {
+                onUnexpectedError(err);
+            }
+        }
+        return this;
     }
 }
 export class ReferencesModel {

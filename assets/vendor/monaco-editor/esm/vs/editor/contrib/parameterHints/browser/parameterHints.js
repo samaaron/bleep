@@ -11,6 +11,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var ParameterHintsController_1;
 import { Lazy } from '../../../../base/common/lazy.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { EditorAction, EditorCommand, registerEditorAction, registerEditorCommand, registerEditorContribution } from '../../../browser/editorExtensions.js';
@@ -23,9 +24,9 @@ import * as nls from '../../../../nls.js';
 import { ContextKeyExpr } from '../../../../platform/contextkey/common/contextkey.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { ParameterHintsWidget } from './parameterHintsWidget.js';
-let ParameterHintsController = class ParameterHintsController extends Disposable {
+let ParameterHintsController = ParameterHintsController_1 = class ParameterHintsController extends Disposable {
     static get(editor) {
-        return editor.getContribution(ParameterHintsController.ID);
+        return editor.getContribution(ParameterHintsController_1.ID);
     }
     constructor(editor, instantiationService, languageFeaturesService) {
         super();
@@ -59,10 +60,11 @@ let ParameterHintsController = class ParameterHintsController extends Disposable
     }
 };
 ParameterHintsController.ID = 'editor.controller.parameterHints';
-ParameterHintsController = __decorate([
+ParameterHintsController = ParameterHintsController_1 = __decorate([
     __param(1, IInstantiationService),
     __param(2, ILanguageFeaturesService)
 ], ParameterHintsController);
+export { ParameterHintsController };
 export class TriggerParameterHintsAction extends EditorAction {
     constructor() {
         super({

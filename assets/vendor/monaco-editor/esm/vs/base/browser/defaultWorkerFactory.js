@@ -2,18 +2,19 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-var _a;
-import { globals } from '../common/platform.js';
+import { createTrustedTypesPolicy } from './trustedTypes.js';
+import { onUnexpectedError } from '../common/errors.js';
 import { logOnceWebWorkerWarning } from '../common/worker/simpleWorker.js';
-const ttPolicy = (_a = window.trustedTypes) === null || _a === void 0 ? void 0 : _a.createPolicy('defaultWorkerFactory', { createScriptURL: value => value });
+import { Disposable, toDisposable } from '../common/lifecycle.js';
+const ttPolicy = createTrustedTypesPolicy('defaultWorkerFactory', { createScriptURL: value => value });
 function getWorker(label) {
-    // Option for hosts to overwrite the worker script (used in the standalone editor)
-    if (globals.MonacoEnvironment) {
-        if (typeof globals.MonacoEnvironment.getWorker === 'function') {
-            return globals.MonacoEnvironment.getWorker('workerMain.js', label);
+    const monacoEnvironment = globalThis.MonacoEnvironment;
+    if (monacoEnvironment) {
+        if (typeof monacoEnvironment.getWorker === 'function') {
+            return monacoEnvironment.getWorker('workerMain.js', label);
         }
-        if (typeof globals.MonacoEnvironment.getWorkerUrl === 'function') {
-            const workerUrl = globals.MonacoEnvironment.getWorkerUrl('workerMain.js', label);
+        if (typeof monacoEnvironment.getWorkerUrl === 'function') {
+            const workerUrl = monacoEnvironment.getWorkerUrl('workerMain.js', label);
             return new Worker(ttPolicy ? ttPolicy.createScriptURL(workerUrl) : workerUrl, { name: label });
         }
     }
@@ -29,12 +30,12 @@ function getWorker(label) {
 }
 // ESM-comment-begin
 // export function getWorkerBootstrapUrl(scriptPath: string, label: string): string {
-// 	if (/^((http:)|(https:)|(file:))/.test(scriptPath) && scriptPath.substring(0, self.origin.length) !== self.origin) {
+// 	if (/^((http:)|(https:)|(file:))/.test(scriptPath) && scriptPath.substring(0, globalThis.origin.length) !== globalThis.origin) {
 // 		// this is the cross-origin case
 // 		// i.e. the webpage is running at a different origin than where the scripts are loaded from
 // 		const myPath = 'vs/base/worker/defaultWorkerFactory.js';
 // 		const workerBaseUrl = require.toUrl(myPath).slice(0, -myPath.length); // explicitly using require.toUrl(), see https://github.com/microsoft/vscode/issues/107440#issuecomment-698982321
-// 		const js = `/*${label}*/self.MonacoEnvironment={baseUrl: '${workerBaseUrl}'};const ttPolicy = self.trustedTypes?.createPolicy('defaultWorkerFactory', { createScriptURL: value => value });importScripts(ttPolicy?.createScriptURL('${scriptPath}') ?? '${scriptPath}');/*${label}*/`;
+// 		const js = `/*${label}*/globalThis.MonacoEnvironment={baseUrl: '${workerBaseUrl}'};const ttPolicy = globalThis.trustedTypes?.createPolicy('defaultWorkerFactory', { createScriptURL: value => value });importScripts(ttPolicy?.createScriptURL('${scriptPath}') ?? '${scriptPath}');/*${label}*/`;
 // 		const blob = new Blob([js], { type: 'application/javascript' });
 // 		return URL.createObjectURL(blob);
 // 	}
@@ -65,9 +66,11 @@ function isPromiseLike(obj) {
  * A worker that uses HTML5 web workers so that is has
  * its own global scope and its own thread.
  */
-class WebWorker {
+class WebWorker extends Disposable {
     constructor(moduleId, id, label, onMessageCallback, onErrorCallback) {
+        super();
         this.id = id;
+        this.label = label;
         const workerOrPromise = getWorker(label);
         if (isPromiseLike(workerOrPromise)) {
             this.worker = workerOrPromise;
@@ -85,21 +88,34 @@ class WebWorker {
                 w.addEventListener('error', onErrorCallback);
             }
         });
+        this._register(toDisposable(() => {
+            var _a;
+            (_a = this.worker) === null || _a === void 0 ? void 0 : _a.then(w => {
+                w.onmessage = null;
+                w.onmessageerror = null;
+                w.removeEventListener('error', onErrorCallback);
+                w.terminate();
+            });
+            this.worker = null;
+        }));
     }
     getId() {
         return this.id;
     }
     postMessage(message, transfer) {
         var _a;
-        (_a = this.worker) === null || _a === void 0 ? void 0 : _a.then(w => w.postMessage(message, transfer));
-    }
-    dispose() {
-        var _a;
-        (_a = this.worker) === null || _a === void 0 ? void 0 : _a.then(w => w.terminate());
-        this.worker = null;
+        (_a = this.worker) === null || _a === void 0 ? void 0 : _a.then(w => {
+            try {
+                w.postMessage(message, transfer);
+            }
+            catch (err) {
+                onUnexpectedError(err);
+                onUnexpectedError(new Error(`FAILED to post message to '${this.label}'-worker`, { cause: err }));
+            }
+        });
     }
 }
-class DefaultWorkerFactory {
+export class DefaultWorkerFactory {
     constructor(label) {
         this._label = label;
         this._webWorkerFailedBeforeError = false;
@@ -117,4 +133,3 @@ class DefaultWorkerFactory {
     }
 }
 DefaultWorkerFactory.LAST_WORKER_ID = 0;
-export { DefaultWorkerFactory };

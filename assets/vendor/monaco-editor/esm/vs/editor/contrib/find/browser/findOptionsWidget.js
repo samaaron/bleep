@@ -9,7 +9,7 @@ import { Widget } from '../../../../base/browser/ui/widget.js';
 import { RunOnceScheduler } from '../../../../base/common/async.js';
 import { FIND_IDS } from './findModel.js';
 import { asCssVariable, inputActiveOptionBackground, inputActiveOptionBorder, inputActiveOptionForeground } from '../../../../platform/theme/common/colorRegistry.js';
-class FindOptionsWidget extends Widget {
+export class FindOptionsWidget extends Widget {
     constructor(editor, state, keybindingService) {
         super();
         this._hideSoon = this._register(new RunOnceScheduler(() => this._hide(), 2000));
@@ -29,21 +29,33 @@ class FindOptionsWidget extends Widget {
             inputActiveOptionForeground: asCssVariable(inputActiveOptionForeground),
             inputActiveOptionBackground: asCssVariable(inputActiveOptionBackground),
         };
-        this.caseSensitive = this._register(new CaseSensitiveToggle(Object.assign({ appendTitle: this._keybindingLabelFor(FIND_IDS.ToggleCaseSensitiveCommand), isChecked: this._state.matchCase }, toggleStyles)));
+        this.caseSensitive = this._register(new CaseSensitiveToggle({
+            appendTitle: this._keybindingLabelFor(FIND_IDS.ToggleCaseSensitiveCommand),
+            isChecked: this._state.matchCase,
+            ...toggleStyles
+        }));
         this._domNode.appendChild(this.caseSensitive.domNode);
         this._register(this.caseSensitive.onChange(() => {
             this._state.change({
                 matchCase: this.caseSensitive.checked
             }, false);
         }));
-        this.wholeWords = this._register(new WholeWordsToggle(Object.assign({ appendTitle: this._keybindingLabelFor(FIND_IDS.ToggleWholeWordCommand), isChecked: this._state.wholeWord }, toggleStyles)));
+        this.wholeWords = this._register(new WholeWordsToggle({
+            appendTitle: this._keybindingLabelFor(FIND_IDS.ToggleWholeWordCommand),
+            isChecked: this._state.wholeWord,
+            ...toggleStyles
+        }));
         this._domNode.appendChild(this.wholeWords.domNode);
         this._register(this.wholeWords.onChange(() => {
             this._state.change({
                 wholeWord: this.wholeWords.checked
             }, false);
         }));
-        this.regex = this._register(new RegexToggle(Object.assign({ appendTitle: this._keybindingLabelFor(FIND_IDS.ToggleRegexCommand), isChecked: this._state.isRegex }, toggleStyles)));
+        this.regex = this._register(new RegexToggle({
+            appendTitle: this._keybindingLabelFor(FIND_IDS.ToggleRegexCommand),
+            isChecked: this._state.isRegex,
+            ...toggleStyles
+        }));
         this._domNode.appendChild(this.regex.domNode);
         this._register(this.regex.onChange(() => {
             this._state.change({
@@ -124,4 +136,3 @@ class FindOptionsWidget extends Widget {
     }
 }
 FindOptionsWidget.ID = 'editor.contrib.findOptionsWidget';
-export { FindOptionsWidget };

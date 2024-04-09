@@ -11,6 +11,12 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var MonarchTokenizer_1;
+/**
+ * Create a syntax highighter with a fully declarative JSON style lexer description
+ * using regular expressions.
+ */
+import { Disposable } from '../../../../base/common/lifecycle.js';
 import * as languages from '../../../common/languages.js';
 import { NullState, nullTokenizeEncoded, nullTokenize } from '../../../common/languages/nullTokenize.js';
 import * as monarchCommon from './monarchCommon.js';
@@ -294,8 +300,9 @@ class MonarchModernTokensCollector {
         return new languages.EncodedTokenizationResult(MonarchModernTokensCollector._merge(this._prependTokens, this._tokens, null), endState);
     }
 }
-let MonarchTokenizer = class MonarchTokenizer {
+let MonarchTokenizer = MonarchTokenizer_1 = class MonarchTokenizer extends Disposable {
     constructor(languageService, standaloneThemeService, languageId, lexer, _configurationService) {
+        super();
         this._configurationService = _configurationService;
         this._languageService = languageService;
         this._standaloneThemeService = standaloneThemeService;
@@ -305,7 +312,7 @@ let MonarchTokenizer = class MonarchTokenizer {
         this.embeddedLoaded = Promise.resolve(undefined);
         // Set up listening for embedded modes
         let emitting = false;
-        this._tokenizationRegistryListener = languages.TokenizationRegistry.onDidChange((e) => {
+        this._register(languages.TokenizationRegistry.onDidChange((e) => {
             if (emitting) {
                 return;
             }
@@ -319,23 +326,20 @@ let MonarchTokenizer = class MonarchTokenizer {
             }
             if (isOneOfMyEmbeddedModes) {
                 emitting = true;
-                languages.TokenizationRegistry.fire([this._languageId]);
+                languages.TokenizationRegistry.handleChange([this._languageId]);
                 emitting = false;
             }
-        });
+        }));
         this._maxTokenizationLineLength = this._configurationService.getValue('editor.maxTokenizationLineLength', {
             overrideIdentifier: this._languageId
         });
-        this._configurationService.onDidChangeConfiguration(e => {
+        this._register(this._configurationService.onDidChangeConfiguration(e => {
             if (e.affectsConfiguration('editor.maxTokenizationLineLength')) {
                 this._maxTokenizationLineLength = this._configurationService.getValue('editor.maxTokenizationLineLength', {
                     overrideIdentifier: this._languageId
                 });
             }
-        });
-    }
-    dispose() {
-        this._tokenizationRegistryListener.dispose();
+        }));
     }
     getLoadStatus() {
         const promises = [];
@@ -343,7 +347,7 @@ let MonarchTokenizer = class MonarchTokenizer {
             const tokenizationSupport = languages.TokenizationRegistry.get(nestedLanguageId);
             if (tokenizationSupport) {
                 // The nested language is already loaded
-                if (tokenizationSupport instanceof MonarchTokenizer) {
+                if (tokenizationSupport instanceof MonarchTokenizer_1) {
                     const nestedModeStatus = tokenizationSupport.getLoadStatus();
                     if (nestedModeStatus.loaded === false) {
                         promises.push(nestedModeStatus.promise);
@@ -726,6 +730,7 @@ let MonarchTokenizer = class MonarchTokenizer {
         }
         if (languageId !== this._languageId) {
             // Fire language loading event
+            this._languageService.requestBasicLanguageFeatures(languageId);
             languages.TokenizationRegistry.getOrCreate(languageId);
             this._embeddedLanguages[languageId] = true;
         }
@@ -736,7 +741,7 @@ let MonarchTokenizer = class MonarchTokenizer {
         return new EmbeddedLanguageData(languageId, NullState);
     }
 };
-MonarchTokenizer = __decorate([
+MonarchTokenizer = MonarchTokenizer_1 = __decorate([
     __param(4, IConfigurationService)
 ], MonarchTokenizer);
 export { MonarchTokenizer };

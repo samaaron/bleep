@@ -11,6 +11,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var SnippetController2_1;
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { assertType } from '../../../../base/common/types.js';
 import { EditorCommand, registerEditorCommand, registerEditorContribution } from '../../../browser/editorExtensions.js';
@@ -32,9 +33,9 @@ const _defaultOptions = {
     clipboardText: undefined,
     overtypingCapturer: undefined
 };
-let SnippetController2 = class SnippetController2 {
+let SnippetController2 = SnippetController2_1 = class SnippetController2 {
     static get(editor) {
-        return editor.getContribution(SnippetController2.ID);
+        return editor.getContribution(SnippetController2_1.ID);
     }
     constructor(_editor, _logService, _languageFeaturesService, contextKeyService, _languageConfigurationService) {
         this._editor = _editor;
@@ -43,9 +44,9 @@ let SnippetController2 = class SnippetController2 {
         this._languageConfigurationService = _languageConfigurationService;
         this._snippetListener = new DisposableStore();
         this._modelVersionId = -1;
-        this._inSnippet = SnippetController2.InSnippetMode.bindTo(contextKeyService);
-        this._hasNextTabstop = SnippetController2.HasNextTabstop.bindTo(contextKeyService);
-        this._hasPrevTabstop = SnippetController2.HasPrevTabstop.bindTo(contextKeyService);
+        this._inSnippet = SnippetController2_1.InSnippetMode.bindTo(contextKeyService);
+        this._hasNextTabstop = SnippetController2_1.HasNextTabstop.bindTo(contextKeyService);
+        this._hasPrevTabstop = SnippetController2_1.HasPrevTabstop.bindTo(contextKeyService);
     }
     dispose() {
         var _a;
@@ -60,7 +61,7 @@ let SnippetController2 = class SnippetController2 {
         // error that sometimes happens when we fail to inserted a nested
         // snippet
         try {
-            this._doInsert(template, typeof opts === 'undefined' ? _defaultOptions : Object.assign(Object.assign({}, _defaultOptions), opts));
+            this._doInsert(template, typeof opts === 'undefined' ? _defaultOptions : { ..._defaultOptions, ...opts });
         }
         catch (e) {
             this.cancel();
@@ -99,7 +100,8 @@ let SnippetController2 = class SnippetController2 {
         }
         // regster completion item provider when there is any choice element
         if ((_a = this._session) === null || _a === void 0 ? void 0 : _a.hasChoice) {
-            this._choiceCompletionItemProvider = {
+            const provider = {
+                _debugDisplayName: 'snippetChoiceCompletions',
                 provideCompletionItems: (model, position) => {
                     if (!this._session || model !== this._editor.getModel() || !Position.equals(this._editor.getPosition(), position)) {
                         return undefined;
@@ -126,13 +128,26 @@ let SnippetController2 = class SnippetController2 {
                     return { suggestions };
                 }
             };
-            const registration = this._languageFeaturesService.completionProvider.register({
-                language: this._editor.getModel().getLanguageId(),
-                pattern: this._editor.getModel().uri.fsPath,
-                scheme: this._editor.getModel().uri.scheme,
-                exclusive: true
-            }, this._choiceCompletionItemProvider);
-            this._snippetListener.add(registration);
+            const model = this._editor.getModel();
+            let registration;
+            let isRegistered = false;
+            const disable = () => {
+                registration === null || registration === void 0 ? void 0 : registration.dispose();
+                isRegistered = false;
+            };
+            const enable = () => {
+                if (!isRegistered) {
+                    registration = this._languageFeaturesService.completionProvider.register({
+                        language: model.getLanguageId(),
+                        pattern: model.uri.fsPath,
+                        scheme: model.uri.scheme,
+                        exclusive: true
+                    }, provider);
+                    this._snippetListener.add(registration);
+                    isRegistered = true;
+                }
+            };
+            this._choiceCompletions = { provider, enable, disable };
         }
         this._updateState();
         this._snippetListener.add(this._editor.onDidChangeModelContent(e => e.isFlush && this.cancel()));
@@ -164,20 +179,23 @@ let SnippetController2 = class SnippetController2 {
         this._handleChoice();
     }
     _handleChoice() {
+        var _a;
         if (!this._session || !this._editor.hasModel()) {
             this._currentChoice = undefined;
             return;
         }
         const { activeChoice } = this._session;
-        if (!activeChoice || !this._choiceCompletionItemProvider) {
+        if (!activeChoice || !this._choiceCompletions) {
+            (_a = this._choiceCompletions) === null || _a === void 0 ? void 0 : _a.disable();
             this._currentChoice = undefined;
             return;
         }
         if (this._currentChoice !== activeChoice.choice) {
             this._currentChoice = activeChoice.choice;
+            this._choiceCompletions.enable();
             // trigger suggest with the special choice completion provider
             queueMicrotask(() => {
-                showSimpleSuggestions(this._editor, this._choiceCompletionItemProvider);
+                showSimpleSuggestions(this._editor, this._choiceCompletions.provider);
             });
         }
     }
@@ -221,7 +239,7 @@ SnippetController2.ID = 'snippetController2';
 SnippetController2.InSnippetMode = new RawContextKey('inSnippetMode', false, localize('inSnippetMode', "Whether the editor in current in snippet mode"));
 SnippetController2.HasNextTabstop = new RawContextKey('hasNextTabstop', false, localize('hasNextTabstop', "Whether there is a next tab stop when in snippet mode"));
 SnippetController2.HasPrevTabstop = new RawContextKey('hasPrevTabstop', false, localize('hasPrevTabstop', "Whether there is a previous tab stop when in snippet mode"));
-SnippetController2 = __decorate([
+SnippetController2 = SnippetController2_1 = __decorate([
     __param(1, ILogService),
     __param(2, ILanguageFeaturesService),
     __param(3, IContextKeyService),

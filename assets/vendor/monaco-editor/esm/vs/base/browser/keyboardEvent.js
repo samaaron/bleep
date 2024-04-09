@@ -18,24 +18,27 @@ function extractKeyCode(e) {
         return 7 /* KeyCode.PauseBreak */;
     }
     else if (browser.isFirefox) {
-        if (keyCode === 59) {
-            return 80 /* KeyCode.Semicolon */;
-        }
-        else if (keyCode === 107) {
-            return 81 /* KeyCode.Equal */;
-        }
-        else if (keyCode === 109) {
-            return 83 /* KeyCode.Minus */;
-        }
-        else if (platform.isMacintosh && keyCode === 224) {
-            return 57 /* KeyCode.Meta */;
+        switch (keyCode) {
+            case 59: return 85 /* KeyCode.Semicolon */;
+            case 60:
+                if (platform.isLinux) {
+                    return 97 /* KeyCode.IntlBackslash */;
+                }
+                break;
+            case 61: return 86 /* KeyCode.Equal */;
+            // based on: https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/keyCode#numpad_keys
+            case 107: return 109 /* KeyCode.NumpadAdd */;
+            case 109: return 111 /* KeyCode.NumpadSubtract */;
+            case 173: return 88 /* KeyCode.Minus */;
+            case 224:
+                if (platform.isMacintosh) {
+                    return 57 /* KeyCode.Meta */;
+                }
+                break;
         }
     }
     else if (browser.isWebKit) {
-        if (keyCode === 91) {
-            return 57 /* KeyCode.Meta */;
-        }
-        else if (platform.isMacintosh && keyCode === 93) {
+        if (platform.isMacintosh && keyCode === 93) {
             // the two meta keys in the Mac have different key codes (91 and 93)
             return 57 /* KeyCode.Meta */;
         }

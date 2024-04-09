@@ -17,7 +17,6 @@ import { AbstractGotoSymbolQuickAccessProvider } from '../../../contrib/quickAcc
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { Extensions } from '../../../../platform/quickinput/common/quickAccess.js';
 import { ICodeEditorService } from '../../../browser/services/codeEditorService.js';
-import { withNullAsUndefined } from '../../../../base/common/types.js';
 import { QuickOutlineNLS } from '../../../common/standaloneStrings.js';
 import { Event } from '../../../../base/common/event.js';
 import { EditorAction, registerEditorAction } from '../../../browser/editorExtensions.js';
@@ -32,7 +31,8 @@ let StandaloneGotoSymbolQuickAccessProvider = class StandaloneGotoSymbolQuickAcc
         this.onDidActiveTextEditorControlChange = Event.None;
     }
     get activeTextEditorControl() {
-        return withNullAsUndefined(this.editorService.getFocusedCodeEditor());
+        var _a;
+        return (_a = this.editorService.getFocusedCodeEditor()) !== null && _a !== void 0 ? _a : undefined;
     }
 };
 StandaloneGotoSymbolQuickAccessProvider = __decorate([
@@ -41,7 +41,7 @@ StandaloneGotoSymbolQuickAccessProvider = __decorate([
     __param(2, IOutlineModelService)
 ], StandaloneGotoSymbolQuickAccessProvider);
 export { StandaloneGotoSymbolQuickAccessProvider };
-class GotoSymbolAction extends EditorAction {
+export class GotoSymbolAction extends EditorAction {
     constructor() {
         super({
             id: GotoSymbolAction.ID,
@@ -64,7 +64,6 @@ class GotoSymbolAction extends EditorAction {
     }
 }
 GotoSymbolAction.ID = 'editor.action.quickOutline';
-export { GotoSymbolAction };
 registerEditorAction(GotoSymbolAction);
 Registry.as(Extensions.Quickaccess).registerQuickAccessProvider({
     ctor: StandaloneGotoSymbolQuickAccessProvider,

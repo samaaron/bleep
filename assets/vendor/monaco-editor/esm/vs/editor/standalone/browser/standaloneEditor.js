@@ -2,35 +2,38 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import './standalone-tokens.css';
+import { mainWindow } from '../../../base/browser/window.js';
 import { Disposable, DisposableStore } from '../../../base/common/lifecycle.js';
 import { splitLines } from '../../../base/common/strings.js';
+import { URI } from '../../../base/common/uri.js';
+import './standalone-tokens.css';
 import { FontMeasurements } from '../../browser/config/fontMeasurements.js';
+import { EditorCommand } from '../../browser/editorExtensions.js';
 import { ICodeEditorService } from '../../browser/services/codeEditorService.js';
-import { DiffNavigator } from '../../browser/widget/diffNavigator.js';
+import { createWebWorker as actualCreateWebWorker } from '../../browser/services/webWorker.js';
 import { ApplyUpdateResult, ConfigurationChangedEvent, EditorOptions } from '../../common/config/editorOptions.js';
+import { EditorZoom } from '../../common/config/editorZoom.js';
 import { BareFontInfo, FontInfo } from '../../common/config/fontInfo.js';
 import { EditorType } from '../../common/editorCommon.js';
-import { FindMatch, TextModelResolvedOptions } from '../../common/model.js';
 import * as languages from '../../common/languages.js';
-import { ILanguageConfigurationService } from '../../common/languages/languageConfigurationRegistry.js';
-import { NullState, nullTokenize } from '../../common/languages/nullTokenize.js';
 import { ILanguageService } from '../../common/languages/language.js';
+import { ILanguageConfigurationService } from '../../common/languages/languageConfigurationRegistry.js';
+import { PLAINTEXT_LANGUAGE_ID } from '../../common/languages/modesRegistry.js';
+import { NullState, nullTokenize } from '../../common/languages/nullTokenize.js';
+import { FindMatch, TextModelResolvedOptions } from '../../common/model.js';
 import { IModelService } from '../../common/services/model.js';
-import { createWebWorker as actualCreateWebWorker } from '../../browser/services/webWorker.js';
 import * as standaloneEnums from '../../common/standalone/standaloneEnums.js';
 import { Colorizer } from './colorizer.js';
-import { createTextModel, StandaloneDiffEditor, StandaloneEditor } from './standaloneCodeEditor.js';
+import { StandaloneDiffEditor2, StandaloneEditor, createTextModel } from './standaloneCodeEditor.js';
 import { StandaloneKeybindingService, StandaloneServices } from './standaloneServices.js';
 import { IStandaloneThemeService } from '../common/standaloneTheme.js';
+import { MenuId, MenuRegistry } from '../../../platform/actions/common/actions.js';
 import { CommandsRegistry } from '../../../platform/commands/common/commands.js';
-import { IMarkerService } from '../../../platform/markers/common/markers.js';
-import { IKeybindingService } from '../../../platform/keybinding/common/keybinding.js';
-import { EditorCommand } from '../../browser/editorExtensions.js';
-import { MenuRegistry, MenuId } from '../../../platform/actions/common/actions.js';
 import { ContextKeyExpr } from '../../../platform/contextkey/common/contextkey.js';
-import { PLAINTEXT_LANGUAGE_ID } from '../../common/languages/modesRegistry.js';
-import { LineRange, LineRangeMapping, RangeMapping } from '../../common/diff/linesDiffComputer.js';
+import { IKeybindingService } from '../../../platform/keybinding/common/keybinding.js';
+import { IMarkerService } from '../../../platform/markers/common/markers.js';
+import { IOpenerService } from '../../../platform/opener/common/opener.js';
+import { MultiDiffEditorWidget } from '../../browser/widget/multiDiffEditorWidget/multiDiffEditorWidget.js';
 /**
  * Create a new editor under `domElement`.
  * `domElement` should be empty (not contain other dom nodes).
@@ -82,11 +85,11 @@ export function getDiffEditors() {
  */
 export function createDiffEditor(domElement, options, override) {
     const instantiationService = StandaloneServices.initialize(override || {});
-    return instantiationService.createInstance(StandaloneDiffEditor, domElement, options);
+    return instantiationService.createInstance(StandaloneDiffEditor2, domElement, options);
 }
-export function createDiffNavigator(diffEditor, opts) {
-    const instantiationService = StandaloneServices.initialize({});
-    return instantiationService.createInstance(DiffNavigator, diffEditor, opts);
+export function createMultiFileDiffEditor(domElement, override) {
+    const instantiationService = StandaloneServices.initialize(override || {});
+    return new MultiDiffEditorWidget(domElement, {}, instantiationService);
 }
 /**
  * Add a command.
@@ -181,9 +184,8 @@ export function createModel(value, language, uri) {
  */
 export function setModelLanguage(model, mimeTypeOrLanguageId) {
     const languageService = StandaloneServices.get(ILanguageService);
-    const modelService = StandaloneServices.get(IModelService);
     const languageId = languageService.getLanguageIdByMimeType(mimeTypeOrLanguageId) || mimeTypeOrLanguageId || PLAINTEXT_LANGUAGE_ID;
-    modelService.setMode(model, languageService.createById(languageId));
+    model.setLanguage(languageService.createById(languageId));
 }
 /**
  * Set the markers for a model.
@@ -274,8 +276,9 @@ export function createWebWorker(opts) {
 export function colorizeElement(domNode, options) {
     const languageService = StandaloneServices.get(ILanguageService);
     const themeService = StandaloneServices.get(IStandaloneThemeService);
-    themeService.registerEditorContainer(domNode);
-    return Colorizer.colorizeElement(themeService, languageService, domNode, options);
+    return Colorizer.colorizeElement(themeService, languageService, domNode, options).then(() => {
+        themeService.registerEditorContainer(domNode);
+    });
 }
 /**
  * Colorize `text` using language `languageId`.
@@ -283,7 +286,7 @@ export function colorizeElement(domNode, options) {
 export function colorize(text, languageId, options) {
     const languageService = StandaloneServices.get(ILanguageService);
     const themeService = StandaloneServices.get(IStandaloneThemeService);
-    themeService.registerEditorContainer(document.body);
+    themeService.registerEditorContainer(mainWindow.document.body);
     return Colorizer.colorize(languageService, text, languageId, options);
 }
 /**
@@ -291,7 +294,7 @@ export function colorize(text, languageId, options) {
  */
 export function colorizeModelLine(model, lineNumber, tabSize = 4) {
     const themeService = StandaloneServices.get(IStandaloneThemeService);
-    themeService.registerEditorContainer(document.body);
+    themeService.registerEditorContainer(mainWindow.document.body);
     return Colorizer.colorizeModelLine(model, lineNumber, tabSize);
 }
 /**
@@ -352,6 +355,52 @@ export function registerCommand(id, handler) {
     return CommandsRegistry.registerCommand({ id, handler });
 }
 /**
+ * Registers a handler that is called when a link is opened in any editor. The handler callback should return `true` if the link was handled and `false` otherwise.
+ * The handler that was registered last will be called first when a link is opened.
+ *
+ * Returns a disposable that can unregister the opener again.
+ */
+export function registerLinkOpener(opener) {
+    const openerService = StandaloneServices.get(IOpenerService);
+    return openerService.registerOpener({
+        async open(resource) {
+            if (typeof resource === 'string') {
+                resource = URI.parse(resource);
+            }
+            return opener.open(resource);
+        }
+    });
+}
+/**
+ * Registers a handler that is called when a resource other than the current model should be opened in the editor (e.g. "go to definition").
+ * The handler callback should return `true` if the request was handled and `false` otherwise.
+ *
+ * Returns a disposable that can unregister the opener again.
+ *
+ * If no handler is registered the default behavior is to do nothing for models other than the currently attached one.
+ */
+export function registerEditorOpener(opener) {
+    const codeEditorService = StandaloneServices.get(ICodeEditorService);
+    return codeEditorService.registerCodeEditorOpenHandler(async (input, source, sideBySide) => {
+        var _a;
+        if (!source) {
+            return null;
+        }
+        const selection = (_a = input.options) === null || _a === void 0 ? void 0 : _a.selection;
+        let selectionOrPosition;
+        if (selection && typeof selection.endLineNumber === 'number' && typeof selection.endColumn === 'number') {
+            selectionOrPosition = selection;
+        }
+        else if (selection) {
+            selectionOrPosition = { lineNumber: selection.startLineNumber, column: selection.startColumn };
+        }
+        if (await opener.openCodeEditor(source, input.resource, selectionOrPosition)) {
+            return source; // return source editor to indicate that this handler has successfully handled the opening
+        }
+        return null; // fallback to other registered handlers
+    });
+}
+/**
  * @internal
  */
 export function createMonacoEditorAPI() {
@@ -363,7 +412,6 @@ export function createMonacoEditorAPI() {
         onDidCreateEditor: onDidCreateEditor,
         onDidCreateDiffEditor: onDidCreateDiffEditor,
         createDiffEditor: createDiffEditor,
-        createDiffNavigator: createDiffNavigator,
         addCommand: addCommand,
         addEditorAction: addEditorAction,
         addKeybindingRule: addKeybindingRule,
@@ -388,6 +436,8 @@ export function createMonacoEditorAPI() {
         setTheme: setTheme,
         remeasureFonts: remeasureFonts,
         registerCommand: registerCommand,
+        registerLinkOpener: registerLinkOpener,
+        registerEditorOpener: registerEditorOpener,
         // enums
         AccessibilitySupport: standaloneEnums.AccessibilitySupport,
         ContentWidgetPositionPreference: standaloneEnums.ContentWidgetPositionPreference,
@@ -401,6 +451,7 @@ export function createMonacoEditorAPI() {
         MouseTargetType: standaloneEnums.MouseTargetType,
         OverlayWidgetPositionPreference: standaloneEnums.OverlayWidgetPositionPreference,
         OverviewRulerLane: standaloneEnums.OverviewRulerLane,
+        GlyphMarginLane: standaloneEnums.GlyphMarginLane,
         RenderLineNumbersType: standaloneEnums.RenderLineNumbersType,
         RenderMinimap: standaloneEnums.RenderMinimap,
         ScrollbarVisibility: standaloneEnums.ScrollbarVisibility,
@@ -411,6 +462,7 @@ export function createMonacoEditorAPI() {
         WrappingIndent: standaloneEnums.WrappingIndent,
         InjectedTextCursorStops: standaloneEnums.InjectedTextCursorStops,
         PositionAffinity: standaloneEnums.PositionAffinity,
+        ShowLightbulbIconMode: standaloneEnums.ShowLightbulbIconMode,
         // classes
         ConfigurationChangedEvent: ConfigurationChangedEvent,
         BareFontInfo: BareFontInfo,
@@ -418,9 +470,8 @@ export function createMonacoEditorAPI() {
         TextModelResolvedOptions: TextModelResolvedOptions,
         FindMatch: FindMatch,
         ApplyUpdateResult: ApplyUpdateResult,
-        LineRange: LineRange,
-        LineRangeMapping: LineRangeMapping,
-        RangeMapping: RangeMapping,
+        EditorZoom: EditorZoom,
+        createMultiFileDiffEditor: createMultiFileDiffEditor,
         // vars
         EditorType: EditorType,
         EditorOptions: EditorOptions

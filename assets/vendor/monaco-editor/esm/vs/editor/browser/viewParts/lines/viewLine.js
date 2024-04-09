@@ -37,25 +37,25 @@ export class ViewLineOptions {
     constructor(config, themeType) {
         this.themeType = themeType;
         const options = config.options;
-        const fontInfo = options.get(47 /* EditorOption.fontInfo */);
-        const experimentalWhitespaceRendering = options.get(35 /* EditorOption.experimentalWhitespaceRendering */);
+        const fontInfo = options.get(50 /* EditorOption.fontInfo */);
+        const experimentalWhitespaceRendering = options.get(38 /* EditorOption.experimentalWhitespaceRendering */);
         if (experimentalWhitespaceRendering === 'off') {
-            this.renderWhitespace = options.get(93 /* EditorOption.renderWhitespace */);
+            this.renderWhitespace = options.get(99 /* EditorOption.renderWhitespace */);
         }
         else {
             // whitespace is rendered in a different layer
             this.renderWhitespace = 'none';
         }
-        this.renderControlCharacters = options.get(88 /* EditorOption.renderControlCharacters */);
+        this.renderControlCharacters = options.get(94 /* EditorOption.renderControlCharacters */);
         this.spaceWidth = fontInfo.spaceWidth;
         this.middotWidth = fontInfo.middotWidth;
         this.wsmiddotWidth = fontInfo.wsmiddotWidth;
         this.useMonospaceOptimizations = (fontInfo.isMonospace
-            && !options.get(30 /* EditorOption.disableMonospaceOptimizations */));
+            && !options.get(33 /* EditorOption.disableMonospaceOptimizations */));
         this.canUseHalfwidthRightwardsArrow = fontInfo.canUseHalfwidthRightwardsArrow;
-        this.lineHeight = options.get(63 /* EditorOption.lineHeight */);
-        this.stopRenderingLineAfter = options.get(111 /* EditorOption.stopRenderingLineAfter */);
-        this.fontLigatures = options.get(48 /* EditorOption.fontLigatures */);
+        this.lineHeight = options.get(67 /* EditorOption.lineHeight */);
+        this.stopRenderingLineAfter = options.get(117 /* EditorOption.stopRenderingLineAfter */);
+        this.fontLigatures = options.get(51 /* EditorOption.fontLigatures */);
     }
     equals(other) {
         return (this.themeType === other.themeType
@@ -71,7 +71,7 @@ export class ViewLineOptions {
             && this.fontLigatures === other.fontLigatures);
     }
 }
-class ViewLine {
+export class ViewLine {
     constructor(options) {
         this._options = options;
         this._isMaybeInvalid = true;
@@ -231,15 +231,14 @@ class ViewLine {
         }
         return null;
     }
-    getColumnOfNodeOffset(lineNumber, spanNode, offset) {
+    getColumnOfNodeOffset(spanNode, offset) {
         if (!this._renderedViewLine) {
             return 1;
         }
-        return this._renderedViewLine.getColumnOfNodeOffset(lineNumber, spanNode, offset);
+        return this._renderedViewLine.getColumnOfNodeOffset(spanNode, offset);
     }
 }
 ViewLine.CLASS_NAME = 'view-line';
-export { ViewLine };
 /**
  * A rendered line which is guaranteed to contain only regular ASCII and is rendered with a monospace font.
  */
@@ -336,14 +335,8 @@ class FastRenderedViewLine {
         }
         return r[0].left;
     }
-    getColumnOfNodeOffset(lineNumber, spanNode, offset) {
-        const spanNodeTextContentLength = spanNode.textContent.length;
-        let spanIndex = -1;
-        while (spanNode) {
-            spanNode = spanNode.previousSibling;
-            spanIndex++;
-        }
-        return this._characterMapping.getColumn(new DomPosition(spanIndex, offset), spanNodeTextContentLength);
+    getColumnOfNodeOffset(spanNode, offset) {
+        return getColumnOfNodeOffset(this._characterMapping, spanNode, offset);
     }
 }
 /**
@@ -500,14 +493,8 @@ class RenderedViewLine {
     /**
      * Returns the column for the text found at a specific offset inside a rendered dom node
      */
-    getColumnOfNodeOffset(lineNumber, spanNode, offset) {
-        const spanNodeTextContentLength = spanNode.textContent.length;
-        let spanIndex = -1;
-        while (spanNode) {
-            spanNode = spanNode.previousSibling;
-            spanIndex++;
-        }
-        return this._characterMapping.getColumn(new DomPosition(spanIndex, offset), spanNodeTextContentLength);
+    getColumnOfNodeOffset(spanNode, offset) {
+        return getColumnOfNodeOffset(this._characterMapping, spanNode, offset);
     }
 }
 class WebKitRenderedViewLine extends RenderedViewLine {
@@ -544,4 +531,13 @@ function createWebKitRenderedLine(domNode, renderLineInput, characterMapping, co
 }
 function createNormalRenderedLine(domNode, renderLineInput, characterMapping, containsRTL, containsForeignElements) {
     return new RenderedViewLine(domNode, renderLineInput, characterMapping, containsRTL, containsForeignElements);
+}
+export function getColumnOfNodeOffset(characterMapping, spanNode, offset) {
+    const spanNodeTextContentLength = spanNode.textContent.length;
+    let spanIndex = -1;
+    while (spanNode) {
+        spanNode = spanNode.previousSibling;
+        spanIndex++;
+    }
+    return characterMapping.getColumn(new DomPosition(spanIndex, offset), spanNodeTextContentLength);
 }

@@ -6,12 +6,11 @@ import { alert } from '../../../../base/browser/ui/aria/aria.js';
 import { TabFocus } from '../../../browser/config/tabFocus.js';
 import * as nls from '../../../../nls.js';
 import { Action2, registerAction2 } from '../../../../platform/actions/common/actions.js';
-import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
-class ToggleTabFocusModeAction extends Action2 {
+export class ToggleTabFocusModeAction extends Action2 {
     constructor() {
         super({
             id: ToggleTabFocusModeAction.ID,
-            title: { value: nls.localize({ key: 'toggle.tabMovesFocus', comment: ['Turn on/off use of tab key for moving focus around VS Code'] }, 'Toggle Tab Key Moves Focus'), original: 'Toggle Tab Key Moves Focus' },
+            title: nls.localize2({ key: 'toggle.tabMovesFocus', comment: ['Turn on/off use of tab key for moving focus around VS Code'] }, 'Toggle Tab Key Moves Focus'),
             precondition: undefined,
             keybinding: {
                 primary: 2048 /* KeyMod.CtrlCmd */ | 43 /* KeyCode.KeyM */,
@@ -21,11 +20,10 @@ class ToggleTabFocusModeAction extends Action2 {
             f1: true
         });
     }
-    run(accessor) {
-        const context = accessor.get(IContextKeyService).getContextKeyValue('focusedView') === 'terminal' ? "terminalFocus" /* TabFocusContext.Terminal */ : "editorFocus" /* TabFocusContext.Editor */;
-        const oldValue = TabFocus.getTabFocusMode(context);
+    run() {
+        const oldValue = TabFocus.getTabFocusMode();
         const newValue = !oldValue;
-        TabFocus.setTabFocusMode(newValue, context);
+        TabFocus.setTabFocusMode(newValue);
         if (newValue) {
             alert(nls.localize('toggle.tabMovesFocus.on', "Pressing Tab will now move focus to the next focusable element"));
         }
@@ -35,5 +33,4 @@ class ToggleTabFocusModeAction extends Action2 {
     }
 }
 ToggleTabFocusModeAction.ID = 'editor.action.toggleTabFocusMode';
-export { ToggleTabFocusModeAction };
 registerAction2(ToggleTabFocusModeAction);

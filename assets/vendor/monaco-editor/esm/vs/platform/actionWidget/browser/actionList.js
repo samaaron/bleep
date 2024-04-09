@@ -12,13 +12,13 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import * as dom from '../../../base/browser/dom.js';
-import { HighlightedLabel } from '../../../base/browser/ui/highlightedlabel/highlightedLabel.js';
 import { KeybindingLabel } from '../../../base/browser/ui/keybindingLabel/keybindingLabel.js';
 import { List } from '../../../base/browser/ui/list/listWidget.js';
+import { CancellationTokenSource } from '../../../base/common/cancellation.js';
 import { Codicon } from '../../../base/common/codicons.js';
-import { ThemeIcon } from '../../../base/common/themables.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 import { OS } from '../../../base/common/platform.js';
+import { ThemeIcon } from '../../../base/common/themables.js';
 import './actionWidget.css';
 import { localize } from '../../../nls.js';
 import { IContextViewService } from '../../contextview/browser/contextView.js';
@@ -76,13 +76,8 @@ let ActionItemRenderer = class ActionItemRenderer {
             return;
         }
         data.text.textContent = stripNewlines(element.label);
-        if (!element.keybinding) {
-            dom.hide(data.keybinding.element);
-        }
-        else {
-            data.keybinding.set(element.keybinding);
-            dom.show(data.keybinding.element);
-        }
+        data.keybinding.set(element.keybinding);
+        dom.setVisibility(!!element.keybinding, data.keybinding.element);
         const actionTitle = (_b = this._keybindingService.lookupKeybinding(acceptSelectedActionCommand)) === null || _b === void 0 ? void 0 : _b.getLabel();
         const previewTitle = (_c = this._keybindingService.lookupKeybinding(previewSelectedActionCommand)) === null || _c === void 0 ? void 0 : _c.getLabel();
         data.container.classList.toggle('option-disabled', element.disabled);
@@ -90,7 +85,7 @@ let ActionItemRenderer = class ActionItemRenderer {
             data.container.title = element.label;
         }
         else if (actionTitle && previewTitle) {
-            if (this._supportsPreview) {
+            if (this._supportsPreview && element.canPreview) {
                 data.container.title = localize({ key: 'label-preview', comment: ['placeholders are keybindings, e.g "F2 to apply, Shift+F2 to preview"'] }, "{0} to apply, {1} to preview", actionTitle, previewTitle);
             }
             else {
@@ -99,11 +94,6 @@ let ActionItemRenderer = class ActionItemRenderer {
         }
         else {
             data.container.title = '';
-        }
-        if (element.description) {
-            const label = new HighlightedLabel(dom.append(data.container, dom.$('span.label-description')));
-            label.element.classList.add('action-list-description');
-            label.set(element.description);
         }
     }
     disposeTemplate(_templateData) {
@@ -119,6 +109,13 @@ class AcceptSelectedEvent extends UIEvent {
 class PreviewSelectedEvent extends UIEvent {
     constructor() { super('previewSelectedAction'); }
 }
+function getKeyboardNavigationLabel(item) {
+    // Filter out header vs. action
+    if (item.kind === 'action') {
+        return item.label;
+    }
+    return undefined;
+}
 let ActionList = class ActionList extends Disposable {
     constructor(user, preview, items, _delegate, _contextViewService, _keybindingService) {
         super();
@@ -127,6 +124,7 @@ let ActionList = class ActionList extends Disposable {
         this._keybindingService = _keybindingService;
         this._actionLineHeight = 24;
         this._headerLineHeight = 26;
+        this.cts = this._register(new CancellationTokenSource());
         this.domNode = document.createElement('div');
         this.domNode.classList.add('actionList');
         const virtualDelegate = {
@@ -138,6 +136,8 @@ let ActionList = class ActionList extends Disposable {
             new HeaderRenderer(),
         ], {
             keyboardSupport: false,
+            typeNavigationEnabled: true,
+            keyboardNavigationLabelProvider: { getKeyboardNavigationLabel },
             accessibilityProvider: {
                 getAriaLabel: element => {
                     if (element.kind === "action" /* ActionListItemKind.Action */) {
@@ -151,13 +151,13 @@ let ActionList = class ActionList extends Disposable {
                 },
                 getWidgetAriaLabel: () => localize({ key: 'customQuickFixWidget', comment: [`An action widget option`] }, "Action Widget"),
                 getRole: (e) => e.kind === "action" /* ActionListItemKind.Action */ ? 'option' : 'separator',
-                getWidgetRole: () => 'listbox'
+                getWidgetRole: () => 'listbox',
             },
         }));
         this._list.style(defaultListStyles);
         this._register(this._list.onMouseClick(e => this.onListClick(e)));
         this._register(this._list.onMouseOver(e => this.onListHover(e)));
-        this._register(this._list.onDidChangeFocus(() => this._list.domFocus()));
+        this._register(this._list.onDidChangeFocus(() => this.onFocus()));
         this._register(this._list.onDidChangeSelection(e => this.onListSelection(e)));
         this._allMenuItems = items;
         this._list.splice(0, this._list.length, this._allMenuItems);
@@ -170,6 +170,7 @@ let ActionList = class ActionList extends Disposable {
     }
     hide(didCancel) {
         this._delegate.onHide(didCancel);
+        this.cts.cancel();
         this._contextViewService.hideContextView();
     }
     layout(minWidth) {
@@ -178,25 +179,31 @@ let ActionList = class ActionList extends Disposable {
         const itemsHeight = this._allMenuItems.length * this._actionLineHeight;
         const heightWithHeaders = itemsHeight + numHeaders * this._headerLineHeight - numHeaders * this._actionLineHeight;
         this._list.layout(heightWithHeaders);
-        // For finding width dynamically (not using resize observer)
-        const itemWidths = this._allMenuItems.map((_, index) => {
-            const element = document.getElementById(this._list.getElementID(index));
-            if (element) {
-                element.style.width = 'auto';
-                const width = element.getBoundingClientRect().width;
-                element.style.width = '';
-                return width;
-            }
-            return 0;
-        });
-        // resize observer - can be used in the future since list widget supports dynamic height but not width
-        const width = Math.max(...itemWidths, minWidth);
+        let maxWidth = minWidth;
+        if (this._allMenuItems.length >= 50) {
+            maxWidth = 380;
+        }
+        else {
+            // For finding width dynamically (not using resize observer)
+            const itemWidths = this._allMenuItems.map((_, index) => {
+                const element = this.domNode.ownerDocument.getElementById(this._list.getElementID(index));
+                if (element) {
+                    element.style.width = 'auto';
+                    const width = element.getBoundingClientRect().width;
+                    element.style.width = '';
+                    return width;
+                }
+                return 0;
+            });
+            // resize observer - can be used in the future since list widget supports dynamic height but not width
+            maxWidth = Math.max(...itemWidths, minWidth);
+        }
         const maxVhPrecentage = 0.7;
-        const height = Math.min(heightWithHeaders, document.body.clientHeight * maxVhPrecentage);
-        this._list.layout(height, width);
+        const height = Math.min(heightWithHeaders, this.domNode.ownerDocument.body.clientHeight * maxVhPrecentage);
+        this._list.layout(height, maxWidth);
         this.domNode.style.height = `${height}px`;
         this._list.domFocus();
-        return width;
+        return maxWidth;
     }
     focusPrevious() {
         this._list.focusPrevious(1, true, undefined, this.focusCondition);
@@ -229,7 +236,27 @@ let ActionList = class ActionList extends Disposable {
             this._list.setSelection([]);
         }
     }
-    onListHover(e) {
+    onFocus() {
+        var _a, _b;
+        const focused = this._list.getFocus();
+        if (focused.length === 0) {
+            return;
+        }
+        const focusIndex = focused[0];
+        const element = this._list.element(focusIndex);
+        (_b = (_a = this._delegate).onFocus) === null || _b === void 0 ? void 0 : _b.call(_a, element.item);
+    }
+    async onListHover(e) {
+        const element = e.element;
+        if (element && element.item && this.focusCondition(element)) {
+            if (this._delegate.onHover && !element.disabled && element.kind === "action" /* ActionListItemKind.Action */) {
+                const result = await this._delegate.onHover(element.item, this.cts.token);
+                element.canPreview = result ? result.canPreview : undefined;
+            }
+            if (e.index) {
+                this._list.splice(e.index, 1, [element]);
+            }
+        }
         this._list.setFocus(typeof e.index === 'number' ? [e.index] : []);
     }
     onListClick(e) {

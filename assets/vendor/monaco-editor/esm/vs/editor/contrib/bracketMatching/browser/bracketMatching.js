@@ -26,7 +26,7 @@ class JumpToBracketAction extends EditorAction {
             precondition: undefined,
             kbOpts: {
                 kbExpr: EditorContextKeys.editorTextFocus,
-                primary: 2048 /* KeyMod.CtrlCmd */ | 1024 /* KeyMod.Shift */ | 88 /* KeyCode.Backslash */,
+                primary: 2048 /* KeyMod.CtrlCmd */ | 1024 /* KeyMod.Shift */ | 93 /* KeyCode.Backslash */,
                 weight: 100 /* KeybindingWeight.EditorContrib */
             }
         });
@@ -43,8 +43,8 @@ class SelectToBracketAction extends EditorAction {
             label: nls.localize('smartSelect.selectToBracket', "Select to Bracket"),
             alias: 'Select to Bracket',
             precondition: undefined,
-            description: {
-                description: `Select to Bracket`,
+            metadata: {
+                description: nls.localize2('smartSelect.selectToBracketDescription', "Select the text inside and including the brackets or curly braces"),
                 args: [{
                         name: 'args',
                         schema: {
@@ -69,6 +69,25 @@ class SelectToBracketAction extends EditorAction {
         (_a = BracketMatchingController.get(editor)) === null || _a === void 0 ? void 0 : _a.selectToBracket(selectBrackets);
     }
 }
+class RemoveBracketsAction extends EditorAction {
+    constructor() {
+        super({
+            id: 'editor.action.removeBrackets',
+            label: nls.localize('smartSelect.removeBrackets', "Remove Brackets"),
+            alias: 'Remove Brackets',
+            precondition: undefined,
+            kbOpts: {
+                kbExpr: EditorContextKeys.editorTextFocus,
+                primary: 2048 /* KeyMod.CtrlCmd */ | 512 /* KeyMod.Alt */ | 1 /* KeyCode.Backspace */,
+                weight: 100 /* KeybindingWeight.EditorContrib */
+            }
+        });
+    }
+    run(accessor, editor) {
+        var _a;
+        (_a = BracketMatchingController.get(editor)) === null || _a === void 0 ? void 0 : _a.removeBrackets(this.id);
+    }
+}
 class BracketsData {
     constructor(position, brackets, options) {
         this.position = position;
@@ -76,7 +95,7 @@ class BracketsData {
         this.options = options;
     }
 }
-class BracketMatchingController extends Disposable {
+export class BracketMatchingController extends Disposable {
     static get(editor) {
         return editor.getContribution(BracketMatchingController.ID);
     }
@@ -87,7 +106,7 @@ class BracketMatchingController extends Disposable {
         this._lastVersionId = 0;
         this._decorations = this._editor.createDecorationsCollection();
         this._updateBracketsSoon = this._register(new RunOnceScheduler(() => this._updateBrackets(), 50));
-        this._matchBrackets = this._editor.getOption(68 /* EditorOption.matchBrackets */);
+        this._matchBrackets = this._editor.getOption(72 /* EditorOption.matchBrackets */);
         this._updateBracketsSoon.schedule();
         this._register(editor.onDidChangeCursorPosition((e) => {
             if (this._matchBrackets === 'never') {
@@ -109,8 +128,8 @@ class BracketMatchingController extends Disposable {
             this._updateBracketsSoon.schedule();
         }));
         this._register(editor.onDidChangeConfiguration((e) => {
-            if (e.hasChanged(68 /* EditorOption.matchBrackets */)) {
-                this._matchBrackets = this._editor.getOption(68 /* EditorOption.matchBrackets */);
+            if (e.hasChanged(72 /* EditorOption.matchBrackets */)) {
+                this._matchBrackets = this._editor.getOption(72 /* EditorOption.matchBrackets */);
                 this._decorations.clear();
                 this._lastBracketsData = [];
                 this._lastVersionId = 0;
@@ -205,6 +224,27 @@ class BracketMatchingController extends Disposable {
             this._editor.revealRange(newSelections[0]);
         }
     }
+    removeBrackets(editSource) {
+        if (!this._editor.hasModel()) {
+            return;
+        }
+        const model = this._editor.getModel();
+        this._editor.getSelections().forEach((selection) => {
+            const position = selection.getPosition();
+            let brackets = model.bracketPairs.matchBracket(position);
+            if (!brackets) {
+                brackets = model.bracketPairs.findEnclosingBrackets(position);
+            }
+            if (brackets) {
+                this._editor.pushUndoStop();
+                this._editor.executeEdits(editSource, [
+                    { range: brackets[0], text: '' },
+                    { range: brackets[1], text: '' }
+                ]);
+                this._editor.pushUndoStop();
+            }
+        });
+    }
     _updateBrackets() {
         if (this._matchBrackets === 'never') {
             return;
@@ -296,10 +336,10 @@ BracketMatchingController._DECORATION_OPTIONS_WITHOUT_OVERVIEW_RULER = ModelDeco
     stickiness: 1 /* TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges */,
     className: 'bracket-match'
 });
-export { BracketMatchingController };
 registerEditorContribution(BracketMatchingController.ID, BracketMatchingController, 1 /* EditorContributionInstantiation.AfterFirstRender */);
 registerEditorAction(SelectToBracketAction);
 registerEditorAction(JumpToBracketAction);
+registerEditorAction(RemoveBracketsAction);
 // Go to menu
 MenuRegistry.appendMenuItem(MenuId.MenubarGoMenu, {
     group: '5_infile_nav',

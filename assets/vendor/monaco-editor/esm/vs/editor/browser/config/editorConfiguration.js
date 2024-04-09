@@ -25,6 +25,8 @@ import { ComputeOptionsMemory, ConfigurationChangedEvent, editorOptionsRegistry 
 import { EditorZoom } from '../../common/config/editorZoom.js';
 import { BareFontInfo } from '../../common/config/fontInfo.js';
 import { IAccessibilityService } from '../../../platform/accessibility/common/accessibility.js';
+import { getWindow, getWindowById } from '../../../base/browser/dom.js';
+import { PixelRatio } from '../../../base/browser/pixelRatio.js';
 let EditorConfiguration = class EditorConfiguration extends Disposable {
     constructor(isSimpleWidget, options, container, _accessibilityService) {
         super();
@@ -37,20 +39,22 @@ let EditorConfiguration = class EditorConfiguration extends Disposable {
         this._viewLineCount = 1;
         this._lineNumbersDigitCount = 1;
         this._reservedHeight = 0;
+        this._glyphMarginDecorationLaneCount = 1;
         this._computeOptionsMemory = new ComputeOptionsMemory();
         this.isSimpleWidget = isSimpleWidget;
         this._containerObserver = this._register(new ElementSizeObserver(container, options.dimension));
+        this._targetWindowId = getWindow(container).vscodeWindowId;
         this._rawOptions = deepCloneAndMigrateOptions(options);
         this._validatedOptions = EditorOptionsUtil.validateOptions(this._rawOptions);
         this.options = this._computeOptions();
-        if (this.options.get(10 /* EditorOption.automaticLayout */)) {
+        if (this.options.get(13 /* EditorOption.automaticLayout */)) {
             this._containerObserver.startObserving();
         }
         this._register(EditorZoom.onDidChangeZoomLevel(() => this._recomputeOptions()));
         this._register(TabFocus.onDidChangeTabFocus(() => this._recomputeOptions()));
         this._register(this._containerObserver.onDidChange(() => this._recomputeOptions()));
         this._register(FontMeasurements.onDidChange(() => this._recomputeOptions()));
-        this._register(browser.PixelRatio.onDidChange(() => this._recomputeOptions()));
+        this._register(PixelRatio.getInstance(getWindow(container)).onDidChange(() => this._recomputeOptions()));
         this._register(this._accessibilityService.onDidChangeScreenReaderOptimized(() => this._recomputeOptions()));
     }
     _recomputeOptions() {
@@ -79,8 +83,9 @@ let EditorConfiguration = class EditorConfiguration extends Disposable {
             lineNumbersDigitCount: this._lineNumbersDigitCount,
             emptySelectionClipboard: partialEnv.emptySelectionClipboard,
             pixelRatio: partialEnv.pixelRatio,
-            tabFocusMode: TabFocus.getTabFocusMode("editorFocus" /* TabFocusContext.Editor */),
-            accessibilitySupport: partialEnv.accessibilitySupport
+            tabFocusMode: TabFocus.getTabFocusMode(),
+            accessibilitySupport: partialEnv.accessibilitySupport,
+            glyphMarginDecorationLaneCount: this._glyphMarginDecorationLaneCount
         };
         return EditorOptionsUtil.computeOptions(this._validatedOptions, env);
     }
@@ -90,14 +95,14 @@ let EditorConfiguration = class EditorConfiguration extends Disposable {
             outerWidth: this._containerObserver.getWidth(),
             outerHeight: this._containerObserver.getHeight(),
             emptySelectionClipboard: browser.isWebKit || browser.isFirefox,
-            pixelRatio: browser.PixelRatio.value,
+            pixelRatio: PixelRatio.getInstance(getWindowById(this._targetWindowId, true).window).value,
             accessibilitySupport: (this._accessibilityService.isScreenReaderOptimized()
                 ? 2 /* AccessibilitySupport.Enabled */
                 : this._accessibilityService.getAccessibilitySupport())
         };
     }
     _readFontInfo(bareFontInfo) {
-        return FontMeasurements.readFontInfo(bareFontInfo);
+        return FontMeasurements.readFontInfo(getWindowById(this._targetWindowId, true).window, bareFontInfo);
     }
     getRawOptions() {
         return this._rawOptions;
@@ -141,6 +146,13 @@ let EditorConfiguration = class EditorConfiguration extends Disposable {
             return;
         }
         this._reservedHeight = reservedHeight;
+        this._recomputeOptions();
+    }
+    setGlyphMarginDecorationLaneCount(decorationLaneCount) {
+        if (this._glyphMarginDecorationLaneCount === decorationLaneCount) {
+            return;
+        }
+        this._glyphMarginDecorationLaneCount = decorationLaneCount;
         this._recomputeOptions();
     }
 };

@@ -58,10 +58,28 @@ export class ConfigurationModel {
         return section ? getConfigurationValue(this.contents, section) : this.contents;
     }
     inspect(section, overrideIdentifier) {
-        const value = this.rawConfiguration.getValue(section);
-        const override = overrideIdentifier ? this.rawConfiguration.getOverrideValue(section, overrideIdentifier) : undefined;
-        const merged = overrideIdentifier ? this.rawConfiguration.override(overrideIdentifier).getValue(section) : value;
-        return { value, override, merged };
+        const that = this;
+        return {
+            get value() {
+                return freeze(that.rawConfiguration.getValue(section));
+            },
+            get override() {
+                return overrideIdentifier ? freeze(that.rawConfiguration.getOverrideValue(section, overrideIdentifier)) : undefined;
+            },
+            get merged() {
+                return freeze(overrideIdentifier ? that.rawConfiguration.override(overrideIdentifier).getValue(section) : that.rawConfiguration.getValue(section));
+            },
+            get overrides() {
+                const overrides = [];
+                for (const { contents, identifiers, keys } of that.rawConfiguration.overrides) {
+                    const value = new ConfigurationModel(contents, keys).getValue(section);
+                    if (value !== undefined) {
+                        overrides.push({ identifiers, value });
+                    }
+                }
+                return overrides.length ? freeze(overrides) : undefined;
+            }
+        };
     }
     getOverrideValue(section, overrideIdentifier) {
         const overrideContents = this.getContentsForOverrideIdentifer(overrideIdentifier);
@@ -158,7 +176,7 @@ export class ConfigurationModel {
             }
         };
         for (const override of this.overrides) {
-            if (arrays.equals(override.identifiers, [identifier])) {
+            if (override.identifiers.length === 1 && override.identifiers[0] === identifier) {
                 contentsForIdentifierOnly = override.contents;
             }
             else if (override.identifiers.includes(identifier)) {
@@ -235,8 +253,9 @@ export class ConfigurationModelParser {
         return { contents, keys, overrides, restricted: filtered.restricted, hasExcludedProperties: filtered.hasExcludedProperties };
     }
     filter(properties, configurationProperties, filterOverriddenProperties, options) {
+        var _a, _b, _c;
         let hasExcludedProperties = false;
-        if (!(options === null || options === void 0 ? void 0 : options.scopes) && !(options === null || options === void 0 ? void 0 : options.skipRestricted)) {
+        if (!(options === null || options === void 0 ? void 0 : options.scopes) && !(options === null || options === void 0 ? void 0 : options.skipRestricted) && !((_a = options === null || options === void 0 ? void 0 : options.exclude) === null || _a === void 0 ? void 0 : _a.length)) {
             return { raw: properties, restricted: [], hasExcludedProperties };
         }
         const raw = {};
@@ -254,9 +273,10 @@ export class ConfigurationModelParser {
                 if (propertySchema === null || propertySchema === void 0 ? void 0 : propertySchema.restricted) {
                     restricted.push(key);
                 }
-                // Load unregistered configurations always.
-                if ((scope === undefined || options.scopes === undefined || options.scopes.includes(scope)) // Check scopes
-                    && !(options.skipRestricted && (propertySchema === null || propertySchema === void 0 ? void 0 : propertySchema.restricted))) { // Check restricted
+                if (!((_b = options.exclude) === null || _b === void 0 ? void 0 : _b.includes(key)) /* Check exclude */
+                    && (((_c = options.include) === null || _c === void 0 ? void 0 : _c.includes(key) /* Check include */)
+                        || ((scope === undefined || options.scopes === undefined || options.scopes.includes(scope)) /* Check scopes */
+                            && !(options.skipRestricted && (propertySchema === null || propertySchema === void 0 ? void 0 : propertySchema.restricted))))) /* Check restricted */ {
                     raw[key] = properties[key];
                 }
                 else {
@@ -300,22 +320,17 @@ class ConfigurationInspectValue {
         this.folderConfigurationModel = folderConfigurationModel;
         this.memoryConfigurationModel = memoryConfigurationModel;
     }
-    inspect(model, section, overrideIdentifier) {
-        const inspectValue = model.inspect(section, overrideIdentifier);
-        return {
-            get value() { return freeze(inspectValue.value); },
-            get override() { return freeze(inspectValue.override); },
-            get merged() { return freeze(inspectValue.merged); }
-        };
+    toInspectValue(inspectValue) {
+        return (inspectValue === null || inspectValue === void 0 ? void 0 : inspectValue.value) !== undefined || (inspectValue === null || inspectValue === void 0 ? void 0 : inspectValue.override) !== undefined || (inspectValue === null || inspectValue === void 0 ? void 0 : inspectValue.overrides) !== undefined ? inspectValue : undefined;
     }
     get userInspectValue() {
         if (!this._userInspectValue) {
-            this._userInspectValue = this.inspect(this.userConfiguration, this.key, this.overrides.overrideIdentifier);
+            this._userInspectValue = this.userConfiguration.inspect(this.key, this.overrides.overrideIdentifier);
         }
         return this._userInspectValue;
     }
     get user() {
-        return this.userInspectValue.value !== undefined || this.userInspectValue.override !== undefined ? { value: this.userInspectValue.value, override: this.userInspectValue.override } : undefined;
+        return this.toInspectValue(this.userInspectValue);
     }
 }
 export class Configuration {

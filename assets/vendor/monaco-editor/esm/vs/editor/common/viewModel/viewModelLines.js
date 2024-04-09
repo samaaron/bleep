@@ -587,24 +587,38 @@ export class ViewModelLinesFromProjectedModel {
         const end = this.convertViewPositionToModelPosition(viewRange.endLineNumber, viewRange.endColumn);
         return new Range(start.lineNumber, start.column, end.lineNumber, end.column);
     }
-    convertModelPositionToViewPosition(_modelLineNumber, _modelColumn, affinity = 2 /* PositionAffinity.None */) {
+    convertModelPositionToViewPosition(_modelLineNumber, _modelColumn, affinity = 2 /* PositionAffinity.None */, allowZeroLineNumber = false, belowHiddenRanges = false) {
         const validPosition = this.model.validatePosition(new Position(_modelLineNumber, _modelColumn));
         const inputLineNumber = validPosition.lineNumber;
         const inputColumn = validPosition.column;
         let lineIndex = inputLineNumber - 1, lineIndexChanged = false;
-        while (lineIndex > 0 && !this.modelLineProjections[lineIndex].isVisible()) {
-            lineIndex--;
-            lineIndexChanged = true;
+        if (belowHiddenRanges) {
+            while (lineIndex < this.modelLineProjections.length && !this.modelLineProjections[lineIndex].isVisible()) {
+                lineIndex++;
+                lineIndexChanged = true;
+            }
+        }
+        else {
+            while (lineIndex > 0 && !this.modelLineProjections[lineIndex].isVisible()) {
+                lineIndex--;
+                lineIndexChanged = true;
+            }
         }
         if (lineIndex === 0 && !this.modelLineProjections[lineIndex].isVisible()) {
             // Could not reach a real line
             // console.log('in -> out ' + inputLineNumber + ',' + inputColumn + ' ===> ' + 1 + ',' + 1);
-            return new Position(1, 1);
+            // TODO@alexdima@hediet this isn't soo pretty
+            return new Position(allowZeroLineNumber ? 0 : 1, 1);
         }
         const deltaLineNumber = 1 + this.projectedModelLineLineCounts.getPrefixSum(lineIndex);
         let r;
         if (lineIndexChanged) {
-            r = this.modelLineProjections[lineIndex].getViewPositionOfModelPosition(deltaLineNumber, this.model.getLineMaxColumn(lineIndex + 1), affinity);
+            if (belowHiddenRanges) {
+                r = this.modelLineProjections[lineIndex].getViewPositionOfModelPosition(deltaLineNumber, 1, affinity);
+            }
+            else {
+                r = this.modelLineProjections[lineIndex].getViewPositionOfModelPosition(deltaLineNumber, this.model.getLineMaxColumn(lineIndex + 1), affinity);
+            }
         }
         else {
             r = this.modelLineProjections[inputLineNumber - 1].getViewPositionOfModelPosition(deltaLineNumber, inputColumn, affinity);
@@ -644,13 +658,13 @@ export class ViewModelLinesFromProjectedModel {
         const deltaLineNumber = 1 + this.projectedModelLineLineCounts.getPrefixSum(lineIndex);
         return this.modelLineProjections[lineIndex].getViewLineNumberOfModelPosition(deltaLineNumber, this.model.getLineMaxColumn(lineIndex + 1));
     }
-    getDecorationsInRange(range, ownerId, filterOutValidation, onlyMinimapDecorations) {
+    getDecorationsInRange(range, ownerId, filterOutValidation, onlyMinimapDecorations, onlyMarginDecorations) {
         const modelStart = this.convertViewPositionToModelPosition(range.startLineNumber, range.startColumn);
         const modelEnd = this.convertViewPositionToModelPosition(range.endLineNumber, range.endColumn);
         if (modelEnd.lineNumber - modelStart.lineNumber <= range.endLineNumber - range.startLineNumber) {
             // most likely there are no hidden lines => fast path
             // fetch decorations from column 1 to cover the case of wrapped lines that have whole line decorations at column 1
-            return this.model.getDecorationsInRange(new Range(modelStart.lineNumber, 1, modelEnd.lineNumber, modelEnd.column), ownerId, filterOutValidation, onlyMinimapDecorations);
+            return this.model.getDecorationsInRange(new Range(modelStart.lineNumber, 1, modelEnd.lineNumber, modelEnd.column), ownerId, filterOutValidation, onlyMinimapDecorations, onlyMarginDecorations);
         }
         let result = [];
         const modelStartLineIndex = modelStart.lineNumber - 1;
@@ -793,8 +807,8 @@ class CoordinatesConverter {
         return this._lines.validateViewRange(viewRange, expectedModelRange);
     }
     // Model -> View conversion and related methods
-    convertModelPositionToViewPosition(modelPosition, affinity) {
-        return this._lines.convertModelPositionToViewPosition(modelPosition.lineNumber, modelPosition.column, affinity);
+    convertModelPositionToViewPosition(modelPosition, affinity, allowZero, belowHiddenRanges) {
+        return this._lines.convertModelPositionToViewPosition(modelPosition.lineNumber, modelPosition.column, affinity, allowZero, belowHiddenRanges);
     }
     convertModelRangeToViewRange(modelRange, affinity) {
         return this._lines.convertModelRangeToViewRange(modelRange, affinity);
@@ -903,8 +917,8 @@ export class ViewModelLinesFromModelAsIs {
         }
         return result;
     }
-    getDecorationsInRange(range, ownerId, filterOutValidation, onlyMinimapDecorations) {
-        return this.model.getDecorationsInRange(range, ownerId, filterOutValidation, onlyMinimapDecorations);
+    getDecorationsInRange(range, ownerId, filterOutValidation, onlyMinimapDecorations, onlyMarginDecorations) {
+        return this.model.getDecorationsInRange(range, ownerId, filterOutValidation, onlyMinimapDecorations, onlyMarginDecorations);
     }
     normalizePosition(position, affinity) {
         return this.model.normalizePosition(position, affinity);

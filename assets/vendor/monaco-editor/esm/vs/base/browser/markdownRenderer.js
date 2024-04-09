@@ -61,7 +61,7 @@ const defaultMarkedRenderers = Object.freeze({
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#39;');
-        return `<a href="${href}" title="${title || href}">${text}</a>`;
+        return `<a href="${href}" title="${title || href}" draggable="false">${text}</a>`;
     },
 });
 /**
@@ -71,7 +71,7 @@ const defaultMarkedRenderers = Object.freeze({
  * which comes with support for pretty code block rendering and which uses the default way of handling links.
  */
 export function renderMarkdown(markdown, options = {}, markedOptions = {}) {
-    var _a;
+    var _a, _b;
     const disposables = new DisposableStore();
     let isDisposed = false;
     const element = createElement(options);
@@ -129,7 +129,16 @@ export function renderMarkdown(markdown, options = {}, markedOptions = {}) {
     renderer.paragraph = defaultMarkedRenderers.paragraph;
     // Will collect [id, renderedElement] tuples
     const codeBlocks = [];
-    if (options.codeBlockRenderer) {
+    const syncCodeBlocks = [];
+    if (options.codeBlockRendererSync) {
+        renderer.code = (code, lang) => {
+            const id = defaultGenerator.nextId();
+            const value = options.codeBlockRendererSync(postProcessCodeBlockLanguageId(lang), code);
+            syncCodeBlocks.push([id, value]);
+            return `<div class="code" data-code="${id}">${escape(code)}</div>`;
+        };
+    }
+    else if (options.codeBlockRenderer) {
         renderer.code = (code, lang) => {
             const id = defaultGenerator.nextId();
             const value = options.codeBlockRenderer(postProcessCodeBlockLanguageId(lang), code);
@@ -165,7 +174,7 @@ export function renderMarkdown(markdown, options = {}, markedOptions = {}) {
         const onClick = options.actionHandler.disposables.add(new DomEmitter(element, 'click'));
         const onAuxClick = options.actionHandler.disposables.add(new DomEmitter(element, 'auxclick'));
         options.actionHandler.disposables.add(Event.any(onClick.event, onAuxClick.event)(e => {
-            const mouseEvent = new StandardMouseEvent(e);
+            const mouseEvent = new StandardMouseEvent(DOM.getWindow(element), e);
             if (!mouseEvent.leftButton && !mouseEvent.middleButton) {
                 return;
             }
@@ -203,7 +212,20 @@ export function renderMarkdown(markdown, options = {}, markedOptions = {}) {
     if (markdown.supportThemeIcons) {
         value = markdownEscapeEscapedIcons(value);
     }
-    let renderedMarkdown = marked.parse(value, markedOptions);
+    let renderedMarkdown;
+    if (options.fillInIncompleteTokens) {
+        // The defaults are applied by parse but not lexer()/parser(), and they need to be present
+        const opts = {
+            ...marked.defaults,
+            ...markedOptions
+        };
+        const tokens = marked.lexer(value, opts);
+        const newTokens = fillInIncompleteTokens(tokens);
+        renderedMarkdown = marked.parser(newTokens, opts);
+    }
+    else {
+        renderedMarkdown = marked.parse(value, markedOptions);
+    }
     // Rewrite theme icons
     if (markdown.supportThemeIcons) {
         const elements = renderLabelWithIcons(renderedMarkdown);
@@ -262,6 +284,16 @@ export function renderMarkdown(markdown, options = {}, markedOptions = {}) {
             (_b = options.asyncRenderCallback) === null || _b === void 0 ? void 0 : _b.call(options);
         });
     }
+    else if (syncCodeBlocks.length > 0) {
+        const renderedElements = new Map(syncCodeBlocks);
+        const placeholderElements = element.querySelectorAll(`div[data-code]`);
+        for (const placeholderElement of placeholderElements) {
+            const renderedElement = renderedElements.get((_b = placeholderElement.dataset['code']) !== null && _b !== void 0 ? _b : '');
+            if (renderedElement) {
+                DOM.reset(placeholderElement, renderedElement);
+            }
+        }
+    }
     // signal size changes for image tags
     if (options.asyncRenderCallback) {
         for (const img of element.getElementsByTagName('img')) {
@@ -304,10 +336,11 @@ function resolveWithBaseUri(baseUri, href) {
 function sanitizeRenderedMarkdown(options, renderedMarkdown) {
     const { config, allowedSchemes } = getSanitizerOptions(options);
     dompurify.addHook('uponSanitizeAttribute', (element, e) => {
+        var _a;
         if (e.attrName === 'style' || e.attrName === 'class') {
             if (element.tagName === 'SPAN') {
                 if (e.attrName === 'style') {
-                    e.keepAttr = /^(color\:#[0-9a-fA-F]+;)?(background-color\:#[0-9a-fA-F]+;)?$/.test(e.attrValue);
+                    e.keepAttr = /^(color\:(#[0-9a-fA-F]+|var\(--vscode(-[a-zA-Z]+)+\));)?(background-color\:(#[0-9a-fA-F]+|var\(--vscode(-[a-zA-Z]+)+\));)?$/.test(e.attrValue);
                     return;
                 }
                 else if (e.attrName === 'class') {
@@ -318,10 +351,28 @@ function sanitizeRenderedMarkdown(options, renderedMarkdown) {
             e.keepAttr = false;
             return;
         }
+        else if (element.tagName === 'INPUT' && ((_a = element.attributes.getNamedItem('type')) === null || _a === void 0 ? void 0 : _a.value) === 'checkbox') {
+            if ((e.attrName === 'type' && e.attrValue === 'checkbox') || e.attrName === 'disabled' || e.attrName === 'checked') {
+                e.keepAttr = true;
+                return;
+            }
+            e.keepAttr = false;
+        }
+    });
+    dompurify.addHook('uponSanitizeElement', (element, e) => {
+        var _a, _b;
+        if (e.tagName === 'input') {
+            if (((_a = element.attributes.getNamedItem('type')) === null || _a === void 0 ? void 0 : _a.value) === 'checkbox') {
+                element.setAttribute('disabled', '');
+            }
+            else {
+                (_b = element.parentElement) === null || _b === void 0 ? void 0 : _b.removeChild(element);
+            }
+        }
     });
     const hook = DOM.hookDomPurifyHrefAndSrcSanitizer(allowedSchemes);
     try {
-        return dompurify.sanitize(renderedMarkdown, Object.assign(Object.assign({}, config), { RETURN_TRUSTED_TYPE: true }));
+        return dompurify.sanitize(renderedMarkdown, { ...config, RETURN_TRUSTED_TYPE: true });
     }
     finally {
         dompurify.removeHook('uponSanitizeAttribute');
@@ -332,10 +383,13 @@ export const allowedMarkdownAttr = [
     'align',
     'autoplay',
     'alt',
+    'checked',
     'class',
     'controls',
     'data-code',
     'data-href',
+    'disabled',
+    'draggable',
     'height',
     'href',
     'loop',
@@ -346,6 +400,7 @@ export const allowedMarkdownAttr = [
     'style',
     'target',
     'title',
+    'type',
     'width',
     'start',
 ];
@@ -375,6 +430,26 @@ function getSanitizerOptions(options) {
         },
         allowedSchemes
     };
+}
+/**
+ * Strips all markdown from `string`, if it's an IMarkdownString. For example
+ * `# Header` would be output as `Header`. If it's not, the string is returned.
+ */
+export function renderStringAsPlaintext(string) {
+    return typeof string === 'string' ? string : renderMarkdownAsPlaintext(string);
+}
+/**
+ * Strips all markdown from `markdown`. For example `# Header` would be output as `Header`.
+ */
+export function renderMarkdownAsPlaintext(markdown) {
+    var _a;
+    // values that are too long will freeze the UI
+    let value = (_a = markdown.value) !== null && _a !== void 0 ? _a : '';
+    if (value.length > 100000) {
+        value = `${value.substr(0, 100000)}…`;
+    }
+    const html = marked.parse(value, { renderer: plainTextRenderer.value }).replace(/&(#\d+|[a-zA-Z]+);/g, m => { var _a; return (_a = unescapeInfo.get(m)) !== null && _a !== void 0 ? _a : m; });
+    return sanitizeRenderedMarkdown({ isTrusted: false }, html).toString();
 }
 const unescapeInfo = new Map([
     ['&quot;', '"'],
@@ -445,3 +520,184 @@ const plainTextRenderer = new Lazy(() => {
     };
     return renderer;
 });
+function mergeRawTokenText(tokens) {
+    let mergedTokenText = '';
+    tokens.forEach(token => {
+        mergedTokenText += token.raw;
+    });
+    return mergedTokenText;
+}
+function completeSingleLinePattern(token) {
+    var _a, _b;
+    for (let i = 0; i < token.tokens.length; i++) {
+        const subtoken = token.tokens[i];
+        if (subtoken.type === 'text') {
+            const lines = subtoken.raw.split('\n');
+            const lastLine = lines[lines.length - 1];
+            if (lastLine.includes('`')) {
+                return completeCodespan(token);
+            }
+            else if (lastLine.includes('**')) {
+                return completeDoublestar(token);
+            }
+            else if (lastLine.match(/\*\w/)) {
+                return completeStar(token);
+            }
+            else if (lastLine.match(/(^|\s)__\w/)) {
+                return completeDoubleUnderscore(token);
+            }
+            else if (lastLine.match(/(^|\s)_\w/)) {
+                return completeUnderscore(token);
+            }
+            else if (lastLine.match(/(^|\s)\[.*\]\(\w*/)) {
+                const nextTwoSubTokens = token.tokens.slice(i + 1);
+                if (((_a = nextTwoSubTokens[0]) === null || _a === void 0 ? void 0 : _a.type) === 'link' && ((_b = nextTwoSubTokens[1]) === null || _b === void 0 ? void 0 : _b.type) === 'text' && nextTwoSubTokens[1].raw.match(/^ *"[^"]*$/)) {
+                    // A markdown link can look like
+                    // [link text](https://microsoft.com "more text")
+                    // Where "more text" is a title for the link or an argument to a vscode command link
+                    return completeLinkTargetArg(token);
+                }
+                return completeLinkTarget(token);
+            }
+            else if (hasStartOfLinkTarget(lastLine)) {
+                return completeLinkTarget(token);
+            }
+            else if (lastLine.match(/(^|\s)\[\w/) && !token.tokens.slice(i + 1).some(t => hasStartOfLinkTarget(t.raw))) {
+                return completeLinkText(token);
+            }
+        }
+    }
+    return undefined;
+}
+function hasStartOfLinkTarget(str) {
+    return !!str.match(/^[^\[]*\]\([^\)]*$/);
+}
+// function completeListItemPattern(token: marked.Tokens.List): marked.Tokens.List | undefined {
+// 	// Patch up this one list item
+// 	const lastItem = token.items[token.items.length - 1];
+// 	const newList = completeSingleLinePattern(lastItem);
+// 	if (!newList || newList.type !== 'list') {
+// 		// Nothing to fix, or not a pattern we were expecting
+// 		return;
+// 	}
+// 	// Re-parse the whole list with the last item replaced
+// 	const completeList = marked.lexer(mergeRawTokenText(token.items.slice(0, token.items.length - 1)) + newList.items[0].raw);
+// 	if (completeList.length === 1 && completeList[0].type === 'list') {
+// 		return completeList[0];
+// 	}
+// 	// Not a pattern we were expecting
+// 	return undefined;
+// }
+export function fillInIncompleteTokens(tokens) {
+    let i;
+    let newTokens;
+    for (i = 0; i < tokens.length; i++) {
+        const token = tokens[i];
+        let codeblockStart;
+        if (token.type === 'paragraph' && (codeblockStart = token.raw.match(/(\n|^)(````*)/))) {
+            const codeblockLead = codeblockStart[2];
+            // If the code block was complete, it would be in a type='code'
+            newTokens = completeCodeBlock(tokens.slice(i), codeblockLead);
+            break;
+        }
+        if (token.type === 'paragraph' && token.raw.match(/(\n|^)\|/)) {
+            newTokens = completeTable(tokens.slice(i));
+            break;
+        }
+        // if (i === tokens.length - 1 && token.type === 'list') {
+        // 	const newListToken = completeListItemPattern(token);
+        // 	if (newListToken) {
+        // 		newTokens = [newListToken];
+        // 		break;
+        // 	}
+        // }
+        if (i === tokens.length - 1 && token.type === 'paragraph') {
+            // Only operates on a single token, because any newline that follows this should break these patterns
+            const newToken = completeSingleLinePattern(token);
+            if (newToken) {
+                newTokens = [newToken];
+                break;
+            }
+        }
+    }
+    if (newTokens) {
+        const newTokensList = [
+            ...tokens.slice(0, i),
+            ...newTokens
+        ];
+        newTokensList.links = tokens.links;
+        return newTokensList;
+    }
+    return tokens;
+}
+function completeCodeBlock(tokens, leader) {
+    const mergedRawText = mergeRawTokenText(tokens);
+    return marked.lexer(mergedRawText + `\n${leader}`);
+}
+function completeCodespan(token) {
+    return completeWithString(token, '`');
+}
+function completeStar(tokens) {
+    return completeWithString(tokens, '*');
+}
+function completeUnderscore(tokens) {
+    return completeWithString(tokens, '_');
+}
+function completeLinkTarget(tokens) {
+    return completeWithString(tokens, ')');
+}
+function completeLinkTargetArg(tokens) {
+    return completeWithString(tokens, '")');
+}
+function completeLinkText(tokens) {
+    return completeWithString(tokens, '](about:blank)');
+}
+function completeDoublestar(tokens) {
+    return completeWithString(tokens, '**');
+}
+function completeDoubleUnderscore(tokens) {
+    return completeWithString(tokens, '__');
+}
+function completeWithString(tokens, closingString) {
+    const mergedRawText = mergeRawTokenText(Array.isArray(tokens) ? tokens : [tokens]);
+    // If it was completed correctly, this should be a single token.
+    // Expecting either a Paragraph or a List
+    return marked.lexer(mergedRawText + closingString)[0];
+}
+function completeTable(tokens) {
+    const mergedRawText = mergeRawTokenText(tokens);
+    const lines = mergedRawText.split('\n');
+    let numCols; // The number of line1 col headers
+    let hasSeparatorRow = false;
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (typeof numCols === 'undefined' && line.match(/^\s*\|/)) {
+            const line1Matches = line.match(/(\|[^\|]+)(?=\||$)/g);
+            if (line1Matches) {
+                numCols = line1Matches.length;
+            }
+        }
+        else if (typeof numCols === 'number') {
+            if (line.match(/^\s*\|/)) {
+                if (i !== lines.length - 1) {
+                    // We got the line1 header row, and the line2 separator row, but there are more lines, and it wasn't parsed as a table!
+                    // That's strange and means that the table is probably malformed in the source, so I won't try to patch it up.
+                    return undefined;
+                }
+                // Got a line2 separator row- partial or complete, doesn't matter, we'll replace it with a correct one
+                hasSeparatorRow = true;
+            }
+            else {
+                // The line after the header row isn't a valid separator row, so the table is malformed, don't fix it up
+                return undefined;
+            }
+        }
+    }
+    if (typeof numCols === 'number' && numCols > 0) {
+        const prefixText = hasSeparatorRow ? lines.slice(0, -1).join('\n') : mergedRawText;
+        const line1EndsInPipe = !!prefixText.match(/\|\s*$/);
+        const newRawText = prefixText + (line1EndsInPipe ? '' : '|') + `\n|${' --- |'.repeat(numCols)}`;
+        return marked.lexer(newRawText);
+    }
+    return undefined;
+}

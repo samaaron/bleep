@@ -122,7 +122,7 @@ export function getReindentEditOperations(model, languageConfigurationService, s
     }
     return indentEdits;
 }
-class IndentationToSpacesAction extends EditorAction {
+export class IndentationToSpacesAction extends EditorAction {
     constructor() {
         super({
             id: IndentationToSpacesAction.ID,
@@ -151,8 +151,7 @@ class IndentationToSpacesAction extends EditorAction {
     }
 }
 IndentationToSpacesAction.ID = 'editor.action.indentationToSpaces';
-export { IndentationToSpacesAction };
-class IndentationToTabsAction extends EditorAction {
+export class IndentationToTabsAction extends EditorAction {
     constructor() {
         super({
             id: IndentationToTabsAction.ID,
@@ -181,7 +180,6 @@ class IndentationToTabsAction extends EditorAction {
     }
 }
 IndentationToTabsAction.ID = 'editor.action.indentationToTabs';
-export { IndentationToTabsAction };
 export class ChangeIndentationSizeAction extends EditorAction {
     constructor(insertSpaces, displaySizeOnly, opts) {
         super(opts);
@@ -234,7 +232,7 @@ export class ChangeIndentationSizeAction extends EditorAction {
         }, 50 /* quick input is sensitive to being opened so soon after another */);
     }
 }
-class IndentUsingTabs extends ChangeIndentationSizeAction {
+export class IndentUsingTabs extends ChangeIndentationSizeAction {
     constructor() {
         super(false, false, {
             id: IndentUsingTabs.ID,
@@ -245,8 +243,7 @@ class IndentUsingTabs extends ChangeIndentationSizeAction {
     }
 }
 IndentUsingTabs.ID = 'editor.action.indentUsingTabs';
-export { IndentUsingTabs };
-class IndentUsingSpaces extends ChangeIndentationSizeAction {
+export class IndentUsingSpaces extends ChangeIndentationSizeAction {
     constructor() {
         super(true, false, {
             id: IndentUsingSpaces.ID,
@@ -257,8 +254,7 @@ class IndentUsingSpaces extends ChangeIndentationSizeAction {
     }
 }
 IndentUsingSpaces.ID = 'editor.action.indentUsingSpaces';
-export { IndentUsingSpaces };
-class ChangeTabDisplaySize extends ChangeIndentationSizeAction {
+export class ChangeTabDisplaySize extends ChangeIndentationSizeAction {
     constructor() {
         super(true, true, {
             id: ChangeTabDisplaySize.ID,
@@ -269,8 +265,7 @@ class ChangeTabDisplaySize extends ChangeIndentationSizeAction {
     }
 }
 ChangeTabDisplaySize.ID = 'editor.action.changeTabDisplaySize';
-export { ChangeTabDisplaySize };
-class DetectIndentation extends EditorAction {
+export class DetectIndentation extends EditorAction {
     constructor() {
         super({
             id: DetectIndentation.ID,
@@ -290,7 +285,6 @@ class DetectIndentation extends EditorAction {
     }
 }
 DetectIndentation.ID = 'editor.action.detectIndentation';
-export { DetectIndentation };
 export class ReindentLinesAction extends EditorAction {
     constructor() {
         super({
@@ -408,7 +402,7 @@ let AutoIndentOnPaste = class AutoIndentOnPaste {
         // clean up
         this.callOnModel.clear();
         // we are disabled
-        if (this.editor.getOption(9 /* EditorOption.autoIndent */) < 4 /* EditorAutoIndentStrategy.Full */ || this.editor.getOption(52 /* EditorOption.formatOnPaste */)) {
+        if (this.editor.getOption(12 /* EditorOption.autoIndent */) < 4 /* EditorAutoIndentStrategy.Full */ || this.editor.getOption(55 /* EditorOption.formatOnPaste */)) {
             return;
         }
         // no model
@@ -431,7 +425,7 @@ let AutoIndentOnPaste = class AutoIndentOnPaste {
         if (!model.tokenization.isCheapToTokenize(range.getStartPosition().lineNumber)) {
             return;
         }
-        const autoIndent = this.editor.getOption(9 /* EditorOption.autoIndent */);
+        const autoIndent = this.editor.getOption(12 /* EditorOption.autoIndent */);
         const { tabSize, indentSize, insertSpaces } = model.getOptions();
         const textEdits = [];
         const indentConverter = {

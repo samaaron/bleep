@@ -7,6 +7,7 @@ import { StandardKeyboardEvent } from '../../keyboardEvent.js';
 import { DomScrollableElement } from '../scrollbar/scrollableElement.js';
 import { Disposable } from '../../../common/lifecycle.js';
 import './hover.css';
+import { localize } from '../../../../nls.js';
 const $ = dom.$;
 export class HoverWidget extends Disposable {
     constructor() {
@@ -66,4 +67,7 @@ export class HoverAction extends Disposable {
             this.actionContainer.setAttribute('aria-disabled', 'true');
         }
     }
+}
+export function getHoverAccessibleViewHint(shouldHaveHint, keybinding) {
+    return shouldHaveHint && keybinding ? localize('acessibleViewHint', "Inspect this in the accessible view with {0}.", keybinding) : shouldHaveHint ? localize('acessibleViewHintNoKbOpen', "Inspect this in the accessible view via the command Open Accessible View which is currently not triggerable via keybinding.") : '';
 }

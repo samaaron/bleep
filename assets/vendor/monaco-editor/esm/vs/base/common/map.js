@@ -9,16 +9,26 @@ class ResourceMapEntry {
         this.value = value;
     }
 }
-class ResourceMap {
-    constructor(mapOrKeyFn, toKey) {
+function isEntries(arg) {
+    return Array.isArray(arg);
+}
+export class ResourceMap {
+    constructor(arg, toKey) {
         this[_a] = 'ResourceMap';
-        if (mapOrKeyFn instanceof ResourceMap) {
-            this.map = new Map(mapOrKeyFn.map);
+        if (arg instanceof ResourceMap) {
+            this.map = new Map(arg.map);
             this.toKey = toKey !== null && toKey !== void 0 ? toKey : ResourceMap.defaultToKey;
+        }
+        else if (isEntries(arg)) {
+            this.map = new Map();
+            this.toKey = toKey !== null && toKey !== void 0 ? toKey : ResourceMap.defaultToKey;
+            for (const [resource, value] of arg) {
+                this.set(resource, value);
+            }
         }
         else {
             this.map = new Map();
-            this.toKey = mapOrKeyFn !== null && mapOrKeyFn !== void 0 ? mapOrKeyFn : ResourceMap.defaultToKey;
+            this.toKey = arg !== null && arg !== void 0 ? arg : ResourceMap.defaultToKey;
         }
     }
     set(resource, value) {
@@ -71,7 +81,6 @@ class ResourceMap {
     }
 }
 ResourceMap.defaultToKey = (resource) => resource.toString();
-export { ResourceMap };
 export class LinkedMap {
     constructor() {
         this[_b] = 'LinkedMap';
@@ -448,5 +457,86 @@ export class LRUCache extends LinkedMap {
         if (this.size > this._limit) {
             this.trimOld(Math.round(this._limit * this._ratio));
         }
+    }
+}
+/**
+ * A map that allows access both by keys and values.
+ * **NOTE**: values need to be unique.
+ */
+export class BidirectionalMap {
+    constructor(entries) {
+        this._m1 = new Map();
+        this._m2 = new Map();
+        if (entries) {
+            for (const [key, value] of entries) {
+                this.set(key, value);
+            }
+        }
+    }
+    clear() {
+        this._m1.clear();
+        this._m2.clear();
+    }
+    set(key, value) {
+        this._m1.set(key, value);
+        this._m2.set(value, key);
+    }
+    get(key) {
+        return this._m1.get(key);
+    }
+    getKey(value) {
+        return this._m2.get(value);
+    }
+    delete(key) {
+        const value = this._m1.get(key);
+        if (value === undefined) {
+            return false;
+        }
+        this._m1.delete(key);
+        this._m2.delete(value);
+        return true;
+    }
+    keys() {
+        return this._m1.keys();
+    }
+    values() {
+        return this._m1.values();
+    }
+}
+export class SetMap {
+    constructor() {
+        this.map = new Map();
+    }
+    add(key, value) {
+        let values = this.map.get(key);
+        if (!values) {
+            values = new Set();
+            this.map.set(key, values);
+        }
+        values.add(value);
+    }
+    delete(key, value) {
+        const values = this.map.get(key);
+        if (!values) {
+            return;
+        }
+        values.delete(value);
+        if (values.size === 0) {
+            this.map.delete(key);
+        }
+    }
+    forEach(key, fn) {
+        const values = this.map.get(key);
+        if (!values) {
+            return;
+        }
+        values.forEach(fn);
+    }
+    get(key) {
+        const values = this.map.get(key);
+        if (!values) {
+            return new Set();
+        }
+        return values;
     }
 }

@@ -59,7 +59,8 @@ function createOptions(multiCursorModifier) {
     return new ClickLinkOptions(6 /* KeyCode.Alt */, 'altKey', 5 /* KeyCode.Ctrl */, 'ctrlKey');
 }
 export class ClickLinkGesture extends Disposable {
-    constructor(editor, alwaysFireOnMouseUp) {
+    constructor(editor, opts) {
+        var _a;
         super();
         this._onMouseMoveOrRelevantKeyDown = this._register(new Emitter());
         this.onMouseMoveOrRelevantKeyDown = this._onMouseMoveOrRelevantKeyDown.event;
@@ -68,14 +69,14 @@ export class ClickLinkGesture extends Disposable {
         this._onCancel = this._register(new Emitter());
         this.onCancel = this._onCancel.event;
         this._editor = editor;
-        this._alwaysFireExecuteOnMouseUp = alwaysFireOnMouseUp;
-        this._opts = createOptions(this._editor.getOption(74 /* EditorOption.multiCursorModifier */));
+        this._extractLineNumberFromMouseEvent = (_a = opts === null || opts === void 0 ? void 0 : opts.extractLineNumberFromMouseEvent) !== null && _a !== void 0 ? _a : ((e) => e.target.position ? e.target.position.lineNumber : 0);
+        this._opts = createOptions(this._editor.getOption(78 /* EditorOption.multiCursorModifier */));
         this._lastMouseMoveEvent = null;
         this._hasTriggerKeyOnMouseDown = false;
         this._lineNumberOnMouseDown = 0;
         this._register(this._editor.onDidChangeConfiguration((e) => {
-            if (e.hasChanged(74 /* EditorOption.multiCursorModifier */)) {
-                const newOpts = createOptions(this._editor.getOption(74 /* EditorOption.multiCursorModifier */));
+            if (e.hasChanged(78 /* EditorOption.multiCursorModifier */)) {
+                const newOpts = createOptions(this._editor.getOption(78 /* EditorOption.multiCursorModifier */));
                 if (this._opts.equals(newOpts)) {
                     return;
                 }
@@ -116,11 +117,11 @@ export class ClickLinkGesture extends Disposable {
         // release the mouse button without wanting to do the navigation.
         // With this flag we prevent goto definition if the mouse was down before the trigger key was pressed.
         this._hasTriggerKeyOnMouseDown = mouseEvent.hasTriggerModifier;
-        this._lineNumberOnMouseDown = mouseEvent.target.position ? mouseEvent.target.position.lineNumber : 0;
+        this._lineNumberOnMouseDown = this._extractLineNumberFromMouseEvent(mouseEvent);
     }
     _onEditorMouseUp(mouseEvent) {
-        const currentLineNumber = mouseEvent.target.position ? mouseEvent.target.position.lineNumber : 0;
-        if (this._hasTriggerKeyOnMouseDown && this._lineNumberOnMouseDown && this._lineNumberOnMouseDown === currentLineNumber || this._alwaysFireExecuteOnMouseUp) {
+        const currentLineNumber = this._extractLineNumberFromMouseEvent(mouseEvent);
+        if (this._hasTriggerKeyOnMouseDown && this._lineNumberOnMouseDown && this._lineNumberOnMouseDown === currentLineNumber) {
             this._onExecute.fire(mouseEvent);
         }
     }

@@ -1,10 +1,16 @@
 import { addDisposableListener, EventHelper, EventType, reset, trackFocus } from '../../dom.js';
+import { sanitize } from '../../dompurify/dompurify.js';
 import { StandardKeyboardEvent } from '../../keyboardEvent.js';
-import { EventType as TouchEventType, Gesture } from '../../touch.js';
+import { renderMarkdown, renderStringAsPlaintext } from '../../markdownRenderer.js';
+import { Gesture, EventType as TouchEventType } from '../../touch.js';
+import { getDefaultHoverDelegate } from '../hover/hoverDelegate.js';
+import { setupCustomHover } from '../iconLabel/iconLabelHover.js';
 import { renderLabelWithIcons } from '../iconLabel/iconLabels.js';
 import { Color } from '../../../common/color.js';
 import { Emitter } from '../../../common/event.js';
+import { isMarkdownString, markdownStringEqual } from '../../../common/htmlContent.js';
 import { Disposable } from '../../../common/lifecycle.js';
+import { ThemeIcon } from '../../../common/themables.js';
 import './button.css';
 export const unthemedButtonStyles = {
     buttonBackground: '#0E639C',
@@ -20,12 +26,15 @@ export class Button extends Disposable {
     get onDidClick() { return this._onDidClick.event; }
     constructor(container, options) {
         super();
+        this._label = '';
         this._onDidClick = this._register(new Emitter());
+        this._onDidEscape = this._register(new Emitter());
         this.options = options;
         this._element = document.createElement('a');
         this._element.classList.add('monaco-button');
         this._element.tabIndex = 0;
         this._element.setAttribute('role', 'button');
+        this._element.classList.toggle('secondary', !!options.secondary);
         const background = options.secondary ? options.buttonSecondaryBackground : options.buttonBackground;
         const foreground = options.secondary ? options.buttonSecondaryForeground : options.buttonForeground;
         this._element.style.color = foreground || '';
@@ -38,6 +47,9 @@ export class Button extends Disposable {
             this._labelElement.classList.add('monaco-button-label');
             this._element.appendChild(this._labelElement);
             this._element.classList.add('monaco-text-button-with-short-label');
+        }
+        if (typeof options.ariaLabel === 'string') {
+            this._element.setAttribute('aria-label', options.ariaLabel);
         }
         container.appendChild(this._element);
         this._register(Gesture.addTarget(this._element));
@@ -58,6 +70,7 @@ export class Button extends Disposable {
                 eventHandled = true;
             }
             else if (event.equals(9 /* KeyCode.Escape */)) {
+                this._onDidEscape.fire(e);
                 this._element.blur();
                 eventHandled = true;
             }
@@ -81,6 +94,10 @@ export class Button extends Disposable {
         this._register(this.focusTracker.onDidBlur(() => { if (this.enabled) {
             this.updateBackground(false);
         } }));
+    }
+    dispose() {
+        super.dispose();
+        this._element.remove();
     }
     getContentElements(content) {
         const elements = [];
@@ -118,20 +135,63 @@ export class Button extends Disposable {
         return this._element;
     }
     set label(value) {
+        var _a;
+        if (this._label === value) {
+            return;
+        }
+        if (isMarkdownString(this._label) && isMarkdownString(value) && markdownStringEqual(this._label, value)) {
+            return;
+        }
         this._element.classList.add('monaco-text-button');
         const labelElement = this.options.supportShortLabel ? this._labelElement : this._element;
-        if (this.options.supportIcons) {
-            reset(labelElement, ...this.getContentElements(value));
+        if (isMarkdownString(value)) {
+            const rendered = renderMarkdown(value, { inline: true });
+            rendered.dispose();
+            // Don't include outer `<p>`
+            const root = (_a = rendered.element.querySelector('p')) === null || _a === void 0 ? void 0 : _a.innerHTML;
+            if (root) {
+                // Only allow a very limited set of inline html tags
+                const sanitized = sanitize(root, { ADD_TAGS: ['b', 'i', 'u', 'code', 'span'], ALLOWED_ATTR: ['class'], RETURN_TRUSTED_TYPE: true });
+                labelElement.innerHTML = sanitized;
+            }
+            else {
+                reset(labelElement);
+            }
         }
         else {
-            labelElement.textContent = value;
+            if (this.options.supportIcons) {
+                reset(labelElement, ...this.getContentElements(value));
+            }
+            else {
+                labelElement.textContent = value;
+            }
         }
+        let title = '';
         if (typeof this.options.title === 'string') {
-            this._element.title = this.options.title;
+            title = this.options.title;
         }
         else if (this.options.title) {
-            this._element.title = value;
+            title = renderStringAsPlaintext(value);
         }
+        if (!this._hover) {
+            this._hover = this._register(setupCustomHover(getDefaultHoverDelegate('mouse'), this._element, title));
+        }
+        else {
+            this._hover.update(title);
+        }
+        if (typeof this.options.ariaLabel === 'string') {
+            this._element.setAttribute('aria-label', this.options.ariaLabel);
+        }
+        else if (this.options.ariaLabel) {
+            this._element.setAttribute('aria-label', this._element.title);
+        }
+        this._label = value;
+    }
+    get label() {
+        return this._label;
+    }
+    set icon(icon) {
+        this._element.classList.add(...ThemeIcon.asClassNameArray(icon));
     }
     set enabled(value) {
         if (value) {

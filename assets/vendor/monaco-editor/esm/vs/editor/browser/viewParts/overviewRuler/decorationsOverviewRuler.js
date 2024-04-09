@@ -9,20 +9,21 @@ import { Position } from '../../../common/core/position.js';
 import { TokenizationRegistry } from '../../../common/languages.js';
 import { editorCursorForeground, editorOverviewRulerBorder, editorOverviewRulerBackground } from '../../../common/core/editorColorRegistry.js';
 import { OverviewRulerDecorationsGroup } from '../../../common/viewModel.js';
+import { equals } from '../../../../base/common/arrays.js';
 class Settings {
     constructor(config, theme) {
         const options = config.options;
-        this.lineHeight = options.get(63 /* EditorOption.lineHeight */);
-        this.pixelRatio = options.get(136 /* EditorOption.pixelRatio */);
-        this.overviewRulerLanes = options.get(79 /* EditorOption.overviewRulerLanes */);
-        this.renderBorder = options.get(78 /* EditorOption.overviewRulerBorder */);
+        this.lineHeight = options.get(67 /* EditorOption.lineHeight */);
+        this.pixelRatio = options.get(142 /* EditorOption.pixelRatio */);
+        this.overviewRulerLanes = options.get(83 /* EditorOption.overviewRulerLanes */);
+        this.renderBorder = options.get(82 /* EditorOption.overviewRulerBorder */);
         const borderColor = theme.getColor(editorOverviewRulerBorder);
         this.borderColor = borderColor ? borderColor.toString() : null;
-        this.hideCursor = options.get(56 /* EditorOption.hideCursorInOverviewRuler */);
+        this.hideCursor = options.get(59 /* EditorOption.hideCursorInOverviewRuler */);
         const cursorColor = theme.getColor(editorCursorForeground);
         this.cursorColor = cursorColor ? cursorColor.transparent(0.7).toString() : null;
         this.themeType = theme.type;
-        const minimapOpts = options.get(69 /* EditorOption.minimap */);
+        const minimapOpts = options.get(73 /* EditorOption.minimap */);
         const minimapEnabled = minimapOpts.enabled;
         const minimapSide = minimapOpts.side;
         const themeColor = theme.getColor(editorOverviewRulerBackground);
@@ -36,7 +37,7 @@ class Settings {
         else {
             this.backgroundColor = null;
         }
-        const layoutInfo = options.get(138 /* EditorOption.layoutInfo */);
+        const layoutInfo = options.get(144 /* EditorOption.layoutInfo */);
         const position = layoutInfo.overviewRuler;
         this.top = position.top;
         this.right = position.right;
@@ -67,21 +68,21 @@ class Settings {
             return [
                 [
                     0,
-                    leftOffset,
-                    centerOffset,
-                    leftOffset,
-                    rightOffset,
-                    leftOffset,
-                    centerOffset,
+                    leftOffset, // Left
+                    centerOffset, // Center
+                    leftOffset, // Left | Center
+                    rightOffset, // Right
+                    leftOffset, // Left | Right
+                    centerOffset, // Center | Right
                     leftOffset, // Left | Center | Right
                 ], [
                     0,
-                    leftWidth,
-                    centerWidth,
-                    leftWidth + centerWidth,
-                    rightWidth,
-                    leftWidth + centerWidth + rightWidth,
-                    centerWidth + rightWidth,
+                    leftWidth, // Left
+                    centerWidth, // Center
+                    leftWidth + centerWidth, // Left | Center
+                    rightWidth, // Right
+                    leftWidth + centerWidth + rightWidth, // Left | Right
+                    centerWidth + rightWidth, // Center | Right
                     leftWidth + centerWidth + rightWidth, // Left | Center | Right
                 ]
             ];
@@ -94,21 +95,21 @@ class Settings {
             return [
                 [
                     0,
-                    leftOffset,
-                    leftOffset,
-                    leftOffset,
-                    rightOffset,
-                    leftOffset,
-                    leftOffset,
+                    leftOffset, // Left
+                    leftOffset, // Center
+                    leftOffset, // Left | Center
+                    rightOffset, // Right
+                    leftOffset, // Left | Right
+                    leftOffset, // Center | Right
                     leftOffset, // Left | Center | Right
                 ], [
                     0,
-                    leftWidth,
-                    leftWidth,
-                    leftWidth,
-                    rightWidth,
-                    leftWidth + rightWidth,
-                    leftWidth + rightWidth,
+                    leftWidth, // Left
+                    leftWidth, // Center
+                    leftWidth, // Left | Center
+                    rightWidth, // Right
+                    leftWidth + rightWidth, // Left | Right
+                    leftWidth + rightWidth, // Center | Right
                     leftWidth + rightWidth, // Left | Center | Right
                 ]
             ];
@@ -119,21 +120,21 @@ class Settings {
             return [
                 [
                     0,
-                    offset,
-                    offset,
-                    offset,
-                    offset,
-                    offset,
-                    offset,
+                    offset, // Left
+                    offset, // Center
+                    offset, // Left | Center
+                    offset, // Right
+                    offset, // Left | Right
+                    offset, // Center | Right
                     offset, // Left | Center | Right
                 ], [
                     0,
-                    width,
-                    width,
-                    width,
-                    width,
-                    width,
-                    width,
+                    width, // Left
+                    width, // Center
+                    width, // Left | Center
+                    width, // Right
+                    width, // Left | Right
+                    width, // Center | Right
                     width, // Left | Center | Right
                 ]
             ];
@@ -160,6 +161,9 @@ class Settings {
 export class DecorationsOverviewRuler extends ViewPart {
     constructor(context) {
         super(context);
+        this._actualShouldRender = 0 /* ShouldRenderValue.NotNeeded */;
+        this._renderedDecorations = [];
+        this._renderedCursorPositions = [];
         this._domNode = createFastDomNode(document.createElement('canvas'));
         this._domNode.setClassName('decorationsOverviewRuler');
         this._domNode.setPosition('absolute');
@@ -172,7 +176,7 @@ export class DecorationsOverviewRuler extends ViewPart {
                 this._updateSettings(true);
             }
         });
-        this._cursorPositions = [];
+        this._cursorPositions = [new Position(1, 1)];
     }
     dispose() {
         super.dispose();
@@ -197,8 +201,16 @@ export class DecorationsOverviewRuler extends ViewPart {
         return true;
     }
     // ---- begin view event handlers
+    _markRenderingIsNeeded() {
+        this._actualShouldRender = 2 /* ShouldRenderValue.Needed */;
+        return true;
+    }
+    _markRenderingIsMaybeNeeded() {
+        this._actualShouldRender = 1 /* ShouldRenderValue.Maybe */;
+        return true;
+    }
     onConfigurationChanged(e) {
-        return this._updateSettings(false);
+        return this._updateSettings(false) ? this._markRenderingIsNeeded() : false;
     }
     onCursorStateChanged(e) {
         this._cursorPositions = [];
@@ -206,25 +218,25 @@ export class DecorationsOverviewRuler extends ViewPart {
             this._cursorPositions[i] = e.selections[i].getPosition();
         }
         this._cursorPositions.sort(Position.compare);
-        return true;
+        return this._markRenderingIsMaybeNeeded();
     }
     onDecorationsChanged(e) {
         if (e.affectsOverviewRuler) {
-            return true;
+            return this._markRenderingIsMaybeNeeded();
         }
         return false;
     }
     onFlushed(e) {
-        return true;
+        return this._markRenderingIsNeeded();
     }
     onScrollChanged(e) {
-        return e.scrollHeightChanged;
+        return e.scrollHeightChanged ? this._markRenderingIsNeeded() : false;
     }
     onZonesChanged(e) {
-        return true;
+        return this._markRenderingIsNeeded();
     }
     onThemeChanged(e) {
-        return this._updateSettings(false);
+        return this._updateSettings(false) ? this._markRenderingIsNeeded() : false;
     }
     // ---- end view event handlers
     getDomNode() {
@@ -235,6 +247,7 @@ export class DecorationsOverviewRuler extends ViewPart {
     }
     render(editorCtx) {
         this._render();
+        this._actualShouldRender = 0 /* ShouldRenderValue.NotNeeded */;
     }
     _render() {
         const backgroundColor = this._settings.backgroundColor;
@@ -244,6 +257,20 @@ export class DecorationsOverviewRuler extends ViewPart {
             this._domNode.setDisplay('none');
             return;
         }
+        const decorations = this._context.viewModel.getAllOverviewRulerDecorations(this._context.theme);
+        decorations.sort(OverviewRulerDecorationsGroup.compareByRenderingProps);
+        if (this._actualShouldRender === 1 /* ShouldRenderValue.Maybe */ && !OverviewRulerDecorationsGroup.equalsArr(this._renderedDecorations, decorations)) {
+            this._actualShouldRender = 2 /* ShouldRenderValue.Needed */;
+        }
+        if (this._actualShouldRender === 1 /* ShouldRenderValue.Maybe */ && !equals(this._renderedCursorPositions, this._cursorPositions, (a, b) => a.lineNumber === b.lineNumber)) {
+            this._actualShouldRender = 2 /* ShouldRenderValue.Needed */;
+        }
+        if (this._actualShouldRender === 1 /* ShouldRenderValue.Maybe */) {
+            // both decorations and cursor positions are unchanged, nothing to do
+            return;
+        }
+        this._renderedDecorations = decorations;
+        this._renderedCursorPositions = this._cursorPositions;
         this._domNode.setDisplay('block');
         const canvasWidth = this._settings.canvasWidth;
         const canvasHeight = this._settings.canvasHeight;
@@ -251,7 +278,6 @@ export class DecorationsOverviewRuler extends ViewPart {
         const viewLayout = this._context.viewLayout;
         const outerHeight = this._context.viewLayout.getScrollHeight();
         const heightRatio = canvasHeight / outerHeight;
-        const decorations = this._context.viewModel.getAllOverviewRulerDecorations(this._context.theme);
         const minDecorationHeight = (6 /* Constants.MIN_DECORATION_HEIGHT */ * this._settings.pixelRatio) | 0;
         const halfMinDecorationHeight = (minDecorationHeight / 2) | 0;
         const canvasCtx = this._domNode.domNode.getContext('2d');
@@ -275,7 +301,6 @@ export class DecorationsOverviewRuler extends ViewPart {
         }
         const x = this._settings.x;
         const w = this._settings.w;
-        decorations.sort(OverviewRulerDecorationsGroup.cmp);
         for (const decorationGroup of decorations) {
             const color = decorationGroup.color;
             const decorationGroupData = decorationGroup.data;

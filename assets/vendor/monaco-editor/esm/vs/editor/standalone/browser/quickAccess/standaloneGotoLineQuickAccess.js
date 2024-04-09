@@ -15,7 +15,6 @@ import { AbstractGotoLineQuickAccessProvider } from '../../../contrib/quickAcces
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { Extensions } from '../../../../platform/quickinput/common/quickAccess.js';
 import { ICodeEditorService } from '../../../browser/services/codeEditorService.js';
-import { withNullAsUndefined } from '../../../../base/common/types.js';
 import { GoToLineNLS } from '../../../common/standaloneStrings.js';
 import { Event } from '../../../../base/common/event.js';
 import { EditorAction, registerEditorAction } from '../../../browser/editorExtensions.js';
@@ -28,14 +27,15 @@ let StandaloneGotoLineQuickAccessProvider = class StandaloneGotoLineQuickAccessP
         this.onDidActiveTextEditorControlChange = Event.None;
     }
     get activeTextEditorControl() {
-        return withNullAsUndefined(this.editorService.getFocusedCodeEditor());
+        var _a;
+        return (_a = this.editorService.getFocusedCodeEditor()) !== null && _a !== void 0 ? _a : undefined;
     }
 };
 StandaloneGotoLineQuickAccessProvider = __decorate([
     __param(0, ICodeEditorService)
 ], StandaloneGotoLineQuickAccessProvider);
 export { StandaloneGotoLineQuickAccessProvider };
-class GotoLineAction extends EditorAction {
+export class GotoLineAction extends EditorAction {
     constructor() {
         super({
             id: GotoLineAction.ID,
@@ -55,7 +55,6 @@ class GotoLineAction extends EditorAction {
     }
 }
 GotoLineAction.ID = 'editor.action.gotoLine';
-export { GotoLineAction };
 registerEditorAction(GotoLineAction);
 Registry.as(Extensions.Quickaccess).registerQuickAccessProvider({
     ctor: StandaloneGotoLineQuickAccessProvider,

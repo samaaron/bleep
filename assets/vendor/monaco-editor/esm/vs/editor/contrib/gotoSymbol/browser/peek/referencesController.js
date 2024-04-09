@@ -11,15 +11,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
+var ReferencesController_1;
 import { createCancelablePromise } from '../../../../../base/common/async.js';
 import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { KeyChord } from '../../../../../base/common/keyCodes.js';
@@ -39,10 +31,12 @@ import { INotificationService } from '../../../../../platform/notification/commo
 import { IStorageService } from '../../../../../platform/storage/common/storage.js';
 import { OneReference } from '../referencesModel.js';
 import { LayoutData, ReferenceWidget } from './referencesWidget.js';
+import { EditorContextKeys } from '../../../../common/editorContextKeys.js';
+import { InputFocusedContext } from '../../../../../platform/contextkey/common/contextkeys.js';
 export const ctxReferenceSearchVisible = new RawContextKey('referenceSearchVisible', false, nls.localize('referenceSearchVisible', "Whether reference peek is visible, like 'Peek References' or 'Peek Definition'"));
-let ReferencesController = class ReferencesController {
+let ReferencesController = ReferencesController_1 = class ReferencesController {
     static get(editor) {
-        return editor.getContribution(ReferencesController.ID);
+        return editor.getContribution(ReferencesController_1.ID);
     }
     constructor(_defaultTreeKeyboardSupport, _editor, contextKeyService, _editorService, _notificationService, _instantiationService, _storageService, _configurationService) {
         this._defaultTreeKeyboardSupport = _defaultTreeKeyboardSupport;
@@ -150,7 +144,7 @@ let ReferencesController = class ReferencesController {
                     const selection = this._model.nearestReference(uri, pos);
                     if (selection) {
                         return this._widget.setSelection(selection).then(() => {
-                            if (this._widget && this._editor.getOption(82 /* EditorOption.peekWidgetDefaultFocus */) === 'editor') {
+                            if (this._widget && this._editor.getOption(87 /* EditorOption.peekWidgetDefaultFocus */) === 'editor') {
                                 this._widget.focusOnPreviewEditor();
                             }
                         });
@@ -174,41 +168,37 @@ let ReferencesController = class ReferencesController {
             this._widget.focusOnPreviewEditor();
         }
     }
-    goToNextOrPreviousReference(fwd) {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (!this._editor.hasModel() || !this._model || !this._widget) {
-                // can be called while still resolving...
-                return;
-            }
-            const currentPosition = this._widget.position;
-            if (!currentPosition) {
-                return;
-            }
-            const source = this._model.nearestReference(this._editor.getModel().uri, currentPosition);
-            if (!source) {
-                return;
-            }
-            const target = this._model.nextOrPreviousReference(source, fwd);
-            const editorFocus = this._editor.hasTextFocus();
-            const previewEditorFocus = this._widget.isPreviewEditorFocused();
-            yield this._widget.setSelection(target);
-            yield this._gotoReference(target, false);
-            if (editorFocus) {
-                this._editor.focus();
-            }
-            else if (this._widget && previewEditorFocus) {
-                this._widget.focusOnPreviewEditor();
-            }
-        });
+    async goToNextOrPreviousReference(fwd) {
+        if (!this._editor.hasModel() || !this._model || !this._widget) {
+            // can be called while still resolving...
+            return;
+        }
+        const currentPosition = this._widget.position;
+        if (!currentPosition) {
+            return;
+        }
+        const source = this._model.nearestReference(this._editor.getModel().uri, currentPosition);
+        if (!source) {
+            return;
+        }
+        const target = this._model.nextOrPreviousReference(source, fwd);
+        const editorFocus = this._editor.hasTextFocus();
+        const previewEditorFocus = this._widget.isPreviewEditorFocused();
+        await this._widget.setSelection(target);
+        await this._gotoReference(target, false);
+        if (editorFocus) {
+            this._editor.focus();
+        }
+        else if (this._widget && previewEditorFocus) {
+            this._widget.focusOnPreviewEditor();
+        }
     }
-    revealReference(reference) {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (!this._editor.hasModel() || !this._model || !this._widget) {
-                // can be called while still resolving...
-                return;
-            }
-            yield this._widget.revealReference(reference);
-        });
+    async revealReference(reference) {
+        if (!this._editor.hasModel() || !this._model || !this._widget) {
+            // can be called while still resolving...
+            return;
+        }
+        await this._widget.revealReference(reference);
     }
     closeWidget(focusEditor = true) {
         var _a, _b;
@@ -247,7 +237,7 @@ let ReferencesController = class ReferencesController {
             else {
                 // we opened a different editor instance which means a different controller instance.
                 // therefore we stop with this controller and continue with the other
-                const other = ReferencesController.get(openedEditor);
+                const other = ReferencesController_1.get(openedEditor);
                 const model = this._model.clone();
                 this.closeWidget();
                 openedEditor.focus();
@@ -271,7 +261,7 @@ let ReferencesController = class ReferencesController {
     }
 };
 ReferencesController.ID = 'editor.contrib.referencesController';
-ReferencesController = __decorate([
+ReferencesController = ReferencesController_1 = __decorate([
     __param(2, IContextKeyService),
     __param(3, ICodeEditorService),
     __param(4, INotificationService),
@@ -343,7 +333,7 @@ KeybindingsRegistry.registerKeybindingRule({
     weight: 200 /* KeybindingWeight.WorkbenchContrib */ + 50,
     primary: 9 /* KeyCode.Escape */,
     secondary: [1024 /* KeyMod.Shift */ | 9 /* KeyCode.Escape */],
-    when: ContextKeyExpr.and(ctxReferenceSearchVisible, ContextKeyExpr.not('config.editor.stablePeek'))
+    when: ContextKeyExpr.and(ctxReferenceSearchVisible, ContextKeyExpr.not('config.editor.stablePeek'), ContextKeyExpr.or(EditorContextKeys.editorTextFocus, InputFocusedContext.negate()))
 });
 KeybindingsRegistry.registerCommandAndKeybindingRule({
     id: 'revealReference',

@@ -26,15 +26,15 @@ function toStyledRange(item) {
 function toStyled(item) {
     return new LineVisibleRangesWithStyle(item.lineNumber, item.ranges.map(toStyledRange));
 }
-class SelectionsOverlay extends DynamicViewOverlay {
+export class SelectionsOverlay extends DynamicViewOverlay {
     constructor(context) {
         super();
         this._previousFrameVisibleRangesWithStyle = [];
         this._context = context;
         const options = this._context.configuration.options;
-        this._lineHeight = options.get(63 /* EditorOption.lineHeight */);
-        this._roundedSelection = options.get(95 /* EditorOption.roundedSelection */);
-        this._typicalHalfwidthCharacterWidth = options.get(47 /* EditorOption.fontInfo */).typicalHalfwidthCharacterWidth;
+        this._lineHeight = options.get(67 /* EditorOption.lineHeight */);
+        this._roundedSelection = options.get(101 /* EditorOption.roundedSelection */);
+        this._typicalHalfwidthCharacterWidth = options.get(50 /* EditorOption.fontInfo */).typicalHalfwidthCharacterWidth;
         this._selections = [];
         this._renderResult = null;
         this._context.addEventHandler(this);
@@ -47,9 +47,9 @@ class SelectionsOverlay extends DynamicViewOverlay {
     // --- begin event handlers
     onConfigurationChanged(e) {
         const options = this._context.configuration.options;
-        this._lineHeight = options.get(63 /* EditorOption.lineHeight */);
-        this._roundedSelection = options.get(95 /* EditorOption.roundedSelection */);
-        this._typicalHalfwidthCharacterWidth = options.get(47 /* EditorOption.fontInfo */).typicalHalfwidthCharacterWidth;
+        this._lineHeight = options.get(67 /* EditorOption.lineHeight */);
+        this._roundedSelection = options.get(101 /* EditorOption.roundedSelection */);
+        this._typicalHalfwidthCharacterWidth = options.get(50 /* EditorOption.fontInfo */).typicalHalfwidthCharacterWidth;
         return true;
     }
     onCursorStateChanged(e) {
@@ -318,7 +318,6 @@ SelectionsOverlay.SELECTION_TOP_RIGHT = 'top-right-radius';
 SelectionsOverlay.SELECTION_BOTTOM_RIGHT = 'bottom-right-radius';
 SelectionsOverlay.EDITOR_BACKGROUND_CLASS_NAME = 'monaco-editor-background';
 SelectionsOverlay.ROUNDED_PIECE_WIDTH = 10;
-export { SelectionsOverlay };
 registerThemingParticipant((theme, collector) => {
     const editorSelectionForegroundColor = theme.getColor(editorSelectionForeground);
     if (editorSelectionForegroundColor && !editorSelectionForegroundColor.isTransparent()) {

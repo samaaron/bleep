@@ -6,6 +6,8 @@ import * as dom from '../../dom.js';
 import { DomEmitter } from '../../event.js';
 import { StandardKeyboardEvent } from '../../keyboardEvent.js';
 import { renderMarkdown } from '../../markdownRenderer.js';
+import { getDefaultHoverDelegate } from '../hover/hoverDelegate.js';
+import { setupCustomHover } from '../iconLabel/iconLabelHover.js';
 import { List } from '../list/listWidget.js';
 import * as arrays from '../../../common/arrays.js';
 import { Emitter, Event } from '../../../common/event.js';
@@ -48,7 +50,7 @@ class SelectListRenderer {
         // noop
     }
 }
-class SelectBoxList extends Disposable {
+export class SelectBoxList extends Disposable {
     constructor(options, selected, contextViewProvider, styles, selectBoxOptions) {
         super();
         this.options = [];
@@ -74,6 +76,7 @@ class SelectBoxList extends Disposable {
         if (typeof this.selectBoxOptions.ariaDescription === 'string') {
             this.selectElement.setAttribute('aria-description', this.selectBoxOptions.ariaDescription);
         }
+        this._hover = this._register(setupCustomHover(getDefaultHoverDelegate('mouse'), this.selectElement, ''));
         this._onDidSelect = new Emitter();
         this._register(this._onDidSelect);
         this.registerListeners();
@@ -124,7 +127,7 @@ class SelectBoxList extends Disposable {
                 selected: e.target.value
             });
             if (!!this.options[this.selected] && !!this.options[this.selected].text) {
-                this.selectElement.title = this.options[this.selected].text;
+                this._hover.update(this.options[this.selected].text);
             }
         }));
         // Have to implement both keyboard and mouse controllers to handle disabled options
@@ -220,7 +223,7 @@ class SelectBoxList extends Disposable {
         }
         this.selectElement.selectedIndex = this.selected;
         if (!!this.options[this.selected] && !!this.options[this.selected].text) {
-            this.selectElement.title = this.options[this.selected].text;
+            this._hover.update(this.options[this.selected].text);
         }
     }
     focus() {
@@ -403,8 +406,9 @@ class SelectBoxList extends Disposable {
         if (this.selectList) {
             // Make visible to enable measurements
             this.selectDropDownContainer.classList.add('visible');
+            const window = dom.getWindow(this.selectElement);
             const selectPosition = dom.getDomNodePagePosition(this.selectElement);
-            const styles = getComputedStyle(this.selectElement);
+            const styles = dom.getWindow(this.selectElement).getComputedStyle(this.selectElement);
             const verticalPadding = parseFloat(styles.getPropertyValue('--dropdown-padding-top')) + parseFloat(styles.getPropertyValue('--dropdown-padding-bottom'));
             const maxSelectDropDownHeightBelow = (window.innerHeight - selectPosition.top - selectPosition.height - (this.selectBoxOptions.minBottomMargin || 0));
             const maxSelectDropDownHeightAbove = (selectPosition.top - SelectBoxList.DEFAULT_DROPDOWN_MINIMUM_TOP_MARGIN);
@@ -565,7 +569,7 @@ class SelectBoxList extends Disposable {
                     return label;
                 },
                 getWidgetAriaLabel: () => localize({ key: 'selectBox', comment: ['Behave like native select dropdown element.'] }, "Select Box"),
-                getRole: () => 'option',
+                getRole: () => isMacintosh ? '' : 'option',
                 getWidgetRole: () => 'listbox'
             }
         });
@@ -574,19 +578,18 @@ class SelectBoxList extends Disposable {
         }
         // SetUp list keyboard controller - control navigation, disabled items, focus
         const onKeyDown = this._register(new DomEmitter(this.selectDropDownListContainer, 'keydown'));
-        const onSelectDropDownKeyDown = Event.chain(onKeyDown.event)
-            .filter(() => this.selectList.length > 0)
-            .map(e => new StandardKeyboardEvent(e));
-        this._register(onSelectDropDownKeyDown.filter(e => e.keyCode === 3 /* KeyCode.Enter */).on(e => this.onEnter(e), this));
-        this._register(onSelectDropDownKeyDown.filter(e => e.keyCode === 2 /* KeyCode.Tab */).on(e => this.onEnter(e), this)); // Tab should behave the same as enter, #79339
-        this._register(onSelectDropDownKeyDown.filter(e => e.keyCode === 9 /* KeyCode.Escape */).on(e => this.onEscape(e), this));
-        this._register(onSelectDropDownKeyDown.filter(e => e.keyCode === 16 /* KeyCode.UpArrow */).on(e => this.onUpArrow(e), this));
-        this._register(onSelectDropDownKeyDown.filter(e => e.keyCode === 18 /* KeyCode.DownArrow */).on(e => this.onDownArrow(e), this));
-        this._register(onSelectDropDownKeyDown.filter(e => e.keyCode === 12 /* KeyCode.PageDown */).on(this.onPageDown, this));
-        this._register(onSelectDropDownKeyDown.filter(e => e.keyCode === 11 /* KeyCode.PageUp */).on(this.onPageUp, this));
-        this._register(onSelectDropDownKeyDown.filter(e => e.keyCode === 14 /* KeyCode.Home */).on(this.onHome, this));
-        this._register(onSelectDropDownKeyDown.filter(e => e.keyCode === 13 /* KeyCode.End */).on(this.onEnd, this));
-        this._register(onSelectDropDownKeyDown.filter(e => (e.keyCode >= 21 /* KeyCode.Digit0 */ && e.keyCode <= 56 /* KeyCode.KeyZ */) || (e.keyCode >= 80 /* KeyCode.Semicolon */ && e.keyCode <= 108 /* KeyCode.NumpadDivide */)).on(this.onCharacter, this));
+        const onSelectDropDownKeyDown = Event.chain(onKeyDown.event, $ => $.filter(() => this.selectList.length > 0)
+            .map(e => new StandardKeyboardEvent(e)));
+        this._register(Event.chain(onSelectDropDownKeyDown, $ => $.filter(e => e.keyCode === 3 /* KeyCode.Enter */))(this.onEnter, this));
+        this._register(Event.chain(onSelectDropDownKeyDown, $ => $.filter(e => e.keyCode === 2 /* KeyCode.Tab */))(this.onEnter, this)); // Tab should behave the same as enter, #79339
+        this._register(Event.chain(onSelectDropDownKeyDown, $ => $.filter(e => e.keyCode === 9 /* KeyCode.Escape */))(this.onEscape, this));
+        this._register(Event.chain(onSelectDropDownKeyDown, $ => $.filter(e => e.keyCode === 16 /* KeyCode.UpArrow */))(this.onUpArrow, this));
+        this._register(Event.chain(onSelectDropDownKeyDown, $ => $.filter(e => e.keyCode === 18 /* KeyCode.DownArrow */))(this.onDownArrow, this));
+        this._register(Event.chain(onSelectDropDownKeyDown, $ => $.filter(e => e.keyCode === 12 /* KeyCode.PageDown */))(this.onPageDown, this));
+        this._register(Event.chain(onSelectDropDownKeyDown, $ => $.filter(e => e.keyCode === 11 /* KeyCode.PageUp */))(this.onPageUp, this));
+        this._register(Event.chain(onSelectDropDownKeyDown, $ => $.filter(e => e.keyCode === 14 /* KeyCode.Home */))(this.onHome, this));
+        this._register(Event.chain(onSelectDropDownKeyDown, $ => $.filter(e => e.keyCode === 13 /* KeyCode.End */))(this.onEnd, this));
+        this._register(Event.chain(onSelectDropDownKeyDown, $ => $.filter(e => (e.keyCode >= 21 /* KeyCode.Digit0 */ && e.keyCode <= 56 /* KeyCode.KeyZ */) || (e.keyCode >= 85 /* KeyCode.Semicolon */ && e.keyCode <= 113 /* KeyCode.NumpadDivide */)))(this.onCharacter, this));
         // SetUp list mouse controller - control navigation, disabled items, focus
         this._register(dom.addDisposableListener(this.selectList.getHTMLElement(), dom.EventType.POINTER_UP, e => this.onPointerUp(e)));
         this._register(this.selectList.onMouseOver(e => typeof e.index !== 'undefined' && this.selectList.setFocus([e.index])));
@@ -638,7 +641,7 @@ class SelectBoxList extends Disposable {
                     selected: this.options[this.selected].text
                 });
                 if (!!this.options[this.selected] && !!this.options[this.selected].text) {
-                    this.selectElement.title = this.options[this.selected].text;
+                    this._hover.update(this.options[this.selected].text);
                 }
             }
             this.hideSelectDropDown(true);
@@ -724,7 +727,7 @@ class SelectBoxList extends Disposable {
                 selected: this.options[this.selected].text
             });
             if (!!this.options[this.selected] && !!this.options[this.selected].text) {
-                this.selectElement.title = this.options[this.selected].text;
+                this._hover.update(this.options[this.selected].text);
             }
         }
         this.hideSelectDropDown(true);
@@ -846,4 +849,3 @@ class SelectBoxList extends Disposable {
 SelectBoxList.DEFAULT_DROPDOWN_MINIMUM_BOTTOM_MARGIN = 32;
 SelectBoxList.DEFAULT_DROPDOWN_MINIMUM_TOP_MARGIN = 2;
 SelectBoxList.DEFAULT_MINIMUM_VISIBLE_OPTIONS = 3;
-export { SelectBoxList };
