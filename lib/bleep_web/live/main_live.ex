@@ -147,9 +147,17 @@ defmodule BleepWeb.MainLive do
         </p>
       </div>
       <div class="float-right pr-7 text-zinc-100" id="bleep-time">
-        <p class="font-mono text-xs text-zinc-200">
-          Latency: <%= :erlang.float_to_binary(@bleep_latency, decimals: 0) %> ms
-        </p>
+        <ul class="font-mono text-xs list-none text-zinc-200">
+          <li>
+            Quantum: <%= @bleep_default_quantum %>
+          </li>
+          <li>
+            Latency: <%= :erlang.float_to_binary(
+              @bleep_latency,
+              decimals: 0
+            ) %> ms
+          </li>
+        </ul>
       </div>
     </div>
     <div class="pt-20">
@@ -188,8 +196,9 @@ defmodule BleepWeb.MainLive do
         socket
       ) do
     bpm = socket.assigns.bleep_default_bpm
+    quantum = socket.assigns.bleep_default_quantum
     start_time_ms = :erlang.system_time(:milli_seconds)
-    bar_duration_ms = round(4 * (60.0 / bpm) * 1000)
+    bar_duration_ms = round(quantum * (60.0 / bpm) * 1000)
     offset_ms = bar_duration_ms - rem(start_time_ms, bar_duration_ms)
     start_time_s = (start_time_ms + offset_ms) / 1000.0
     {:noreply, eval_and_display(socket, editor_id, start_time_s, code, result_id)}

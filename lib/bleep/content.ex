@@ -5,6 +5,12 @@ defmodule Bleep.Content do
     lua =
       Bleep.VM.make_vm("""
 
+      init = ""
+      author = ""
+      bpm = 60
+      quantum = 4
+      content = {}
+
       function markdown(s)
         return {
           kind = "markdown",
@@ -27,6 +33,7 @@ defmodule Bleep.Content do
     init = Bleep.VM.get_global(lua_res, "init") || ""
     author = Bleep.VM.get_global(lua_res, "author") || ""
     bpm = Bleep.VM.get_global(lua_res, "bpm")
+    quantum = Bleep.VM.get_global(lua_res, "quantum")
 
     bpm =
       cond do
@@ -46,6 +53,6 @@ defmodule Bleep.Content do
         |> Map.put(:frag_id, UUID.uuid4())
       end)
 
-    %{frags: frags, init: init, author: author, default_bpm: bpm}
+    %{frags: frags, init: init, author: author, default_bpm: bpm, default_quantum: quantum}
   end
 end
