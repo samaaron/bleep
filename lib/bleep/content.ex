@@ -25,6 +25,13 @@ defmodule Bleep.Content do
           lang = "lua",
         }
       end
+
+      function video(s)
+        return {
+          kind = "video",
+          src = s,
+        }
+      end
       """)
 
     {:ok, _result, lua_res} = Bleep.VM.eval(lua, content_lua)

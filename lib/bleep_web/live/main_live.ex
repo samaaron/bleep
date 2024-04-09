@@ -53,8 +53,15 @@ defmodule BleepWeb.MainLive do
 
   def render_frag(%{kind: "video"} = assigns) do
     ~H"""
-    <video class="align-middle rounded-xl" width="640" height="480" controls>
-      <source src={@src} type="video/quicktime" /> Your browser does not support the video tag.
+    <video
+      class="p-8 align-middle rounded-xl"
+      width="640"
+      height="480"
+      controls
+      poster={"/videos/#{String.trim(@src)}_poster.png"}
+    >
+      <source src={"/videos/#{String.trim(@src)}.mp4"} type="video/mp4" />
+      Your browser does not support the video tag.
     </video>
     """
   end

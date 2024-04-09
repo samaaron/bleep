@@ -17,9 +17,8 @@ In this tutorial you're going to learn how to recreate Bishi's track "Who Has Se
 Bleep let's you make music by writing computer program code. It's very cool! By doing this you'll learn some fundamental musical concepts and how to code, so you can create your own variations or the track or original compositions afterwards if you want.
 ]],
 
-markdown [[
-### The music video for "Who Has Seen The Wind"
-Listen to the track and hear Bishi talking about it.
+video [[
+  bishi_1080
 ]],
 
 markdown [[
