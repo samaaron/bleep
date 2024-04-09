@@ -33,25 +33,26 @@ export const REVERB_FILENAME = {
 // ----------------------------------------------------------------
 
 export class Reverb extends BleepEffect {
-
-  static REVERB_WET_LEVEL = 0.1
+  static REVERB_WET_LEVEL = 0.1;
 
   _isValid;
   _convolver;
+  _buffer_cache;
 
   /**
    * Creates an instance of Reverb.
    * @param {AudioContext} ctx - The audio context for the reverb effect.
    * @param {Monitor} monitor - The monitor object to track the reverb effect.
    */
-  constructor(ctx, monitor) {
+  constructor(ctx, monitor, buffer_cache) {
     super(ctx, monitor);
+    this._buffer_cache = buffer_cache;
     this._isValid = false;
     this._convolver = new ConvolverNode(ctx);
     // connect everything up
     this._wetGain.connect(this._convolver);
     this._convolver.connect(this._out);
-    this.setWetLevel(Reverb.REVERB_WET_LEVEL,ctx.currentTime);
+    this.setWetLevel(Reverb.REVERB_WET_LEVEL, ctx.currentTime);
   }
 
   /**
@@ -59,29 +60,10 @@ export class Reverb extends BleepEffect {
    * @param {string} filename - The filename of the impulse response.
    */
   async load(filename) {
-    const impulseResponse = await this.getImpulseResponseFromFile(filename);
-    if (this._isValid) {
-      this._convolver.buffer = impulseResponse;
-    }
-  }
-
-  /**
-   * Retrieves an impulse response from a file.
-   * @param {string} filename - The filename of the impulse response.
-   * @returns {AudioBuffer} The decoded audio data.
-   */
-  async getImpulseResponseFromFile(filename) {
-    try {
-      let reply = await fetch(`/bleep_audio/impulses/${filename}`);
-      this._isValid = true;
-      return this._context.decodeAudioData(await reply.arrayBuffer());
-    } catch (err) {
-      this._isValid = false;
-      if (DEBUG_EFFECTS)
-        console.log(
-          "unable to load the impulse response file called " + filename
-        );
-    }
+    console.log("buffer cache", this._buffer_cache);
+    const impulse_response_path = `/bleep_audio/impulses/${filename}`;
+    const buffer = await this._buffer_cache.load_buffer(impulse_response_path, this._context);
+    this._convolver.buffer = buffer;
   }
 
   /**

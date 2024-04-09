@@ -12,16 +12,17 @@ import { Flanger } from "./flanger";
 import { AutoPan } from "./autopan";
 import { Compressor } from "./compressor";
 import { Distortion, Overdrive } from "./distortion";
+import BleepBufferCache from "./buffer_cache";
 
 export default class BleepAudioCore {
   #audio_context;
   #monitor;
   #default_fx;
   #loaded_synthgens = new Map();
-  #loaded_buffers = new Map();
   #running_fx = new Map();
   #started = false;
   #default_synthdef_paths;
+  #buffer_cache = new BleepBufferCache();
 
   constructor() {
     this.#monitor = new Monitor();
@@ -145,7 +146,7 @@ export default class BleepAudioCore {
       case "mic_beyer":
       case "mic_foster":
       case "mic_lomo":
-        fx = new Reverb(this.#audio_context, this.#monitor);
+        fx = new Reverb(this.#audio_context, this.#monitor, this.#buffer_cache);
         fx.load(REVERB_FILENAME[fx_name]);
         break;
       case "roland_chorus":
@@ -178,19 +179,13 @@ export default class BleepAudioCore {
   }
 
   triggerSample(time, sample_name, output_id, opts) {
-    let output_node = this.#resolveOutputId(output_id);
-    let buf = null;
+    console.log("triggering sample", sample_name, output_id, opts);
+    const sample_path = `/bleep_audio/samples/${sample_name}.flac`;
+    const output_node = this.#resolveOutputId(output_id);
 
-    if (this.#loaded_buffers.has(sample_name)) {
-      buf = this.#loaded_buffers.fetch(sample_name);
+    this.#buffer_cache.load_buffer(sample_path, this.#audio_context).then((buf) => {
       this.#triggerBuffer(time, buf, output_node, opts);
-    } else {
-      this.#fetchAudioBuffer(`/bleep_audio/samples/${sample_name}.flac`).then(
-        (response) => {
-          this.#triggerBuffer(time, response, output_node, opts);
-        }
-      );
-    }
+    });
   }
 
   #resolveOutputId(output_id) {
