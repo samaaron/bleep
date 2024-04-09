@@ -12,26 +12,34 @@ defmodule BleepWeb.MainLive do
 
     artist = params["artist"] || "init"
     artist_path = artist_lua_path(artist)
+    code_reloading? = Application.get_env(:bleep, BleepWeb.Endpoint)[:code_reloader]
 
     data =
-      case :ets.lookup(:lua_content_cache, artist_path) do
-        [{_, value}] ->
-          value
+      if code_reloading? do
+        Bleep.Content.data_from_lua(artist_path)
+      else
+        case :ets.lookup(:lua_content_cache, artist_path) do
+          [{_, value}] ->
+            value
 
-        [] ->
-          res = Bleep.Content.data_from_lua(artist_path)
-          :ets.insert(:lua_content_cache, {artist_path, res})
-          res
+          [] ->
+            res = Bleep.Content.data_from_lua(artist_path)
+            :ets.insert(:lua_content_cache, {artist_path, res})
+            res
+        end
       end
 
-    {:ok,
-     socket
-     |> assign(:user_id, user_id)
-     |> assign(:bleep_latency, 50.0)
-     |> assign(:frags, data[:frags])
-     |> assign(:init_code, data[:init])
-     |> assign(:author, data[:author])
-     |> assign(:bleep_default_bpm, data[:default_bpm])}
+    {
+      :ok,
+      socket
+      |> assign(:user_id, user_id)
+      |> assign(:bleep_latency, 20.0)
+      |> assign(:frags, data[:frags])
+      |> assign(:init_code, data[:init])
+      |> assign(:author, data[:author])
+      |> assign(:bleep_default_bpm, data[:default_bpm])
+      |> assign(:bleep_default_quantum, data[:default_quantum])
+    }
   end
 
   def artist_lua_path(artist) do
