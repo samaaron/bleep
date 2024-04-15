@@ -115,7 +115,7 @@ defmodule BleepWeb.MainLive do
         data-stop-button-id={@stop_button_id}
       >
         <button
-          class="hidden px-2 font-bold text-orange-600 border rounded p-top-1 border-zinc-600 bg-zinc-800 hover:bg-orange-600 hover:text-zinc-800"
+          class="px-2 font-bold text-green-600 border rounded p-top-1 border-zinc-600 bg-zinc-800 hover:bg-blue-600 hover:text-zinc-800"
           id={@run_button_id}
         >
           Run
@@ -127,7 +127,7 @@ defmodule BleepWeb.MainLive do
           Cue
         </button>
         <button
-          class="px-2 font-bold text-blue-600 border rounded p-top-1 border-zinc-600 bg-zinc-800 hover:bg-blue-600 hover:text-zinc-800"
+          class="px-2 font-bold text-orange-600 border rounded p-top-1 border-zinc-600 bg-zinc-800 hover:bg-blue-600 hover:text-zinc-800"
           id={@stop_button_id}
         >
           Stop
@@ -210,6 +210,16 @@ defmodule BleepWeb.MainLive do
     bar_duration_ms = round(quantum * (60.0 / bpm) * 1000)
     offset_ms = bar_duration_ms - rem(start_time_ms, bar_duration_ms)
     start_time_s = (start_time_ms + offset_ms) / 1000.0
+    {:noreply, eval_and_display(socket, editor_id, start_time_s, code, result_id)}
+  end
+
+  def handle_event(
+        "run-code",
+        %{"code" => code, "result_id" => result_id, "editor_id" => editor_id},
+        socket
+      ) do
+    start_time_s = :erlang.system_time(:milli_seconds) / 1000.0
+
     {:noreply, eval_and_display(socket, editor_id, start_time_s, code, result_id)}
   end
 
