@@ -12,7 +12,7 @@ defmodule Bleep.Lang do
   def lua_time(lua) do
     global_time_s = Bleep.VM.get_global(lua, "__bleep_core_global_time")
     start_time_s = Bleep.VM.get_global(lua, "__bleep_core_start_time")
-    global_time_s + start_time_s + 1.5
+    global_time_s + start_time_s
   end
 
   def __bleep_ex_start_fx(user_id, editor_id, run_id, lua, [uuid, fx_id]) do
