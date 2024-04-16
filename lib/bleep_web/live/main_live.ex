@@ -115,7 +115,7 @@ defmodule BleepWeb.MainLive do
         data-stop-button-id={@stop_button_id}
       >
         <button
-          class="px-2 font-bold text-green-600 border rounded p-top-1 border-zinc-600 bg-zinc-800 hover:bg-blue-600 hover:text-zinc-800"
+          class="px-2 font-bold text-blue-600 border rounded p-top-1 border-zinc-600 bg-zinc-800 hover:bg-blue-600 hover:text-zinc-800"
           id={@run_button_id}
         >
           Run
