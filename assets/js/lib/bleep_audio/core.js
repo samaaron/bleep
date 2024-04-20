@@ -1,19 +1,20 @@
-import Monitor from "./monitor";
+import BleepBufferCache from "./buffer_cache";
 import Generator from "./generator";
-import Player from "./player";
+import GrainPlayer from "./grainplayer";
 import Grammar from "./grammar";
-import { DefaultFX } from "./effects";
-import { MonoDelay, StereoDelay } from "./delay";
-import { RolandChorus } from "./chorus";
-import { DeepPhaser, ThickPhaser, PicoPebble } from "./phaser";
-import { Reverb, REVERB_FILENAME } from "./reverb";
+import Monitor from "./monitor";
+import Player from "./player";
+import Sampler from "./sampler";
 import Utility from "./utility";
-import { Flanger } from "./flanger";
 import { AutoPan } from "./autopan";
 import { Compressor } from "./compressor";
+import { DeepPhaser, ThickPhaser, PicoPebble } from "./phaser";
+import { DefaultFX } from "./effects";
 import { Distortion, Overdrive } from "./distortion";
-import BleepBufferCache from "./buffer_cache";
-import GrainPlayer from "./grainplayer";
+import { Flanger } from "./flanger";
+import { MonoDelay, StereoDelay } from "./delay";
+import { Reverb, REVERB_FILENAME } from "./reverb";
+import { RolandChorus } from "./chorus";
 
 export default class BleepAudioCore {
   #audio_context;
@@ -183,7 +184,6 @@ export default class BleepAudioCore {
     console.log("triggering sample", sample_name, output_id, opts);
     const sample_path = `/bleep_audio/samples/${sample_name}.flac`;
     const output_node = this.#resolveOutputId(output_id);
-
     this.#buffer_cache.load_buffer(sample_path, this.#audio_context).then((buf) => {
       this.#triggerBuffer(time, buf, output_node, opts);
     });
@@ -191,10 +191,8 @@ export default class BleepAudioCore {
 
   triggerGrains(time, sample_name, output_id, opts) {
     console.log("triggering grains", sample_name, output_id, opts);
-
     const sample_path = `/bleep_audio/samples/${sample_name}.flac`;
     const output_node = this.#resolveOutputId(output_id);
-
     this.#buffer_cache.load_buffer(sample_path, this.#audio_context).then((buf) => {
       this.#triggerGrainsFromBuffer(time, buf, output_node, opts);
     });
@@ -220,27 +218,35 @@ export default class BleepAudioCore {
     );
   }
 
+  // TODO #19 how to stop a sample player when loop is enabled - stop button has no effect currently and it runs forever
+
   #triggerBuffer(time, buffer, output_node, opts) {
+    const sampler = new Sampler(this.#audio_context,this.#monitor,buffer,opts);
     const audio_context_sched_s = this.#clockTimeToAudioTime(time);
-    let source = this.#audio_context.createBufferSource();
-    source.playbackRate.value = opts.rate !== undefined ? opts.rate : 1;
+    sampler.out.connect(output_node.in);
+    sampler.play(audio_context_sched_s);
+
+    //let source = this.#audio_context.createBufferSource();
+    //source.playbackRate.value = opts.rate !== undefined ? opts.rate : 1;
     // added loop parameter to allow (infinite) looping of a clip
-    source.loop = opts.loop !== undefined ? opts.loop : false;
-    let gain = this.#audio_context.createGain();
-    gain.gain.value = opts.level !== undefined ? opts.level : 1;
-    source.connect(gain);
-    source.buffer = buffer;
+    //source.loop = opts.loop !== undefined ? opts.loop : false;
+    //let gain = this.#audio_context.createGain();
+    //gain.gain.value = opts.level !== undefined ? opts.level : 1;
+    //source.connect(gain);
+    //source.buffer = buffer;
 
     // TODO consider whether the audio output should be
     // parameterised and used here (ouput_node_id)
-    gain.connect(output_node.in);
-    source.start(audio_context_sched_s);
+    //gain.connect(output_node.in);
+    //source.start(audio_context_sched_s);
 
     // TODO perhaps set a timer here to disconnect the gain
+    // @sam done - can be managed through onended function on source node
     // and set things to null when the buffer has completed
     // playback
 
     // also need to register lifecycle with monitor
+    // @sam done
   }
 
   #triggerGrainsFromBuffer(time, buffer, output_node, opts) {
