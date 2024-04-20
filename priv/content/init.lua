@@ -13,6 +13,7 @@ play(C4)
 ]],
 
 editor [[
+    grains("guit_em9")
 ]],
 
 editor [[
