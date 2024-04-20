@@ -192,8 +192,6 @@ export default class BleepAudioCore {
   triggerGrains(time, sample_name, output_id, opts) {
     console.log("triggering grains", sample_name, output_id, opts);
 
-    const grain_player = new GrainPlayer();
-
     const sample_path = `/bleep_audio/samples/${sample_name}.flac`;
     const output_node = this.#resolveOutputId(output_id);
 
@@ -246,15 +244,20 @@ export default class BleepAudioCore {
   }
 
   #triggerGrainsFromBuffer(time, buffer, output_node, opts) {
+
+    const grain_player = new GrainPlayer(this.#audio_context,buffer,opts);
     const audio_context_sched_s = this.#clockTimeToAudioTime(time);
-    let source = this.#audio_context.createBufferSource();
-    source.playbackRate.value = opts.rate !== undefined ? opts.rate : 1;
-    let gain = this.#audio_context.createGain();
-    gain.gain.value = opts.level !== undefined ? opts.level : 1;
-    source.connect(gain);
-    source.buffer = buffer;
-    gain.connect(output_node.in);
-    source.start(audio_context_sched_s);
+    grain_player.out.connect(output_node.in);
+    grain_player.play(audio_context_sched_s);
+
+   //let source = this.#audio_context.createBufferSource();
+    //source.playbackRate.value = opts.rate !== undefined ? opts.rate : 1;
+    //let gain = this.#audio_context.createGain();
+    //gain.gain.value = opts.level !== undefined ? opts.level : 1;
+    //source.connect(gain);
+    //source.buffer = buffer;
+   //gain.connect(output_node.in);
+    //source.start(audio_context_sched_s);
   }
 
   triggerOneShotSynth(time, synthdef_id, output_id, opts) {
