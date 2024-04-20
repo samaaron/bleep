@@ -13,6 +13,7 @@ import { AutoPan } from "./autopan";
 import { Compressor } from "./compressor";
 import { Distortion, Overdrive } from "./distortion";
 import BleepBufferCache from "./buffer_cache";
+import GrainPlayer from "./grainplayer";
 
 export default class BleepAudioCore {
   #audio_context;
@@ -188,6 +189,19 @@ export default class BleepAudioCore {
     });
   }
 
+  triggerGrains(time, sample_name, output_id, opts) {
+    console.log("triggering grains", sample_name, output_id, opts);
+
+    const grain_player = new GrainPlayer();
+
+    const sample_path = `/bleep_audio/samples/${sample_name}.flac`;
+    const output_node = this.#resolveOutputId(output_id);
+
+    this.#buffer_cache.load_buffer(sample_path, this.#audio_context).then((buf) => {
+      this.#triggerGrainsFromBuffer(time, buf, output_node, opts);
+    });
+  }
+
   #resolveOutputId(output_id) {
     let output_node;
     if (output_id == "default") {
@@ -229,6 +243,18 @@ export default class BleepAudioCore {
     // playback
 
     // also need to register lifecycle with monitor
+  }
+
+  #triggerGrainsFromBuffer(time, buffer, output_node, opts) {
+    const audio_context_sched_s = this.#clockTimeToAudioTime(time);
+    let source = this.#audio_context.createBufferSource();
+    source.playbackRate.value = opts.rate !== undefined ? opts.rate : 1;
+    let gain = this.#audio_context.createGain();
+    gain.gain.value = opts.level !== undefined ? opts.level : 1;
+    source.connect(gain);
+    source.buffer = buffer;
+    gain.connect(output_node.in);
+    source.start(audio_context_sched_s);
   }
 
   triggerOneShotSynth(time, synthdef_id, output_id, opts) {
@@ -289,6 +315,14 @@ export default class BleepAudioCore {
           json.opts
         );
         break;
+        case "triggerGrains":
+          this.triggerGrains(
+            adjusted_time_s,
+            json.sample_name,
+            json.output_id,
+            json.opts
+          );
+          break;
       case "triggerFX":
         this.triggerFX(
           adjusted_time_s,

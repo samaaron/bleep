@@ -79,6 +79,31 @@ defmodule Bleep.Lang do
     bleep_broadcast(user_id, "sched-bleep-audio", msg)
   end
 
+ def __bleep_ex_grains(user_id, editor_id, run_id, lua, [sample_name])
+      when is_binary(sample_name) do
+    __bleep_ex_grains(user_id, editor_id, run_id, lua, [sample_name, []])
+  end
+
+  def __bleep_ex_grains(user_id, editor_id, run_id, lua, [sample_name, opts_table])
+      when is_list(opts_table) do
+    output_id = fetch_current_output_id(lua)
+    time_s = lua_time(lua)
+    opts = Bleep.VM.lua_table_to_map(opts_table)
+
+    msg = %{
+      user_id: user_id,
+      editor_id: editor_id,
+      run_id: run_id,
+      server_time_s: time_s,
+      cmd: "triggerGrains",
+      sample_name: sample_name,
+      output_id: output_id,
+      opts: opts
+    }
+
+    bleep_broadcast(user_id, "sched-bleep-audio", msg)
+  end
+
   def __bleep_ex_play(user_id, editor_id, run_id, lua, [note])
       when is_integer(note) or is_float(note) do
     __bleep_ex_play(user_id, editor_id, run_id, lua, [note, []])
@@ -173,6 +198,10 @@ defmodule Bleep.Lang do
       |> Bleep.VM.add_fn(
         "__bleep_ex_sample",
         &__bleep_ex_sample(user_id, editor_id, run_id, &1, &2)
+      )
+      |> Bleep.VM.add_fn(
+        "__bleep_ex_grains",
+        &__bleep_ex_grains(user_id, editor_id, run_id, &1, &2)
       )
       |> Bleep.VM.add_fn(
         "__bleep_ex_control_fx",
