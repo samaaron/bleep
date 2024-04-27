@@ -5,9 +5,10 @@ import Monitor from "./monitor"
 
 export default class Sampler {
 
-    #source
-    #volume
-    #monitor
+    #source = null;
+    #volume = null;
+    #monitor = null;
+    #pan = null;
 
     /**
      * @param {AudioContext} ctx
@@ -23,6 +24,8 @@ export default class Sampler {
             playbackRate: opts.rate !== undefined ? opts.rate : 1,
             loop: opts.loop !== undefined ? opts.loop : false
         });
+        // pan
+        this.addPanNode(ctx,this.#source,opts.pan);
         // volume gain
         this.#volume = new GainNode(ctx, {
             gain: opts.level !== undefined ? opts.level : 1
@@ -39,6 +42,25 @@ export default class Sampler {
     }
 
     /**
+     * add a pan node if the pan value is not zero (center)
+     * @param {AudioContext} ctx
+     * @param {AudioNode} lastNode
+     * @param {number} pan
+     * @returns
+     */
+    addPanNode(ctx, lastNode, pan) {
+        if (pan !== 0) {
+            this.#pan = new StereoPannerNode(ctx, {
+                pan: pan
+            });
+            this.#monitor.retain(Monitor.PAN_NODE);
+            lastNode.connect(this.#pan);
+            lastNode = this.#pan;
+        }
+        return lastNode;
+    }
+
+    /**
      * clean up and remove from monitor
      */
     releaseAll() {
@@ -47,6 +69,10 @@ export default class Sampler {
         this.#source.disconnect();
         this.#monitor.release(Monitor.SOURCE_NODE);
         this.#monitor.release(Monitor.GAIN_NODE);
+        if (this.#pan!==null) {
+            this.#pan.disconnect();
+            this.#monitor.release(Monitor.PAN_NODE);
+        }
     }
 
     /**
