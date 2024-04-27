@@ -25,13 +25,14 @@ export default class Sampler {
             loop: opts.loop !== undefined ? opts.loop : false
         });
         // pan
-        this.addPanNode(ctx,this.#source,opts.pan);
+        let lastNode = this.#source;
+        lastNode = this.addPanNode(ctx,lastNode,opts.pan);
         // volume gain
         this.#volume = new GainNode(ctx, {
             gain: opts.level !== undefined ? opts.level : 1
         });
         // connect up
-        this.#source.connect(this.#volume);
+        lastNode.connect(this.#volume);
         // register with monitor
         this.#monitor.retain(Monitor.SOURCE_NODE);
         this.#monitor.retain(Monitor.GAIN_NODE);
