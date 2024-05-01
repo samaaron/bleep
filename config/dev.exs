@@ -11,7 +11,7 @@ config :bleep, BleepWeb.Endpoint,
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
   http: [ip: {127, 0, 0, 1}, port: 4001],
   check_origin: false,
-  code_reloader: true,
+  code_reloader: System.get_env("CODE_RELOADING") not in ["false", "0"],
   debug_errors: true,
   secret_key_base: "Hx0+TmVf7jdxVmA4Oq+TdeDvEUpSJjXgFRA9V+MMGw5d0VNYj6TcS4cKHlUrZA6P",
   watchers: [
