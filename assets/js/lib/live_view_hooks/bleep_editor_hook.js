@@ -4,16 +4,19 @@ const BleepEditorHook = {
   mounted() {
     const path = this.el.dataset.path;
     const language = this.el.dataset.language;
-    const content = this.el.dataset.content;
     const run_button_id = this.el.dataset.runButtonId;
     const cue_button_id = this.el.dataset.cueButtonId;
     const stop_button_id = this.el.dataset.stopButtonId;
     const editor_id = this.el.dataset.editorId;
     const result_id = this.el.dataset.resultId;
-    const run_button = this.el.querySelector("#" + run_button_id);
-    const cue_button = this.el.querySelector("#" + cue_button_id);
-    const stop_button = this.el.querySelector("#" + stop_button_id);
+    const run_button = this.el.querySelector(`#${run_button_id}`);
+    const cue_button = this.el.querySelector(`#${cue_button_id}`);
+    const stop_button = this.el.querySelector(`#${stop_button_id}`);
     const container = this.el.querySelector("[monaco-code-editor]");
+
+    const content =
+      sessionStorage.getItem(editor_id) ?? this.el.dataset.content;
+
     this.editor = monaco.editor.create(container, {
       theme: "bleep-dark",
       value: content,
@@ -36,7 +39,7 @@ const BleepEditorHook = {
       { passive: false }
     );
 
-    function autoResizeMonacoEditor(mon) {
+    const autoResizeMonacoEditor = (mon) => {
       const lineHeight = mon.getOption(monaco.editor.EditorOption.lineHeight);
       const lineCount = mon.getModel().getLineCount();
       const contentHeight = lineHeight * lineCount;
@@ -45,74 +48,48 @@ const BleepEditorHook = {
         width: container.clientWidth,
         height: contentHeight,
       });
-    }
+    };
+
+    const evalCode = (strategy) => {
+      window.bleep.idempotentInitAudio();
+      const code = this.editor.getValue();
+      sessionStorage.setItem(editor_id, code);
+      const placeholder = "bleep_tmp_placeholder()";
+      let formatted;
+      try {
+        formatted = luamin
+          .Beautify(`${code}\n${placeholder}`, {
+            RenameVariables: false,
+            RenameGlobals: false,
+            SolveMath: false,
+          })
+          .slice(0, -(placeholder.length + 1));
+
+        this.editor.setValue(formatted);
+
+        this.pushEvent(strategy, {
+          code: formatted,
+          path: path,
+          result_id: result_id,
+          editor_id: editor_id,
+        });
+      } catch (error) {
+        formatted = code;
+        const error_msg = "Syntax Error<br/>" + error;
+        document.getElementById(result_id).innerHTML = error_msg;
+      }
+    };
 
     this.editor.onDidChangeModelContent(() => {
       autoResizeMonacoEditor(this.editor);
     });
 
     run_button.addEventListener("click", (e) => {
-      window.bleep.idempotentInitAudio();
-      const code = this.editor.getValue();
-      const placeholder = "bleep_tmp_placeholder()";
-      let formatted;
-      try {
-        formatted = luamin
-          .Beautify(`${code}\n${placeholder}`, {
-            RenameVariables: false,
-            RenameGlobals: false,
-            SolveMath: false,
-          })
-          .slice(0, -(placeholder.length + 1));
-
-        this.editor.setValue(formatted);
-
-        this.pushEvent("run-code", {
-          code: formatted,
-          path: path,
-          result_id: result_id,
-          editor_id: editor_id,
-        });
-
-        console.log(this.editor.getValue());
-      } catch (error) {
-        console.error("Run code error: ", error);
-        formatted = code;
-        const error_msg = "Syntax Error<br/>" + error;
-        document.getElementById(result_id).innerHTML = error_msg;
-      }
+      evalCode("run-code");
     });
 
     cue_button.addEventListener("click", (e) => {
-      window.bleep.idempotentInitAudio();
-      const code = this.editor.getValue();
-      const placeholder = "bleep_tmp_placeholder()";
-      let formatted;
-      try {
-        formatted = luamin
-          .Beautify(`${code}\n${placeholder}`, {
-            RenameVariables: false,
-            RenameGlobals: false,
-            SolveMath: false,
-          })
-          .slice(0, -(placeholder.length + 1));
-
-        this.editor.setValue(formatted);
-
-        this.pushEvent("cue-code", {
-          code: formatted,
-          path: path,
-          result_id: result_id,
-          editor_id: editor_id,
-        });
-
-        console.log(this.editor.getValue());
-      } catch (error) {
-        console.error("Cue code error: ", error);
-        formatted = code;
-        const error_msg = "Syntax Error<br/>" + error;
-        document.getElementById(result_id).innerHTML = error_msg;
-      }
+      evalCode("cue-code");
     });
 
     stop_button.addEventListener("click", (e) => {
