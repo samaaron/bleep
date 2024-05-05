@@ -108,7 +108,7 @@ export default class BleepComms {
     const ping_count = this.#server_time_info.ping_times.size();
     const pings = this.#server_time_info.ping_times.peekN(ping_count).sort();
 
-    const non_outlier_pings = pings.length > 4 ? pings.slice(2, -2) : pings;
+    const non_outlier_pings = pings.length > 4 ? pings.slice(0, -4) : pings;
 
     const sum = non_outlier_pings.reduce((a, b) => a + b, 0);
     const average = sum / non_outlier_pings.length;
