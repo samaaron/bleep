@@ -3,6 +3,7 @@ export default class Monitor {
   static GAIN_NODE = "GainNode"
   static SOURCE_NODE = "SourceNode"
   static PAN_NODE = "StereoPannerNode"
+  static LOWPASS_NODE = "BiquadFilterNode"
 
   #numNotes
   #fields

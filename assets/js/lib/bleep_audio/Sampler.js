@@ -8,6 +8,7 @@ export default class Sampler {
     #source = null;
     #volume = null;
     #monitor = null;
+    #lowpass = null;
     #pan = null;
 
     /**
@@ -24,8 +25,10 @@ export default class Sampler {
             playbackRate: opts.rate !== undefined ? opts.rate : 1,
             loop: opts.loop !== undefined ? opts.loop : false
         });
-        // pan
         let lastNode = this.#source;
+        // lowpass
+        lastNode = this.addLowpassNode(ctx,lastNode,opts.cutoff);
+        // pan
         lastNode = this.addPanNode(ctx,lastNode,opts.pan);
         // volume gain
         this.#volume = new GainNode(ctx, {
@@ -47,16 +50,38 @@ export default class Sampler {
      * @param {AudioContext} ctx
      * @param {AudioNode} lastNode
      * @param {number} pan
-     * @returns
+     * @returns {AudioNode} - The last node in the audio graph
      */
     addPanNode(ctx, lastNode, pan) {
-        if (pan !== 0) {
+        if (pan !== undefined) {
+            console.log("making pan node");
             this.#pan = new StereoPannerNode(ctx, {
                 pan: pan
             });
             this.#monitor.retain(Monitor.PAN_NODE);
             lastNode.connect(this.#pan);
             lastNode = this.#pan;
+        }
+        return lastNode;
+    }
+
+    /**
+     * add a lowpass filter node if the cutoff value is defined
+     * @param {AudioContext} ctx
+     * @param {AudioNode} lastNode
+     * @param {number} cutoff
+     * @returns {AudioNode} - The last node in the audio graph
+     */
+    addLowpassNode(ctx, lastNode, cutoff) {
+        if (cutoff !== undefined) {
+            console.log("making lowpass node");
+            this.#lowpass = new BiquadFilterNode(ctx, {
+                type: "lowpass",
+                frequency: cutoff
+            });
+            this.#monitor.retain(Monitor.LOWPASS_NODE);
+            lastNode.connect(this.#lowpass);
+            lastNode = this.#lowpass;
         }
         return lastNode;
     }
@@ -70,6 +95,10 @@ export default class Sampler {
         this.#source.disconnect();
         this.#monitor.release(Monitor.SOURCE_NODE);
         this.#monitor.release(Monitor.GAIN_NODE);
+        if (this.#lowpass!==null) {
+            this.#lowpass.disconnect();
+            this.#monitor.release(Monitor.LOWPASS_NODE);
+        }
         if (this.#pan!==null) {
             this.#pan.disconnect();
             this.#monitor.release(Monitor.PAN_NODE);
