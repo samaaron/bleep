@@ -168,6 +168,10 @@ defmodule Bleep.Lang do
     bleep_broadcast(user_id, "stop-editor-runs", %{editor_id: editor_id})
   end
 
+  def stop_all_runs(user_id) do
+    bleep_broadcast(user_id, "stop-all-runs", %{})
+  end
+
   def start_run(user_id, editor_id, start_time_s, code, init_code, opts \\ %{}) do
     core_lua =
       if Application.get_env(:bleep, :reload_lua) do

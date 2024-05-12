@@ -168,14 +168,28 @@ defmodule BleepWeb.MainLive do
             ) %> ms
           </li>
         </ul>
+        <button
+          phx-click="stop_all"
+          class="px-2 font-bold text-orange-600 border rounded p-top-1 border-zinc-600 bg-zinc-800 hover:bg-blue-600 hover:text-zinc-800"
+        >
+          Stop All
+        </button>
       </div>
     </div>
+
     <div class="pt-20">
       <%= for frag <- @frags do %>
         <.render_frag {frag} />
       <% end %>
     </div>
     """
+  end
+
+  @impl true
+  def handle_event("stop_all", _value, socket) do
+    user_id = socket.assigns.user_id
+    Bleep.Lang.stop_all_runs(user_id)
+    {:noreply, socket}
   end
 
   @impl true

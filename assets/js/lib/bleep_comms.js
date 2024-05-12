@@ -47,6 +47,10 @@ export default class BleepComms {
         this.#prescheduler.cancel_tag(payload.editor_id);
       });
 
+      channel.on("stop-all-runs", (_payload) => {
+        this.#prescheduler.cancel_all_tags();
+      });
+
       channel
         .join()
         .receive("ok", (resp) => {})
