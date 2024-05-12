@@ -15,6 +15,7 @@ defmodule BleepWeb.MainLive do
     artist = params["artist"] || "init"
     artist_path = artist_lua_path(artist)
     code_reloading? = Application.get_env(:bleep, BleepWeb.Endpoint)[:code_reloader]
+    Logger.info("Code reloading: #{code_reloading?}")
 
     data =
       if code_reloading? do
