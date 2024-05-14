@@ -1,5 +1,10 @@
 export default class Monitor {
 
+  static GAIN_NODE = "GainNode"
+  static SOURCE_NODE = "SourceNode"
+  static PAN_NODE = "StereoPannerNode"
+  static LOWPASS_NODE = "BiquadFilterNode"
+
   #numNotes
   #fields
 
@@ -16,7 +21,9 @@ export default class Monitor {
       delay: 0,
       noise: 0,
       shaper: 0,
-      audio: 0
+      audio: 0,
+      GainNode: 0,
+      SourceNode: 0,
     }
   }
 

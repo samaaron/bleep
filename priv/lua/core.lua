@@ -12,6 +12,11 @@ function sample(samp, opts_table)
   __bleep_ex_sample(samp, opts_table)
 end
 
+function grains(samp, opts_table)
+    local opts_table = opts_table or {}
+    __bleep_ex_grains(samp, opts_table)
+end
+
 function sleep (t)
   __bleep_core_global_time = __bleep_core_global_time + t*60/__bleep_core_bpm
 end
