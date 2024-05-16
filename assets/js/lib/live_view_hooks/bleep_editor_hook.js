@@ -51,7 +51,7 @@ const BleepEditorHook = {
     };
 
     const evalCode = (strategy) => {
-      window.bleep.idempotentInitAudio();
+      window.bleep.idempotent_start_editor_session(editor_id);
       const code = this.editor.getValue();
       sessionStorage.setItem(editor_id, code);
       const placeholder = "bleep_tmp_placeholder()";
@@ -96,6 +96,7 @@ const BleepEditorHook = {
       this.pushEvent("stop-editor-runs", {
         editor_id: editor_id,
       });
+      window.bleep.restart_editor_session(editor_id);
     });
 
     autoResizeMonacoEditor(this.editor);

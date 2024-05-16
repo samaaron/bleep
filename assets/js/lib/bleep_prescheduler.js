@@ -100,7 +100,6 @@ export default class BleepPrescheduler {
   #run_next_event() {
     this.#clear_current_timer();
     if (this.#scheduled_events.length === 0) {
-      console.log("Error in run_next_event: no events scheduled");
       return;
     }
     const [adjusted_time_s, _info, msg] = this.#scheduled_events[0];

@@ -5,7 +5,7 @@ import "./bleep_editor";
 export default class Bleep {
   #user_id;
   #bleep_audio;
-  #comms
+  #comms;
 
   constructor(user_id) {
     this.#user_id = user_id;
@@ -34,5 +34,15 @@ export default class Bleep {
 
   idempotentInitAudio() {
     this.#bleep_audio.idempotentInitAudio();
+  }
+
+  idempotent_start_editor_session(editor_id) {
+    this.idempotentInitAudio();
+    const final_mix_fx_id = `${editor_id}-final-mix-fx`;
+    this.#bleep_audio.idempotentStartFinalMix(final_mix_fx_id);
+  }
+
+  restart_editor_session(editor_id) {
+    this.#bleep_audio.restartFinalMix(`${editor_id}-final-mix-fx`);
   }
 }

@@ -3,34 +3,6 @@ import { DEBUG_EFFECTS } from "./flags";
 
 // Not sure why this is needed - haven't inluded in the inheritance hierarchy below
 
-export class DefaultFX {
-  #context;
-  #monitor;
-  #gain;
-
-  constructor(ctx, monitor) {
-    this.#context = ctx;
-    this.#monitor = monitor;
-    this.#monitor.retain("default_fx");
-    this.#gain = ctx.createGain();
-    this.#gain.gain.value = 1;
-  }
-
-  get in() {
-    return this.#gain;
-  }
-
-  get out() {
-    return this.#gain;
-  }
-
-  stop() {
-    this.#gain.disconnect();
-    this.#gain = null;
-    this.#monitor.release("default_fx");
-  }
-}
-
 // Abstract case class (not exported)
 
 export class BleepEffect {
@@ -47,8 +19,8 @@ export class BleepEffect {
 
   /**
    * Creates an instance of Bleep effect (abstract class)
-   * @param {AudioContext} ctx - The audio context  
-   * @param {Monitor} monitor - The monitor object 
+   * @param {AudioContext} ctx - The audio context
+   * @param {Monitor} monitor - The monitor object
    */
   constructor(ctx, monitor) {
     this._context = ctx;

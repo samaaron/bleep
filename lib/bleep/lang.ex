@@ -79,7 +79,7 @@ defmodule Bleep.Lang do
     bleep_broadcast(user_id, "sched-bleep-audio", msg)
   end
 
- def __bleep_ex_grains(user_id, editor_id, run_id, lua, [sample_name])
+  def __bleep_ex_grains(user_id, editor_id, run_id, lua, [sample_name])
       when is_binary(sample_name) do
     __bleep_ex_grains(user_id, editor_id, run_id, lua, [sample_name, []])
   end
@@ -184,6 +184,9 @@ defmodule Bleep.Lang do
     bpm = opts[:bpm] || 60
     run_id = UUID.uuid4()
 
+    # Note - this needs to match the id in BleepEditorHook
+    final_mix_fx_id = "#{editor_id}-final-mix-fx"
+
     lua =
       Bleep.VM.make_vm(core_lua)
       ## Note that set_global prefixes with __bleep_core_ to avoid collisions
@@ -194,7 +197,7 @@ defmodule Bleep.Lang do
       |> Bleep.VM.set_global("__bleep_core_start_time", start_time_s)
       |> Bleep.VM.set_global("__bleep_core_global_time", 0)
       |> Bleep.VM.set_global("__bleep_core_current_synth", "fmbell")
-      |> Bleep.VM.set_global("__bleep_core_current_fx_stack", ["default"])
+      |> Bleep.VM.set_global("__bleep_core_current_fx_stack", [final_mix_fx_id])
       |> Bleep.VM.add_fn(
         "__bleep_ex_play",
         &__bleep_ex_play(user_id, editor_id, run_id, &1, &2)

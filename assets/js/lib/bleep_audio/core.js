@@ -2,14 +2,15 @@ import BleepBufferCache from "./buffer_cache";
 import Generator from "./generator";
 import GrainPlayer from "./grainplayer";
 import Grammar from "./grammar";
+
 import Monitor from "./monitor";
 import Player from "./player";
 import Sampler from "./sampler";
 import Utility from "./utility";
+import { FinalMix } from "./final_mix";
 import { AutoPan } from "./autopan";
 import { Compressor } from "./compressor";
 import { DeepPhaser, ThickPhaser, PicoPebble } from "./phaser";
-import { DefaultFX } from "./effects";
 import { Distortion, Overdrive } from "./distortion";
 import { Flanger } from "./flanger";
 import { MonoDelay, StereoDelay } from "./delay";
@@ -19,7 +20,7 @@ import { RolandChorus } from "./chorus";
 export default class BleepAudioCore {
   #audio_context;
   #monitor;
-  #default_fx;
+  #main_out;
   #loaded_synthgens = new Map();
   #running_fx = new Map();
   #started = false;
@@ -79,8 +80,8 @@ export default class BleepAudioCore {
         });
       });
 
-      this.#default_fx = new DefaultFX(this.#audio_context, this.#monitor);
-      this.#default_fx.out.connect(this.#audio_context.destination);
+      this.#main_out = new FinalMix(this.#audio_context, this.#monitor);
+      this.#main_out.out.connect(this.#audio_context.destination);
     }
   }
 
@@ -90,6 +91,33 @@ export default class BleepAudioCore {
 
   hasStarted() {
     return this.#started;
+  }
+
+  idempotentStartFinalMix(output_id) {
+    if (!this.#running_fx.has(output_id)) {
+      this.startFinalMix(output_id);
+    }
+  }
+
+  startFinalMix(output_id) {
+    const fx = new FinalMix(this.#audio_context, this.#monitor);
+    this.#running_fx.set(output_id, fx);
+    fx.out.connect(this.#main_out.in);
+  }
+
+  restartFinalMix(output_id) {
+    if (this.#running_fx.has(output_id)) {
+      const fx = this.#running_fx.get(output_id);
+      this.#running_fx.delete(output_id);
+      fx.gracefulStop();
+      this.startFinalMix(output_id);
+    }
+  }
+
+  restartMainOut() {
+    this.#main_out.gracefulStop();
+    this.#main_out = new FinalMix(this.#audio_context, this.#monitor);
+    this.#main_out.out.connect(this.#audio_context.destination);
   }
 
   triggerFX(time, fx_name, id, output_id, opts) {
@@ -184,28 +212,26 @@ export default class BleepAudioCore {
     console.log("triggering sample", sample_name, output_id, opts);
     const sample_path = `/bleep_audio/samples/${sample_name}.flac`;
     const output_node = this.#resolveOutputId(output_id);
-    this.#buffer_cache.load_buffer(sample_path, this.#audio_context).then((buf) => {
-      this.#triggerBuffer(time, buf, output_node, opts);
-    });
+    this.#buffer_cache
+      .load_buffer(sample_path, this.#audio_context)
+      .then((buf) => {
+        this.#triggerBuffer(time, buf, output_node, opts);
+      });
   }
 
   triggerGrains(time, sample_name, output_id, opts) {
     console.log("triggering grains", sample_name, output_id, opts);
     const sample_path = `/bleep_audio/samples/${sample_name}.flac`;
     const output_node = this.#resolveOutputId(output_id);
-    this.#buffer_cache.load_buffer(sample_path, this.#audio_context).then((buf) => {
-      this.#triggerGrainsFromBuffer(time, buf, output_node, opts);
-    });
+    this.#buffer_cache
+      .load_buffer(sample_path, this.#audio_context)
+      .then((buf) => {
+        this.#triggerGrainsFromBuffer(time, buf, output_node, opts);
+      });
   }
 
   #resolveOutputId(output_id) {
-    let output_node;
-    if (output_id == "default") {
-      output_node = this.#default_fx;
-    } else {
-      output_node = this.#running_fx.get(output_id);
-    }
-    return output_node;
+    return this.#running_fx.get(output_id);
   }
 
   #clockTimeToAudioTime(wallclock_time_s) {
@@ -221,7 +247,12 @@ export default class BleepAudioCore {
   // TODO #19 how to stop a sample player when loop is enabled - stop button has no effect currently and it runs forever
 
   #triggerBuffer(time, buffer, output_node, opts) {
-    const sampler = new Sampler(this.#audio_context,this.#monitor,buffer,opts);
+    const sampler = new Sampler(
+      this.#audio_context,
+      this.#monitor,
+      buffer,
+      opts
+    );
     const audio_context_sched_s = this.#clockTimeToAudioTime(time);
     sampler.out.connect(output_node.in);
     sampler.play(audio_context_sched_s);
@@ -250,19 +281,18 @@ export default class BleepAudioCore {
   }
 
   #triggerGrainsFromBuffer(time, buffer, output_node, opts) {
-
-    const grain_player = new GrainPlayer(this.#audio_context,buffer,opts);
+    const grain_player = new GrainPlayer(this.#audio_context, buffer, opts);
     const audio_context_sched_s = this.#clockTimeToAudioTime(time);
     grain_player.out.connect(output_node.in);
     grain_player.play(audio_context_sched_s);
 
-   //let source = this.#audio_context.createBufferSource();
+    //let source = this.#audio_context.createBufferSource();
     //source.playbackRate.value = opts.rate !== undefined ? opts.rate : 1;
     //let gain = this.#audio_context.createGain();
     //gain.gain.value = opts.level !== undefined ? opts.level : 1;
     //source.connect(gain);
     //source.buffer = buffer;
-   //gain.connect(output_node.in);
+    //gain.connect(output_node.in);
     //source.start(audio_context_sched_s);
   }
 
@@ -324,14 +354,14 @@ export default class BleepAudioCore {
           json.opts
         );
         break;
-        case "triggerGrains":
-          this.triggerGrains(
-            adjusted_time_s,
-            json.sample_name,
-            json.output_id,
-            json.opts
-          );
-          break;
+      case "triggerGrains":
+        this.triggerGrains(
+          adjusted_time_s,
+          json.sample_name,
+          json.output_id,
+          json.opts
+        );
+        break;
       case "triggerFX":
         this.triggerFX(
           adjusted_time_s,
