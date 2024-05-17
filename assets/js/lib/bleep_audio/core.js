@@ -118,6 +118,14 @@ export default class BleepAudioCore {
     this.#main_out.gracefulStop();
     this.#main_out = new FinalMix(this.#audio_context, this.#monitor);
     this.#main_out.out.connect(this.#audio_context.destination);
+    setTimeout(() => {
+      this.#running_fx.forEach((fx) => {
+        fx.stop();
+      });
+      this.#running_fx.clear();
+    }, 500);
+
+
   }
 
   triggerFX(time, fx_name, id, output_id, opts) {
