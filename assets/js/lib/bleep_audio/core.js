@@ -95,7 +95,9 @@ export default class BleepAudioCore {
 
   idempotentStartFinalMix(output_id) {
     if (!this.#running_fx.has(output_id)) {
-      this.startFinalMix(output_id);
+      return this.startFinalMix(output_id);
+    } else {
+      return null;
     }
   }
 
@@ -103,6 +105,7 @@ export default class BleepAudioCore {
     const fx = new FinalMix(this.#audio_context, this.#monitor);
     this.#running_fx.set(output_id, fx);
     fx.out.connect(this.#main_out.in);
+    return fx;
   }
 
   restartFinalMix(output_id) {
@@ -124,8 +127,6 @@ export default class BleepAudioCore {
       });
       this.#running_fx.clear();
     }, 500);
-
-
   }
 
   triggerFX(time, fx_name, id, output_id, opts) {

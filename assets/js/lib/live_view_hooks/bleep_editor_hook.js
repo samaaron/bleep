@@ -9,10 +9,12 @@ const BleepEditorHook = {
     const stop_button_id = this.el.dataset.stopButtonId;
     const editor_id = this.el.dataset.editorId;
     const result_id = this.el.dataset.resultId;
+    const scope_id = this.el.dataset.scopeId;
     const run_button = this.el.querySelector(`#${run_button_id}`);
     const cue_button = this.el.querySelector(`#${cue_button_id}`);
     const stop_button = this.el.querySelector(`#${stop_button_id}`);
     const container = this.el.querySelector("[monaco-code-editor]");
+    const scope = this.el.querySelector(`#${scope_id}`);
 
     const content =
       sessionStorage.getItem(editor_id) ?? this.el.dataset.content;
@@ -51,7 +53,7 @@ const BleepEditorHook = {
     };
 
     const evalCode = (strategy) => {
-      window.bleep.idempotent_start_editor_session(editor_id);
+      window.bleep.idempotent_start_editor_session(editor_id, scope);
       const code = this.editor.getValue();
       sessionStorage.setItem(editor_id, code);
       const placeholder = "bleep_tmp_placeholder()";

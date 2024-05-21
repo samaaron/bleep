@@ -1,6 +1,15 @@
 <header class="fixed top-0 z-50 w-full px-4 sm:px-6 lg:px-8 bg-zinc-900 backdrop-blur-md bg-opacity-70">
 </header>
 <main class="sm:px-6 lg:px-8 ">
+  <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0">
+    <defs>
+      <linearGradient id="bleep-rgrad" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" style="stop-color:rgb(37 99 235);stop-opacity:1" />
+        <stop offset="50%" style="stop-color:rgb(255 20 147);stop-opacity:1" />
+        <stop offset="100%" style="stop-color:rgb(234 88 12);stop-opacity:1" />
+      </linearGradient>
+    </defs>
+  </svg>
   <div class="max-w-3xl mx-auto">
     <.flash_group flash={@flash} />
     <%= @inner_content %>

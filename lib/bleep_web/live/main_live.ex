@@ -98,6 +98,7 @@ defmodule BleepWeb.MainLive do
     assigns = assign(assigns, :monaco_path, "#{frag_id}.lua")
     assigns = assign(assigns, :monaco_id, "monaco-#{frag_id}")
     assigns = assign(assigns, :result_id, "result-#{frag_id}")
+    assigns = assign(assigns, :scope_id, "scope-#{frag_id}")
 
     ~H"""
     <div class="h-full pt-2 p-7">
@@ -114,10 +115,11 @@ defmodule BleepWeb.MainLive do
         data-run-button-id={@run_button_id}
         data-cue-button-id={@cue_button_id}
         data-stop-button-id={@stop_button_id}
+        data-scope-id={@scope_id}
       >
-        <div class="flex">
+        <div class="flex ">
           <button
-            class="flex items-center justify-center px-2 mr-1 text-sm font-bold text-blue-600 border rounded-sm p-top-1 border-zinc-600 bg-zinc-800 hover:bg-blue-600 hover:text-zinc-200"
+            class="flex items-center justify-center px-2 mt-5 mb-0 mr-1 text-sm font-bold text-blue-600 border rounded-sm p-top-0 border-zinc-600 bg-zinc-800 hover:bg-blue-600 hover:text-zinc-200"
             id={@run_button_id}
           >
             <svg
@@ -136,7 +138,7 @@ defmodule BleepWeb.MainLive do
           </button>
 
           <button
-            class="flex items-center justify-center px-2 mr-1 text-sm font-bold text-blue-600 border rounded-sm p-top-1 border-zinc-600 bg-zinc-800 hover:bg-blue-600 hover:text-zinc-200"
+            class="flex items-center justify-center px-2 mt-5 mr-1 text-sm font-bold text-blue-600 border rounded-sm p-top-1 border-zinc-600 bg-zinc-800 hover:bg-blue-600 hover:text-zinc-200"
             id={@cue_button_id}
           >
             <svg
@@ -156,7 +158,7 @@ defmodule BleepWeb.MainLive do
           </button>
 
           <button
-            class="flex items-center justify-center px-2 mr-1 text-sm font-bold text-orange-600 border rounded-sm p-top-1 border-zinc-600 bg-zinc-800 hover:bg-orange-600 hover:text-zinc-200"
+            class="flex items-center justify-center px-2 mt-5 mr-1 text-sm font-bold text-orange-600 border rounded-sm p-top-1 border-zinc-600 bg-zinc-800 hover:bg-orange-600 hover:text-zinc-200"
             id={@stop_button_id}
           >
             <svg
@@ -173,10 +175,10 @@ defmodule BleepWeb.MainLive do
             </svg>
             Stop
           </button>
-        </div>
-        <!-- Monaco editor -->
-        <div class="h-full pt-3 pb-3 bg-black border rounded-sm border-zinc-800 ">
-          <div class="h-full" id={@monaco_id} monaco-code-editor></div>
+
+          <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" class="ml-auto">
+            <path id={@scope_id} style="stroke:url(#bleep-rgrad); stroke-width: 2px; fill: none;" />
+          </svg>
         </div>
         <div class="h-full pt-3 pb-3 bg-black border rounded-sm border-zinc-800 ">
           <div class="h-full" id={@monaco_id} monaco-code-editor></div>

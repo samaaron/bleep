@@ -9,7 +9,10 @@ export class FinalMix extends BleepEffect {
   static DEFAULT_GAIN = 1;
 
   _gain;
+  _analyser;
   _running;
+  _scope_data;
+  _scope_buffer;
 
   constructor(ctx, monitor) {
     super(ctx, monitor);
@@ -17,8 +20,19 @@ export class FinalMix extends BleepEffect {
       gain: FinalMix.DEFAULT_GAIN,
     });
 
+    this._analyser = ctx.createAnalyser();
+    this._analyser.fftSize = 2048 ;
+
+    this._scope_data = new Uint8Array(this._analyser.frequencyBinCount);
+    this._scope_buffer = ctx.createBuffer(
+      1,
+      this._scope_data.length,
+      ctx.sampleRate
+    );
+    console.log("scope_buffer", this._scope_buffer);
     this._gain = ctx.createGain();
     this._gain.gain.value = 1;
+    this._gain.connect(this._analyser);
     this._running = true;
   }
 
@@ -59,5 +73,16 @@ export class FinalMix extends BleepEffect {
     super.stop();
     this._gain.disconnect();
     this._gain = null;
+  }
+
+  getScopeData() {
+    this._analyser.getByteTimeDomainData(this._scope_data);
+    const data = this._scope_buffer.getChannelData(0);
+
+    // Copy the data from the Uint8Array to the AudioBuffer
+    for (let i = 0; i < this._scope_data.length; i++) {
+      data[i] = (this._scope_data[i] - 128) / 128;
+    }
+    return this._scope_buffer;
   }
 }
