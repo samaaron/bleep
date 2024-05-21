@@ -115,24 +115,69 @@ defmodule BleepWeb.MainLive do
         data-cue-button-id={@cue_button_id}
         data-stop-button-id={@stop_button_id}
       >
-        <button
-          class="px-2 font-bold text-blue-600 border rounded p-top-1 border-zinc-600 bg-zinc-800 hover:bg-blue-600 hover:text-zinc-800"
-          id={@run_button_id}
-        >
-          Run
-        </button>
-        <button
-          class="px-2 font-bold text-blue-600 border rounded p-top-1 border-zinc-600 bg-zinc-800 hover:bg-blue-600 hover:text-zinc-800"
-          id={@cue_button_id}
-        >
-          Cue
-        </button>
-        <button
-          class="px-2 font-bold text-orange-600 border rounded p-top-1 border-zinc-600 bg-zinc-800 hover:bg-blue-600 hover:text-zinc-800"
-          id={@stop_button_id}
-        >
-          Stop
-        </button>
+        <div class="flex">
+          <button
+            class="flex items-center justify-center px-2 mr-1 text-sm font-bold text-blue-600 border rounded-sm p-top-1 border-zinc-600 bg-zinc-800 hover:bg-blue-600 hover:text-zinc-200"
+            id={@run_button_id}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="12"
+              height="12"
+              viewBox="0 0 22 20"
+              fill="none"
+              stroke="#e4e4e7"
+              stroke-width="1"
+              class="mr-1"
+            >
+              <path d="M2 2 L18 10 L2 18 Z" />
+            </svg>
+            Run
+          </button>
+
+          <button
+            class="flex items-center justify-center px-2 mr-1 text-sm font-bold text-blue-600 border rounded-sm p-top-1 border-zinc-600 bg-zinc-800 hover:bg-blue-600 hover:text-zinc-200"
+            id={@cue_button_id}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="12"
+              height="12"
+              viewBox="0 0 22 20"
+              fill="none"
+              stroke="#e4e4e7"
+              stroke-width="1"
+              class="mr-1"
+            >
+              <path d="M2 2 L10 10 L2 18 Z" />
+              <path d="M12 2 L20 10 L12 18 Z" />
+            </svg>
+            Cue
+          </button>
+
+          <button
+            class="flex items-center justify-center px-2 mr-1 text-sm font-bold text-orange-600 border rounded-sm p-top-1 border-zinc-600 bg-zinc-800 hover:bg-orange-600 hover:text-zinc-200"
+            id={@stop_button_id}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="12"
+              height="12"
+              viewBox="0 0 22 22"
+              fill="none"
+              stroke="#e4e4e7"
+              stroke-width="1"
+              class="mr-1"
+            >
+              <rect x="2" y="2" width="18" height="18" />
+            </svg>
+            Stop
+          </button>
+        </div>
+        <!-- Monaco editor -->
+        <div class="h-full pt-3 pb-3 bg-black border rounded-sm border-zinc-800 ">
+          <div class="h-full" id={@monaco_id} monaco-code-editor></div>
+        </div>
         <div class="h-full pt-3 pb-3 bg-black border rounded-sm border-zinc-800 ">
           <div class="h-full" id={@monaco_id} monaco-code-editor></div>
         </div>
@@ -168,10 +213,23 @@ defmodule BleepWeb.MainLive do
             ) %> ms
           </li>
         </ul>
+
         <button
           phx-click="stop_all"
-          class="px-2 font-bold text-orange-600 border rounded p-top-1 border-zinc-600 bg-zinc-800 hover:bg-blue-600 hover:text-zinc-800"
+          class="flex items-center justify-center px-2 py-1 mt-2 font-bold text-orange-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-orange-600 hover:text-zinc-200"
         >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 22 22"
+            fill="#000000"
+            stroke="#ea580c"
+            stroke-width="2"
+            class="mr-1"
+          >
+            <rect x="2" y="2" width="18" height="18" />
+          </svg>
           Stop All
         </button>
       </div>
