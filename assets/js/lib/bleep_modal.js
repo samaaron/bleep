@@ -8,15 +8,27 @@ export default class BleepModal {
     this.#bleep_init_modal = document.getElementById("bleep-init-modal");
     this.#bleep = bleep;
 
-    this.#bleep_init_button.addEventListener("click", this.#bleep_modal_clicked.bind(this));
-    this.#bleep_init_modal.addEventListener("click", this.#bleep_modal_clicked.bind(this));
+    this.#bleep_init_button.addEventListener(
+      "click",
+      this.#bleep_modal_clicked.bind(this)
+    );
+    this.#bleep_init_modal.addEventListener(
+      "click",
+      this.#bleep_modal_clicked.bind(this)
+    );
     document.addEventListener("keydown", this.#bleep_modal_keydown.bind(this));
+    const visible = sessionStorage.getItem("bleep-modal-visible") ?? "true";
+    if (visible === "true") {
+      this.#bleep_init_modal.style.display = "block";
+      this.#bleep_init_modal.classList.remove("hidden", "opacity-0");
+      this.#bleep_init_modal.classList.add("opacity-100");
+    }
   }
 
   #bleep_modal_keydown(e) {
     if (
       e.key === "Enter" ||
-      e.code === "Enter" ||
+      e.code === "enter" ||
       e.key === " " ||
       e.code === "Space"
     ) {
@@ -27,9 +39,16 @@ export default class BleepModal {
   }
 
   #bleep_modal_clicked(e) {
+    sessionStorage.setItem("bleep-modal-visible", "false");
     document.removeEventListener("keydown", this.#bleep_modal_keydown);
-    this.#bleep_init_button.removeEventListener("click", this.#bleep_modal_clicked);
-    this.#bleep_init_modal.removeEventListener("click", this.#bleep_modal_clicked);
+    this.#bleep_init_button.removeEventListener(
+      "click",
+      this.#bleep_modal_clicked
+    );
+    this.#bleep_init_modal.removeEventListener(
+      "click",
+      this.#bleep_modal_clicked
+    );
 
     this.#bleep_init_modal.classList.add(
       "transition",
