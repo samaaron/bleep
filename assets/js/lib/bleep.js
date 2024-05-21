@@ -9,6 +9,7 @@ export default class Bleep {
   #comms;
   #editor_final_fxs;
   #editor_running_scope_loops;
+  #editor_stopping_scope_loops;
 
   constructor(user_id) {
     this.#user_id = user_id;
@@ -16,6 +17,7 @@ export default class Bleep {
     this.#comms = new BleepComms(this.#user_id, this.#bleep_audio);
     this.#editor_final_fxs = {};
     this.#editor_running_scope_loops = {};
+    this.#editor_stopping_scope_loops = {};
   }
 
   join_jam_session(jam_session_id) {
@@ -55,7 +57,12 @@ export default class Bleep {
 
   restart_editor_session(editor_id) {
     this.#bleep_audio.restartFinalMix(`${editor_id}-final-mix-fx`);
-    this.#editor_running_scope_loops[editor_id] = false;
+    this.#editor_stopping_scope_loops[editor_id] = true;
+    setTimeout(() => {
+      if (this.#editor_stopping_scope_loops[editor_id]) {
+        this.#editor_running_scope_loops[editor_id] = false;
+      }
+    }, 1000);
   }
 
   start_scope(scope_node, editor_id) {
@@ -97,6 +104,7 @@ export default class Bleep {
     };
 
     this.#editor_running_scope_loops[editor_id] = true;
+    this.#editor_stopping_scope_loops[editor_id] = false;
     update_waveform_path();
   }
 }
