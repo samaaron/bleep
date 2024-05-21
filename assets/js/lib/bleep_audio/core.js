@@ -113,7 +113,6 @@ export default class BleepAudioCore {
       const fx = this.#running_fx.get(output_id);
       this.#running_fx.delete(output_id);
       fx.gracefulStop();
-      this.startFinalMix(output_id);
     }
   }
 
