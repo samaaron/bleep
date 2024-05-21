@@ -7,11 +7,15 @@ export default class Bleep {
   #user_id;
   #bleep_audio;
   #comms;
+  #editor_final_fxs;
+  #editor_running_scope_loops;
 
   constructor(user_id) {
     this.#user_id = user_id;
     this.#bleep_audio = new BleepAudioCore();
     this.#comms = new BleepComms(this.#user_id, this.#bleep_audio);
+    this.#editor_final_fxs = {};
+    this.#editor_running_scope_loops = {};
   }
 
   join_jam_session(jam_session_id) {
@@ -42,15 +46,19 @@ export default class Bleep {
     const final_mix_fx_id = `${editor_id}-final-mix-fx`;
     const final_fx = this.#bleep_audio.idempotentStartFinalMix(final_mix_fx_id);
     if (final_fx !== null) {
-      this.start_scope(scope_node, final_fx);
+      this.#editor_final_fxs[editor_id] = final_fx; // Store the latest final_fx
+      if (!this.#editor_running_scope_loops[editor_id]) {
+        this.start_scope(scope_node, editor_id);
+      }
     }
   }
 
   restart_editor_session(editor_id) {
     this.#bleep_audio.restartFinalMix(`${editor_id}-final-mix-fx`);
+    this.#editor_running_scope_loops[editor_id] = false;
   }
 
-  start_scope(scope_node, final_fx) {
+  start_scope(scope_node, editor_id) {
     scope_node.style.strokeWidth = "2px";
 
     const options = {
@@ -79,16 +87,16 @@ export default class Bleep {
         },
       ],
     };
-    this.updateWaveformPath(scope_node, final_fx, options);
-  }
+    const update_waveform_path = () => {
+      if (!this.#editor_running_scope_loops[editor_id]) return; // Stop the loop if it's been cleared
+      const final_fx = this.#editor_final_fxs[editor_id]; // Get the latest final_fx
+      const data = final_fx.getScopeData();
+      const path = polarPath(data, options);
+      scope_node.setAttribute("d", path);
+      requestAnimationFrame(update_waveform_path);
+    };
 
-  updateWaveformPath(scope_node, final_fx, options) {
-    const data = final_fx.getScopeData();
-    const path = polarPath(data, options);
-    scope_node.setAttribute("d", path);
-
-    requestAnimationFrame(() =>
-      this.updateWaveformPath(scope_node, final_fx, options)
-    );
+    this.#editor_running_scope_loops[editor_id] = true;
+    update_waveform_path();
   }
 }
