@@ -264,9 +264,9 @@ export const polarPath = (audioBuffer, options) => {
             const pathlength = path.length;
             const lastvalue = path.charAt(pathlength - 1);
             if(lastvalue == ";" || pathlength === 0) {
-                path+=' M 0 0 ;';
+                path+=' M 0 0 ';
             } else {
-                path += ';';
+                path += ' ';
             }
         }
 
