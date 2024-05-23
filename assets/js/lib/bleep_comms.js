@@ -111,11 +111,23 @@ export default class BleepComms {
     }, 15000);
   }
 
-  #average_ping_time() {
+  average_ping_time() {
     const ping_count = this.#server_time_info.ping_times.size();
-    const pings = this.#server_time_info.ping_times.peekN(ping_count).sort();
+    const pings = this.#server_time_info.ping_times.peekN(ping_count);
 
-    const non_outlier_pings = pings.length > 4 ? pings.slice(0, -4) : pings;
+    if (pings.length <= 4) {
+      // If we have 4 or fewer pings, return the average of all pings
+      const sum = pings.reduce((a, b) => a + b, 0);
+      return sum / pings.length;
+    }
+
+    const mean = pings.reduce((a, b) => a + b, 0) / pings.length;
+    const variance =
+      pings.reduce((a, b) => a + (b - mean) ** 2, 0) / pings.length;
+    const stddev = Math.sqrt(variance);
+
+    // Remove pings that are more than 2 standard deviations above the mean
+    const non_outlier_pings = pings.filter((ping) => ping <= mean + 2 * stddev);
 
     const sum = non_outlier_pings.reduce((a, b) => a + b, 0);
     const average = sum / non_outlier_pings.length;
