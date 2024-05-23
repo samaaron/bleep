@@ -189,7 +189,6 @@ defmodule Bleep.Lang do
 
     lua =
       Bleep.VM.make_vm(core_lua)
-      ## Note that set_global prefixes with __bleep_core_ to avoid collisions
       |> Bleep.VM.set_global("__bleep_core_user_id", user_id)
       |> Bleep.VM.set_global("__bleep_core_editor_id", editor_id)
       |> Bleep.VM.set_global("__bleep_core_run_id", run_id)
