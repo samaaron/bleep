@@ -157,7 +157,7 @@ export default class BleepComms {
         const average_one_way_latency = average_ping_time / 2;
         const delta_s =
           resp.server_timestamp - (start_time_s + average_one_way_latency);
-        this.#server_time_info.latency_s = average_ping_time;
+        this.#server_time_info.latency_s = average_one_way_latency;
         this.#server_time_info.delta_s = delta_s;
       })
       .receive("error", (resp) => {
