@@ -111,7 +111,7 @@ export default class BleepComms {
     }, 15000);
   }
 
-  average_ping_time() {
+  #average_ping_time() {
     const ping_count = this.#server_time_info.ping_times.size();
     const pings = this.#server_time_info.ping_times.peekN(ping_count);
 
