@@ -27,7 +27,7 @@ config :bleep, Bleep.Mailer, adapter: Swoosh.Adapters.Local
 
 # Configure esbuild (the version is required)
 config :esbuild,
-  version: "0.19.5",
+  version: "0.21.4",
   default: [
     args:
       ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/* --loader:.ttf=file),
@@ -46,7 +46,7 @@ config :esbuild,
 
 # Configure tailwind (the version is required)
 config :tailwind,
-  version: "3.3.5",
+  version: "3.4.3",
   default: [
     args: ~w(
       --config=tailwind.config.js
