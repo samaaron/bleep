@@ -14,7 +14,6 @@ defmodule BleepWeb.BleepTimeSyncChannel do
   @impl true
   def handle_in("time-ping", %{"time_s" => time_s, "ping_s" => ping_s}, socket) do
     user_id = socket.assigns.user_id
-    Logger.info("ping: #{:erlang.float(ping_s)}")
     BleepWeb.MainLive.id_send(user_id, {:ping_update, :erlang.float(ping_s) * 1000})
 
     msg = %{
