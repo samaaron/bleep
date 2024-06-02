@@ -12,10 +12,10 @@ defmodule BleepWeb.BleepTimeSyncChannel do
   end
 
   @impl true
-  def handle_in("time-ping", %{"time_s" => time_s, "latency_s" => latency_s}, socket) do
+  def handle_in("time-ping", %{"time_s" => time_s, "ping_s" => ping_s}, socket) do
     user_id = socket.assigns.user_id
-    Logger.info("latency_s: #{:erlang.float(latency_s)}")
-    BleepWeb.MainLive.id_send(user_id, {:latency_update, :erlang.float(latency_s) * 1000})
+    Logger.info("ping: #{:erlang.float(ping_s)}")
+    BleepWeb.MainLive.id_send(user_id, {:ping_update, :erlang.float(ping_s) * 1000})
 
     msg = %{
       client_timestamp: time_s,

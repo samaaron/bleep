@@ -36,7 +36,7 @@ defmodule BleepWeb.MainLive do
       :ok,
       socket
       |> assign(:user_id, user_id)
-      |> assign(:bleep_latency, 20.0)
+      |> assign(:bleep_ping, 20.0)
       |> assign(:frags, data[:frags])
       |> assign(:init_code, data[:init])
       |> assign(:author, data[:author])
@@ -209,8 +209,8 @@ defmodule BleepWeb.MainLive do
             Quantum: <%= @bleep_default_quantum %>
           </li>
           <li>
-            Latency: <%= :erlang.float_to_binary(
-              @bleep_latency,
+            Ping: <%= :erlang.float_to_binary(
+              @bleep_ping,
               decimals: 0
             ) %> ms
           </li>
@@ -348,10 +348,10 @@ defmodule BleepWeb.MainLive do
   end
 
   @impl true
-  def handle_info({:latency_update, latency}, socket) do
+  def handle_info({:ping_update, ping}, socket) do
     {:noreply,
      socket
-     |> assign(:bleep_latency, latency)}
+     |> assign(:bleep_ping, ping)}
   end
 
   def id_send(user_id, msg) do

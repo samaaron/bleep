@@ -26,7 +26,7 @@ export default class BleepComms {
     );
 
     this.#server_time_info = {
-      latency_s: 0,
+      ping_s: 0,
       delta_s: 0,
       ping_times: new RingBuffer(20),
     };
@@ -136,13 +136,13 @@ export default class BleepComms {
 
   #bleep_server_ping() {
     const start_time_s = Date.now() / 1000;
-    const latency_s = this.#server_time_info.latency_s;
+    const ping_s = this.#server_time_info.ping_s;
 
     this.#time_sync_channel
 
       .push("time-ping", {
         time_s: start_time_s,
-        latency_s: latency_s,
+        ping_s: ping_s,
       })
 
       .receive("ok", (resp) => {
@@ -154,10 +154,10 @@ export default class BleepComms {
         const roundtrip_time_s = finish_time_s - resp.client_timestamp;
         this.#server_time_info.ping_times.enq(roundtrip_time_s);
         const average_ping_time = this.#average_ping_time();
-        const average_one_way_latency = average_ping_time / 2;
+        const average_one_way_trip_time = average_ping_time / 2;
         const delta_s =
-          resp.server_timestamp - (start_time_s + average_one_way_latency);
-        this.#server_time_info.latency_s = average_one_way_latency;
+          resp.server_timestamp - (start_time_s + average_one_way_trip_time);
+        this.#server_time_info.ping_s = average_ping_time;
         this.#server_time_info.delta_s = delta_s;
       })
       .receive("error", (resp) => {
