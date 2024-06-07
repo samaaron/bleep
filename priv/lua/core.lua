@@ -753,3 +753,31 @@ COMPRESS_GENTLE = {attack=1/1000,release=100/1000,ratio=1.5,threshold=-21.5,knee
 COMPRESS_GLUE = {attack=12.5/1000,release=1,ratio=1.2,threshold=-22.1,knee=12}
 COMPRESS_ACOUSTIC = {attack=17.9/1000,release=222/1000,ratio=2.25,threshold=-17.5,knee=7.7}
 COMPRESS_PRECISE = {attack=0.88/1000,release=100/1000,ratio=1.54,threshold=-28.7,knee=6}
+
+-- =============================================================================
+-- Random functions
+-- =============================================================================
+
+function randi(min, max)
+    return math.random(min, max)
+end
+
+function randf(min, max)
+    return min + math.random() * (max - min)
+end
+
+function dice(n)
+    if (n < 1) then
+        error("dice: argument must be greater than 0")
+    end
+    return math.random(1, n)
+end
+
+function set_seed(seed)
+    if seed then
+        math.randomseed(seed)
+    else
+        math.randomseed(os.time())
+    end
+end
+    
