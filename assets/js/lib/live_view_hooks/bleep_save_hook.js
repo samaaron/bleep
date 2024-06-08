@@ -46,7 +46,7 @@ function jsonFragsToLua(frags) {
     if (frag.kind == "editor") {
       const editor_content = window.bleep.editor_content(frag.frag_id);
       if (isBlank(editor_content)) {
-        lua += `editor [[ ]]\n\n`;
+        lua += `editor [[ ]],\n\n`;
       } else {
         lua += `editor [[\n`;
         lua += `${editor_content}`;
