@@ -10,6 +10,7 @@ export default class Bleep {
   #editor_final_fxs;
   #editor_running_scope_loops;
   #editor_stopping_scope_loops;
+  #editors = {};
 
   constructor(user_id) {
     this.#user_id = user_id;
@@ -18,6 +19,18 @@ export default class Bleep {
     this.#editor_final_fxs = {};
     this.#editor_running_scope_loops = {};
     this.#editor_stopping_scope_loops = {};
+  }
+
+  clear_editors() {
+    this.#editors = {};
+  }
+
+  add_editor(editor_id, editor) {
+    this.#editors[editor_id] = editor;
+  }
+
+  editor_content(editor_id) {
+    return this.#editors[editor_id].getValue();
   }
 
   join_jam_session(jam_session_id) {

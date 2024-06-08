@@ -5,44 +5,97 @@ defmodule BleepWeb.MainLive do
   @content_folder Path.join([:code.priv_dir(:bleep), "content"])
 
   @impl true
-  def mount(params, _session, socket) do
+  def mount(params, session, socket) do
     user_id = get_connect_params(socket)["bleep_user_id"]
 
     if connected?(socket) do
       {:ok, _pid} = Registry.register(Registry.Bleep, user_id, self())
     end
 
+    case socket.assigns.live_action do
+      :user -> mount_user(user_id, params, session, socket)
+      _ -> mount_artist(user_id, params, session, socket)
+    end
+  end
+
+  def mount_user(user_id, _params, _session, socket) do
+    case :ets.lookup(:lua_user_content_cache, user_id) do
+      [{_, data}] ->
+        {
+          :ok,
+          socket
+          |> assign(:user_id, user_id)
+          |> assign(:bleep_ping, 20.0)
+          |> assign_content_data(data)
+        }
+
+      [] ->
+        mount_artist(user_id, %{"artist" => "new"}, %{}, socket)
+    end
+  end
+
+  def mount_artist(user_id, params, _session, socket) do
     artist = params["artist"] || "init"
     artist_path = artist_lua_path(artist)
-    code_reloading? = Application.get_env(:bleep, BleepWeb.Endpoint)[:code_reloader]
-    Logger.info("Code reloading: #{code_reloading?}")
-
-    data =
-      if code_reloading? do
-        Bleep.Content.data_from_lua(artist_path)
-      else
-        case :ets.lookup(:lua_content_cache, artist_path) do
-          [{_, value}] ->
-            value
-
-          [] ->
-            res = Bleep.Content.data_from_lua(artist_path)
-            :ets.insert(:lua_content_cache, {artist_path, res})
-            res
-        end
-      end
+    data = get_artist_content(artist_path)
 
     {
       :ok,
       socket
       |> assign(:user_id, user_id)
       |> assign(:bleep_ping, 20.0)
-      |> assign(:frags, data[:frags])
-      |> assign(:init_code, data[:init])
-      |> assign(:author, data[:author])
-      |> assign(:bleep_default_bpm, data[:default_bpm])
-      |> assign(:bleep_default_quantum, data[:default_quantum])
+      |> assign_content_data(data)
     }
+  end
+
+  def get_artist_content(artist_path) do
+    code_reloading? = Application.get_env(:bleep, BleepWeb.Endpoint)[:code_reloader]
+
+    if code_reloading? do
+      Bleep.Content.data_from_lua_file(artist_path)
+    else
+      case :ets.lookup(:lua_content_cache, artist_path) do
+        [{_, value}] ->
+          value
+
+        [] ->
+          res = Bleep.Content.data_from_lua_file(artist_path)
+          :ets.insert(:lua_content_cache, {artist_path, res})
+          res
+      end
+    end
+  end
+
+  def data_from_assigns(socket) do
+    %{
+      title: socket.assigns.title,
+      description: socket.assigns.description,
+      # source: socket.assigns.source,
+      frags: socket.assigns.frags,
+      init: socket.assigns.init_code,
+      author: socket.assigns.author,
+      bpm: socket.assigns.bleep_default_bpm,
+      quantum: socket.assigns.bleep_default_quantum,
+      user_id: socket.assigns.user_id
+    }
+  end
+
+  def assign_content_data(socket, data) do
+    socket
+    |> assign(:title, data[:title])
+    |> assign(:description, data[:description])
+    |> assign(:source, data[:source])
+    |> assign(:frags, data[:frags])
+    |> assign(:init_code, data[:init])
+    |> assign(:author, data[:author])
+    |> assign(:bleep_default_bpm, data[:default_bpm])
+    |> assign(:bleep_default_quantum, data[:default_quantum])
+  end
+
+  def load_user_content(socket, content) do
+    data = Bleep.Content.data_from_lua(content)
+    :ets.insert(:lua_user_content_cache, {socket.assigns.user_id, data})
+    assign_content_data(socket, data)
   end
 
   def artist_lua_path(artist) do
@@ -202,9 +255,30 @@ defmodule BleepWeb.MainLive do
         <p class="px-2 font-medium leading-6 rounded-full bg-brand/5 text-brand">
           v0.0.1
         </p>
+        <div id="file-upload" phx-hook="BleepLoadHook">
+          <input type="file" id="bleep-load-input" accept=".lua" class="hidden" />
+          <label
+            for="bleep-load-input"
+            class="flex items-center justify-center px-2 py-1 mt-2 font-bold text-orange-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-orange-600 hover:text-zinc-200"
+          >
+            Load
+          </label>
+        </div>
+        <p id="bleep-load-input-error-message" style="color: red;"></p>
+        <button
+          id="bleep-save-button"
+          phx-click="save"
+          phx-hook="BleepSaveHook"
+          class="flex items-center justify-center px-2 py-1 mt-2 font-bold text-orange-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-orange-600 hover:text-zinc-200"
+        >
+          Save
+        </button>
       </div>
       <div class="float-right pr-7 text-zinc-100" id="bleep-time">
         <ul class="font-mono text-xs list-none text-zinc-200">
+          <li>
+            BPM: <%= @bleep_default_bpm %>
+          </li>
           <li>
             Quantum: <%= @bleep_default_quantum %>
           </li>
@@ -243,6 +317,34 @@ defmodule BleepWeb.MainLive do
       <% end %>
     </div>
     """
+  end
+
+  @impl true
+  def handle_params(params, _uri, socket) do
+    # Add logic to handle the parameters and update the socket
+    {:noreply, assign(socket, :params, params)}
+  end
+
+  @impl true
+  def handle_event("load", %{"content" => content}, socket) do
+    max_file_size = 1024 * 50
+
+    case byte_size(content) do
+      size when size < max_file_size ->
+        {:noreply,
+         socket
+         |> load_user_content(content)
+         |> push_patch(to: "/user")}
+
+      _size ->
+        Logger.error("File size too large: #{byte_size(content)}")
+        {:noreply, assign(socket, :error_message, "File size too large.")}
+    end
+  end
+
+  @impl true
+  def handle_event("save", _, socket) do
+    {:noreply, push_event(socket, "save_content", %{content: data_from_assigns(socket)})}
   end
 
   @impl true
@@ -298,7 +400,7 @@ defmodule BleepWeb.MainLive do
     {:noreply, eval_and_display(socket, editor_id, start_time_s, code, result_id)}
   end
 
-  def display_eval_result(socket, {:exception, _e, trace}, result_id) do
+  def display_eval_result(socket, {:exception, _e, _trace}, result_id) do
     socket
     |> push_event("update-luareplres", %{
       # lua_repl_result: Exception.format(:error, e, trace),

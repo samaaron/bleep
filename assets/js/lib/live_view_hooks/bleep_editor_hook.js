@@ -102,6 +102,8 @@ const BleepEditorHook = {
     });
 
     autoResizeMonacoEditor(this.editor);
+
+    window.bleep.add_editor(editor_id, this.editor);
   },
 
   destroyed() {

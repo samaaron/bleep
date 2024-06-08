@@ -1,10 +1,14 @@
 defmodule Bleep.Content do
-  def data_from_lua(path) do
+  def data_from_lua_file(path) do
     content_lua = File.read!(path)
+    data_from_lua(content_lua)
+  end
 
+  def data_from_lua(content_lua) do
     lua =
       Bleep.VM.make_vm("""
-
+      title = ""
+      description = ""
       init = ""
       author = ""
       bpm = 60
@@ -41,6 +45,8 @@ defmodule Bleep.Content do
     author = Bleep.VM.get_global(lua_res, "author") || ""
     bpm = Bleep.VM.get_global(lua_res, "bpm")
     quantum = Bleep.VM.get_global(lua_res, "quantum")
+    title = Bleep.VM.get_global(lua_res, "title")
+    description = Bleep.VM.get_global(lua_res, "description") || ""
 
     bpm =
       cond do
@@ -60,6 +66,15 @@ defmodule Bleep.Content do
         |> Map.put(:frag_id, UUID.uuid4())
       end)
 
-    %{frags: frags, init: init, author: author, default_bpm: bpm, default_quantum: quantum}
+    %{
+      source: content_lua,
+      frags: frags,
+      init: init,
+      author: author,
+      default_bpm: bpm,
+      default_quantum: quantum,
+      title: title,
+      description: description
+    }
   end
 end

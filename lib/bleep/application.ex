@@ -8,6 +8,7 @@ defmodule Bleep.Application do
   @impl true
   def start(_type, _args) do
     :ets.new(:lua_content_cache, [:set, :public, :named_table])
+    :ets.new(:lua_user_content_cache, [:set, :public, :named_table])
 
     children = [
       # Start the Telemetry supervisor

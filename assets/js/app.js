@@ -8,10 +8,13 @@ import luamin from "../vendor/luamin";
 window.luamin = luamin;
 
 import BleepEditorHook from "./lib/live_view_hooks/bleep_editor_hook";
+import BleepSaveHook from "./lib/live_view_hooks/bleep_save_hook";
+import BleepLoadHook from "./lib/live_view_hooks/bleep_load_hook";
 import Bleep from "./lib/bleep";
 import BleepModal from "./lib/bleep_modal";
 
-const bleep_user_id = uuidv4();
+const bleep_user_id = get_or_create_user_uuid();
+
 window.bleep = new Bleep(bleep_user_id);
 window.bleep_modal = new BleepModal(window.bleep)
 window.bleep.join_jam_session(bleep_user_id);
@@ -21,7 +24,7 @@ const csrfToken = document
   .getAttribute("content");
 
 let liveSocket = new LiveSocket("/live", Socket, {
-  hooks: { BleepEditorHook },
+  hooks: { BleepEditorHook, BleepSaveHook, BleepLoadHook },
   params: { _csrf_token: csrfToken, bleep_user_id: bleep_user_id },
 });
 
@@ -63,6 +66,15 @@ function bleep_animate_logo() {
   setTimeout(() => {
     requestAnimationFrame(bleep_animate_logo);
   }, 400);
+}
+
+function get_or_create_user_uuid() {
+  let user_uuid = sessionStorage.getItem("bleep_user_uuid");
+  if (!user_uuid) {
+    user_uuid = uuidv4();
+    sessionStorage.setItem("bleep_user_uuid", user_uuid);
+  }
+  return user_uuid;
 }
 
 // Start the animation
