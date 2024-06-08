@@ -55,6 +55,13 @@ const BleepEditorHook = {
     const evalCode = (strategy) => {
       window.bleep.idempotent_start_editor_session(editor_id, scope);
       const code = this.editor.getValue();
+
+      if (code.length > (20 * 1024))
+      {
+        alert("Error - code is too large to run.");
+        return;
+      }
+
       sessionStorage.setItem(editor_id, code);
       const placeholder = "bleep_tmp_placeholder()";
       let formatted;

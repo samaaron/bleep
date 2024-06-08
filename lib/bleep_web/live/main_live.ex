@@ -442,11 +442,15 @@ defmodule BleepWeb.MainLive do
   end
 
   def eval_and_display(socket, editor_id, start_time_s, code, result_id) do
-    init_code = socket.assigns.init_code
-    bpm = socket.assigns.bleep_default_bpm
-    user_id = socket.assigns.user_id
-    res = Bleep.Lang.start_run(user_id, editor_id, start_time_s, code, init_code, %{bpm: bpm})
-    display_eval_result(socket, res, result_id)
+    if byte_size(code) > 1024 * 10 do
+      display_eval_result(socket, {:error, "code too large to run", nil}, result_id)
+    else
+      init_code = socket.assigns.init_code
+      bpm = socket.assigns.bleep_default_bpm
+      user_id = socket.assigns.user_id
+      res = Bleep.Lang.start_run(user_id, editor_id, start_time_s, code, init_code, %{bpm: bpm})
+      display_eval_result(socket, res, result_id)
+    end
   end
 
   @impl true
