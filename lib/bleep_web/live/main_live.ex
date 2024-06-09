@@ -254,56 +254,47 @@ defmodule BleepWeb.MainLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="fixed top-0 left-0 z-50 flex items-center justify-between w-full text-sm border-b shadow-lg border-zinc-100 bg-zinc-950 backdrop-blur-md bg-opacity-70 border-b-zinc-600">
-      <div class="flex items-center pl-7 gap">
-        <a href="/">
-          <img
-            id="bleep-logo"
-            src={~p"/images/cnotf.png"}
-            width="200"
-            phx-update="ignore"
-            alt="Bleep Logo"
-          />
-        </a>
-        <p class="px-2 font-medium leading-6 rounded-full bg-brand/5 text-brand">
-          v0.0.1
-        </p>
-        <div id="file-upload" phx-hook="BleepLoadHook">
-          <input type="file" id="bleep-load-input" accept=".lua" class="hidden" />
-          <label
-            for="bleep-load-input"
-            class="flex items-center justify-center px-2 py-1 mt-2 font-bold text-orange-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-orange-600 hover:text-zinc-200"
-            aria-label="Load Lua File"
+    <div class="fixed top-0 left-0 z-50 w-full text-sm border-b shadow-lg border-zinc-100 bg-zinc-950 backdrop-blur-md bg-opacity-70 border-b-zinc-600">
+      <div class="flex items-center justify-between w-full gap-2 px-5 py-1">
+        <div class="flex items-center gap-2">
+          <div id="file-upload" phx-hook="BleepLoadHook" class="flex items-center">
+            <input type="file" id="bleep-load-input" accept=".lua" class="hidden" />
+            <label
+              for="bleep-load-input"
+              class="flex items-center justify-center px-2 py-1 font-bold text-orange-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-orange-600 hover:text-zinc-200"
+              aria-label="Load Lua File"
+            >
+              Load
+            </label>
+          </div>
+          <p id="bleep-load-input-error-message" class="text-red-600"></p>
+          <button
+            id="bleep-save-button"
+            phx-click="save"
+            phx-hook="BleepSaveHook"
+            class="flex items-center justify-center px-2 py-1 font-bold text-orange-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-orange-600 hover:text-zinc-200"
+            aria-label="Save Bleep"
           >
-            Load
-          </label>
+            Save
+          </button>
         </div>
-        <p id="bleep-load-input-error-message" style="color: red;"></p>
-        <button
-          id="bleep-save-button"
-          phx-click="save"
-          phx-hook="BleepSaveHook"
-          class="flex items-center justify-center px-2 py-1 mt-2 font-bold text-orange-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-orange-600 hover:text-zinc-200"
-          aria-label="Save Bleep"
-        >
-          Save
-        </button>
-      </div>
-      <div class="float-right pr-7 text-zinc-100" id="bleep-time">
-        <ul class="font-mono text-xs list-none text-zinc-200">
-          <li>
-            BPM: <%= @bleep_default_bpm %>
-          </li>
-          <li>
-            Quantum: <%= @bleep_default_quantum %>
-          </li>
-          <li>
-            Ping: <%= :erlang.float_to_binary(@bleep_ping, decimals: 0) %> ms
-          </li>
-        </ul>
+        <div class="flex items-center justify-center">
+          <a href="/">
+            <img
+              id="bleep-logo"
+              src={~p"/images/cnotf.png"}
+              width="140"
+              phx-update="ignore"
+              alt="Bleep Logo"
+            />
+          </a>
+          <p class="px-2 font-medium leading-6 rounded-full bg-brand/5 text-brand">
+            v0.0.1
+          </p>
+        </div>
         <button
           phx-click="stop_all"
-          class="flex items-center justify-center px-2 py-1 mt-2 font-bold text-orange-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-orange-600 hover:text-zinc-200"
+          class="flex items-center justify-center px-2 py-1 font-bold text-orange-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-orange-600 hover:text-zinc-200"
           aria-label="Stop All"
         >
           <svg
@@ -321,6 +312,14 @@ defmodule BleepWeb.MainLive do
           </svg>
           Stop All
         </button>
+      </div>
+      <div class="flex items-center justify-center w-full pb-1 text-zinc-100">
+        <p class="font-mono text-xs text-zinc-200">
+          BPM: <%= @bleep_default_bpm %> | Quantum: <%= @bleep_default_quantum %> | Ping: <%= :erlang.float_to_binary(
+            @bleep_ping,
+            decimals: 0
+          ) %> ms
+        </p>
       </div>
     </div>
 
