@@ -257,7 +257,13 @@ defmodule BleepWeb.MainLive do
     <div class="fixed top-0 left-0 z-50 flex items-center justify-between w-full text-sm border-b shadow-lg border-zinc-100 bg-zinc-950 backdrop-blur-md bg-opacity-70 border-b-zinc-600">
       <div class="flex items-center pl-7 gap">
         <a href="/">
-          <img id="bleep-logo" src={~p"/images/cnotf.png"} width="200" phx-update="ignore" />
+          <img
+            id="bleep-logo"
+            src={~p"/images/cnotf.png"}
+            width="200"
+            phx-update="ignore"
+            alt="Bleep Logo"
+          />
         </a>
         <p class="px-2 font-medium leading-6 rounded-full bg-brand/5 text-brand">
           v0.0.1
@@ -267,6 +273,7 @@ defmodule BleepWeb.MainLive do
           <label
             for="bleep-load-input"
             class="flex items-center justify-center px-2 py-1 mt-2 font-bold text-orange-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-orange-600 hover:text-zinc-200"
+            aria-label="Load Lua File"
           >
             Load
           </label>
@@ -277,6 +284,7 @@ defmodule BleepWeb.MainLive do
           phx-click="save"
           phx-hook="BleepSaveHook"
           class="flex items-center justify-center px-2 py-1 mt-2 font-bold text-orange-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-orange-600 hover:text-zinc-200"
+          aria-label="Save Bleep"
         >
           Save
         </button>
@@ -296,6 +304,7 @@ defmodule BleepWeb.MainLive do
         <button
           phx-click="stop_all"
           class="flex items-center justify-center px-2 py-1 mt-2 font-bold text-orange-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-orange-600 hover:text-zinc-200"
+          aria-label="Stop All"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -306,6 +315,7 @@ defmodule BleepWeb.MainLive do
             stroke="#ea580c"
             stroke-width="2"
             class="mr-1"
+            aria-hidden="true"
           >
             <rect x="2" y="2" width="18" height="18" />
           </svg>
