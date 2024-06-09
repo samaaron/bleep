@@ -157,7 +157,7 @@ defmodule BleepWeb.MainLive do
     <div class="h-full pt-2 p-7">
       <div
         id={@frag_id}
-        class=""
+        class="editor-container"
         phx-hook="BleepEditorHook"
         phx-update="ignore"
         data-language="lua"
@@ -170,10 +170,11 @@ defmodule BleepWeb.MainLive do
         data-stop-button-id={@stop_button_id}
         data-scope-id={@scope_id}
       >
-        <div class="flex ">
+        <div class="flex">
           <button
-            class="flex items-center justify-center px-2 mt-5 mb-0 mr-1 text-sm font-bold text-blue-600 border rounded-sm p-top-0 border-zinc-600 bg-zinc-800 hover:bg-blue-600 hover:text-zinc-200"
+            class="flex items-center justify-center px-2 mt-5 mb-0 mr-1 text-sm font-bold text-blue-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-blue-600 hover:text-zinc-200"
             id={@run_button_id}
+            aria-label="Run code"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -191,8 +192,9 @@ defmodule BleepWeb.MainLive do
           </button>
 
           <button
-            class="flex items-center justify-center px-2 mt-5 mr-1 text-sm font-bold text-blue-600 border rounded-sm p-top-1 border-zinc-600 bg-zinc-800 hover:bg-blue-600 hover:text-zinc-200"
+            class="flex items-center justify-center px-2 mt-5 mr-1 text-sm font-bold text-blue-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-blue-600 hover:text-zinc-200"
             id={@cue_button_id}
+            aria-label="Cue code"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -211,8 +213,9 @@ defmodule BleepWeb.MainLive do
           </button>
 
           <button
-            class="flex items-center justify-center px-2 mt-5 mr-1 text-sm font-bold text-orange-600 border rounded-sm p-top-1 border-zinc-600 bg-zinc-800 hover:bg-orange-600 hover:text-zinc-200"
+            class="flex items-center justify-center px-2 mt-5 mr-1 text-sm font-bold text-orange-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-orange-600 hover:text-zinc-200"
             id={@stop_button_id}
+            aria-label="Stop code"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -233,10 +236,12 @@ defmodule BleepWeb.MainLive do
             <path id={@scope_id} style="stroke:url(#bleep-rgrad); stroke-width: 2px; fill: none;" />
           </svg>
         </div>
-        <div class="h-full pt-3 pb-3 bg-black border rounded-sm border-zinc-800 ">
+
+        <div class="h-full pt-3 pb-3 bg-black border rounded-sm border-zinc-800">
           <div class="h-full" id={@monaco_id} monaco-code-editor></div>
         </div>
       </div>
+
       <div class="font-mono text-sm border border-zinc-600 text-zinc-200 bg-zinc-500 bottom-9 dark:bg-zinc-800">
         <div phx-update="ignore" id={@result_id}></div>
       </div>
