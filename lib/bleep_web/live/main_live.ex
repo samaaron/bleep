@@ -154,10 +154,10 @@ defmodule BleepWeb.MainLive do
     assigns = assign(assigns, :scope_id, "scope-#{frag_id}")
 
     ~H"""
-    <div class="h-full pt-2 p-7">
+    <div class="h-full pt-0 p-7">
       <div
         id={@frag_id}
-        class="editor-container"
+        class="relative editor-container"
         phx-hook="BleepEditorHook"
         phx-update="ignore"
         data-language="lua"
@@ -170,74 +170,76 @@ defmodule BleepWeb.MainLive do
         data-stop-button-id={@stop_button_id}
         data-scope-id={@scope_id}
       >
-        <div class="flex">
-          <button
-            class="flex items-center justify-center px-2 mt-5 mb-0 mr-1 text-sm font-bold text-blue-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-blue-600 hover:text-zinc-200"
-            id={@run_button_id}
-            aria-label="Run code"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="12"
-              height="12"
-              viewBox="0 0 22 20"
-              fill="none"
-              stroke="#e4e4e7"
-              stroke-width="1"
-              class="mr-1"
+        <div class="sticky z-10 p-0 top-20 bg-zinc-950">
+          <div class="flex pt-0 bg-zinc-900">
+            <button
+              class="flex items-center justify-center px-2 mt-5 mb-0 mr-1 text-sm font-bold text-blue-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-blue-600 hover:text-zinc-200"
+              id={@run_button_id}
+              aria-label="Run code"
             >
-              <path d="M2 2 L18 10 L2 18 Z" />
-            </svg>
-            Run
-          </button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="12"
+                height="12"
+                viewBox="0 0 22 20"
+                fill="none"
+                stroke="#e4e4e7"
+                stroke-width="1"
+                class="mr-1"
+              >
+                <path d="M2 2 L18 10 L2 18 Z" />
+              </svg>
+              Run
+            </button>
 
-          <button
-            class="flex items-center justify-center px-2 mt-5 mr-1 text-sm font-bold text-blue-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-blue-600 hover:text-zinc-200"
-            id={@cue_button_id}
-            aria-label="Cue code"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="12"
-              height="12"
-              viewBox="0 0 22 20"
-              fill="none"
-              stroke="#e4e4e7"
-              stroke-width="1"
-              class="mr-1"
+            <button
+              class="flex items-center justify-center px-2 mt-5 mr-1 text-sm font-bold text-blue-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-blue-600 hover:text-zinc-200"
+              id={@cue_button_id}
+              aria-label="Cue code"
             >
-              <path d="M2 2 L10 10 L2 18 Z" />
-              <path d="M12 2 L20 10 L12 18 Z" />
-            </svg>
-            Cue
-          </button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="12"
+                height="12"
+                viewBox="0 0 22 20"
+                fill="none"
+                stroke="#e4e4e7"
+                stroke-width="1"
+                class="mr-1"
+              >
+                <path d="M2 2 L10 10 L2 18 Z" />
+                <path d="M12 2 L20 10 L12 18 Z" />
+              </svg>
+              Cue
+            </button>
 
-          <button
-            class="flex items-center justify-center px-2 mt-5 mr-1 text-sm font-bold text-orange-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-orange-600 hover:text-zinc-200"
-            id={@stop_button_id}
-            aria-label="Stop code"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="12"
-              height="12"
-              viewBox="0 0 22 22"
-              fill="none"
-              stroke="#e4e4e7"
-              stroke-width="1"
-              class="mr-1"
+            <button
+              class="flex items-center justify-center px-2 mt-5 mr-1 text-sm font-bold text-orange-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-orange-600 hover:text-zinc-200"
+              id={@stop_button_id}
+              aria-label="Stop code"
             >
-              <rect x="2" y="2" width="18" height="18" />
-            </svg>
-            Stop
-          </button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="12"
+                height="12"
+                viewBox="0 0 22 22"
+                fill="none"
+                stroke="#e4e4e7"
+                stroke-width="1"
+                class="mr-1"
+              >
+                <rect x="2" y="2" width="18" height="18" />
+              </svg>
+              Stop
+            </button>
 
-          <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" class="ml-auto">
-            <path id={@scope_id} style="stroke:url(#bleep-rgrad); stroke-width: 2px; fill: none;" />
-          </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" class="ml-auto">
+              <path id={@scope_id} style="stroke:url(#bleep-rgrad); stroke-width: 2px; fill: none;" />
+            </svg>
+          </div>
         </div>
 
-        <div class="h-full pt-3 pb-3 bg-black border rounded-sm border-zinc-800">
+        <div class="h-full pt-3 pb-3 bg-black border rounded-sm editor-content border-zinc-800">
           <div class="h-full" id={@monaco_id} monaco-code-editor></div>
         </div>
       </div>
@@ -288,13 +290,9 @@ defmodule BleepWeb.MainLive do
             Quantum: <%= @bleep_default_quantum %>
           </li>
           <li>
-            Ping: <%= :erlang.float_to_binary(
-              @bleep_ping,
-              decimals: 0
-            ) %> ms
+            Ping: <%= :erlang.float_to_binary(@bleep_ping, decimals: 0) %> ms
           </li>
         </ul>
-
         <button
           phx-click="stop_all"
           class="flex items-center justify-center px-2 py-1 mt-2 font-bold text-orange-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-orange-600 hover:text-zinc-200"
