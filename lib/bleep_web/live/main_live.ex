@@ -261,7 +261,8 @@ defmodule BleepWeb.MainLive do
             <input type="file" id="bleep-load-input" accept=".lua" class="hidden" />
             <label
               for="bleep-load-input"
-              class="flex items-center justify-center px-2 py-1 font-bold text-orange-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-orange-600 hover:text-zinc-200"
+              class="flex items-center justify-center px-1 py-0.5 text-xs font-bold text-orange-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-orange-600 hover:text-zinc-200
+          sm:px-2 sm:py-1 sm:text-base"
               aria-label="Load Lua File"
             >
               Load
@@ -272,7 +273,8 @@ defmodule BleepWeb.MainLive do
             id="bleep-save-button"
             phx-click="save"
             phx-hook="BleepSaveHook"
-            class="flex items-center justify-center px-2 py-1 font-bold text-orange-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-orange-600 hover:text-zinc-200"
+            class="flex items-center justify-center px-1 py-0.5 text-xs font-bold text-orange-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-orange-600 hover:text-zinc-200
+        sm:px-2 sm:py-1 sm:text-base"
             aria-label="Save Bleep"
           >
             Save
@@ -294,7 +296,8 @@ defmodule BleepWeb.MainLive do
         </div>
         <button
           phx-click="stop_all"
-          class="flex items-center justify-center px-2 py-1 font-bold text-orange-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-orange-600 hover:text-zinc-200"
+          class="flex items-center justify-center px-1 py-0.5 text-xs font-bold text-orange-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-orange-600 hover:text-zinc-200
+      sm:px-2 sm:py-1 sm:text-base"
           aria-label="Stop All"
         >
           Stop All
