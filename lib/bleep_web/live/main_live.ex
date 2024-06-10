@@ -297,19 +297,6 @@ defmodule BleepWeb.MainLive do
           class="flex items-center justify-center px-2 py-1 font-bold text-orange-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-orange-600 hover:text-zinc-200"
           aria-label="Stop All"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 22 22"
-            fill="#000000"
-            stroke="#ea580c"
-            stroke-width="2"
-            class="mr-1"
-            aria-hidden="true"
-          >
-            <rect x="2" y="2" width="18" height="18" />
-          </svg>
           Stop All
         </button>
       </div>
