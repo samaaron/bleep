@@ -280,7 +280,7 @@ defmodule BleepWeb.MainLive do
             Save
           </button>
         </div>
-        <div class="absolute inset-0 flex items-center justify-center">
+        <div class="absolute inset-0 flex items-center justify-center py-2 pt-5">
           <img
             id="bleep-logo"
             src={~p"/images/cnotf.png"}
@@ -322,7 +322,7 @@ defmodule BleepWeb.MainLive do
       </div>
     </div>
 
-    <div class="pt-20">
+    <div class="pt-24 border-t-8">
       <%= for frag <- @frags do %>
         <.render_frag {frag} />
       <% end %>
