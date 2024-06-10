@@ -313,13 +313,25 @@ defmodule BleepWeb.MainLive do
           Stop All
         </button>
       </div>
-      <div class="flex items-center justify-center w-full pb-1 text-zinc-100">
+      <div class="relative flex items-center justify-center w-full pb-1 text-zinc-100">
         <p class="font-mono text-xs text-zinc-200">
           BPM: <%= @bleep_default_bpm %> | Quantum: <%= @bleep_default_quantum %> | Ping: <%= :erlang.float_to_binary(
             @bleep_ping,
             decimals: 0
           ) %> ms
         </p>
+        <div class="absolute w-48 right-5">
+          <input
+            type="range"
+            min="0"
+            max="2"
+            step="0.01"
+            value="1.33"
+            class="slider"
+            phx-update="ignore"
+            id="bleep-main-volume-slider"
+          />
+        </div>
       </div>
     </div>
 

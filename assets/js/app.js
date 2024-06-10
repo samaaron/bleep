@@ -77,5 +77,24 @@ function get_or_create_user_uuid() {
   return user_uuid;
 }
 
-// Start the animation
-bleep_animate_logo();
+function init_main_volume_slider() {
+  const slider = document.getElementById("bleep-main-volume-slider");
+
+  const updateSliderBackground = (value) => {
+    slider.style.setProperty("--slider-value", `${value * 50}%`);
+  };
+
+  slider.addEventListener("input", (event) => {
+    const value = event.target.value;
+    updateSliderBackground(value);
+    window.bleep.set_volume(value);
+    console.log("Volume set to: ", value);
+  });
+
+  updateSliderBackground(slider.value);
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  init_main_volume_slider();
+  bleep_animate_logo();
+});

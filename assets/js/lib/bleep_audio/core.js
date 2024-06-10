@@ -84,6 +84,9 @@ export default class BleepAudioCore {
       this.#main_out.out.connect(this.#audio_context.destination);
     }
   }
+  setVolume(vol) {
+    this.#main_out.setGain(vol, this.#audio_context.currentTime);
+  }
 
   getAudioContext() {
     return this.#audio_context;

@@ -21,6 +21,9 @@ export default class Bleep {
     this.#editor_stopping_scope_loops = {};
   }
 
+  set_volume(vol) {
+    this.#bleep_audio.setVolume(vol);
+  }
   clear_editors() {
     this.#editors = {};
   }
