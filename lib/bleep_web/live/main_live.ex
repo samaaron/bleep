@@ -290,9 +290,6 @@ defmodule BleepWeb.MainLive do
               alt="Bleep Logo"
             />
           </a>
-          <p class="px-2 font-medium leading-6 rounded-full bg-brand/5 text-brand">
-            v0.0.1
-          </p>
         </div>
         <button
           phx-click="stop_all"
