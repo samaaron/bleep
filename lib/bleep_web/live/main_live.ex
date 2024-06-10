@@ -280,7 +280,7 @@ defmodule BleepWeb.MainLive do
             Save
           </button>
         </div>
-        <div class="absolute inset-0 flex items-center justify-center py-2 pt-5">
+        <div class="absolute transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2">
           <img
             id="bleep-logo"
             src={~p"/images/cnotf.png"}
