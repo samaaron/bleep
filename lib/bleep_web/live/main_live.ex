@@ -281,15 +281,13 @@ defmodule BleepWeb.MainLive do
           </button>
         </div>
         <div class="flex items-center justify-center">
-          <a href="/">
-            <img
-              id="bleep-logo"
-              src={~p"/images/cnotf.png"}
-              width="140"
-              phx-update="ignore"
-              alt="Bleep Logo"
-            />
-          </a>
+          <img
+            id="bleep-logo"
+            src={~p"/images/cnotf.png"}
+            width="140"
+            phx-update="ignore"
+            alt="Bleep Logo"
+          />
         </div>
         <button
           phx-click="stop_all"
