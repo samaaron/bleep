@@ -255,7 +255,7 @@ defmodule BleepWeb.MainLive do
   def render(assigns) do
     ~H"""
     <div class="fixed top-0 left-0 z-50 w-full text-sm border-b shadow-lg border-zinc-100 bg-zinc-950 backdrop-blur-md bg-opacity-70 border-b-zinc-600">
-      <div class="flex items-center justify-between w-full gap-2 px-5 py-1">
+      <div class="relative flex items-center justify-between w-full gap-2 px-5 py-1">
         <div class="flex items-center gap-2">
           <div id="file-upload" phx-hook="BleepLoadHook" class="flex items-center">
             <input type="file" id="bleep-load-input" accept=".lua" class="hidden" />
@@ -280,7 +280,7 @@ defmodule BleepWeb.MainLive do
             Save
           </button>
         </div>
-        <div class="flex items-center justify-center">
+        <div class="absolute inset-0 flex items-center justify-center">
           <img
             id="bleep-logo"
             src={~p"/images/cnotf.png"}
@@ -298,7 +298,7 @@ defmodule BleepWeb.MainLive do
           Stop All
         </button>
       </div>
-      <div class="flex flex-col items-center justify-center w-full pb-1 text-zinc-100 md:flex-row">
+      <div class="flex flex-col items-center justify-center w-full pt-5 pb-1 text-zinc-100 md:flex-row">
         <div class="flex flex-col items-center justify-center md:flex-row md:space-x-2">
           <p class="font-mono text-xs text-zinc-200">
             BPM: <%= @bleep_default_bpm %> | Quantum: <%= @bleep_default_quantum %> | Ping: <%= :erlang.float_to_binary(
