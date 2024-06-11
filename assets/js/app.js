@@ -16,7 +16,7 @@ import BleepModal from "./lib/bleep_modal";
 const bleep_user_id = get_or_create_user_uuid();
 
 window.bleep = new Bleep(bleep_user_id);
-window.bleep_modal = new BleepModal(window.bleep)
+window.bleep_modal = new BleepModal(window.bleep);
 window.bleep.join_jam_session(bleep_user_id);
 
 const csrfToken = document

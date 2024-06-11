@@ -10,10 +10,11 @@ export default class Bleep {
   #editor_final_fxs;
   #editor_running_scope_loops;
   #editor_stopping_scope_loops;
-  #editors = {};
+  #editors;
 
   constructor(user_id) {
     this.#user_id = user_id;
+    this.#editors = {};
     this.#bleep_audio = new BleepAudioCore();
     this.#comms = new BleepComms(this.#user_id, this.#bleep_audio);
     this.#editor_final_fxs = {};
