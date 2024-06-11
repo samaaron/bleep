@@ -11,10 +11,10 @@ export default class BleepComms {
   #server_time_info;
   #bleep_core;
 
-  constructor(user_id, bleep_core) {
+  constructor(user_id, bleep_core, prescheduler) {
     this.#user_id = user_id;
     this.#bleep_core = bleep_core;
-    this.#prescheduler = new BleepPrescheduler(bleep_core);
+    this.#prescheduler = prescheduler;
     this.#bleep_socket = new Socket("/bleep-socket", {
       params: { user_id: user_id },
     });

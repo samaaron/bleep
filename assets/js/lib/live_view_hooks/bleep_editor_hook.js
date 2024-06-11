@@ -1,4 +1,4 @@
-import * as monaco from "../../../vendor/monaco-editor/esm/vs/editor/editor.main";
+import BleepEditor from "../bleep_editor";
 
 const BleepEditorHook = {
   mounted() {
@@ -16,48 +16,15 @@ const BleepEditorHook = {
     const container = this.el.querySelector("[monaco-code-editor]");
     const scope = this.el.querySelector(`#${scope_id}`);
 
-    const content =
+    const code =
       sessionStorage.getItem(editor_id) ?? this.el.dataset.content;
 
-    this.monaco_editor = monaco.editor.create(container, {
-      theme: "bleep-dark",
-      value: content,
-      language: language,
-      matchBrackets: true,
-      bracketPairColorization: { enabled: true },
-      scrollbar: { vertical: "hidden" },
-      autoHeight: true,
-      minimap: {
-        enabled: false,
-      },
-      scrollBeyondLastLine: false,
-    });
-
-    this.monaco_editor.getDomNode().addEventListener(
-      "wheel",
-      function (e) {
-        0 - window.scrollBy(0, e.deltaYy);
-      },
-      { passive: false }
-    );
-
-    const autoResizeMonacoEditor = (mon) => {
-      const lineHeight = mon.getOption(monaco.editor.EditorOption.lineHeight);
-      const lineCount = mon.getModel().getLineCount();
-      const contentHeight = lineHeight * lineCount;
-
-      mon.layout({
-        width: container.clientWidth,
-        height: contentHeight,
-      });
-    };
-
+    this.editor = new BleepEditor(bleep, code, language, editor_id, container);
     const evalCode = (strategy) => {
-      window.bleep.idempotent_start_editor_session(editor_id, scope);
-      const code = this.monaco_editor.getValue();
+      this.editor.idempotent_start_editor_session(editor_id, scope);
+      const code = this.editor.getCode();
 
-      if (code.length > (20 * 1024))
-      {
+      if (code.length > 20 * 1024) {
         alert("Error - code is too large to run.");
         return;
       }
@@ -74,8 +41,7 @@ const BleepEditorHook = {
           })
           .slice(0, -(placeholder.length + 1));
 
-        this.monaco_editor.setValue(formatted);
-
+        this.editor.setCode(formatted);
         this.pushEvent(strategy, {
           code: formatted,
           path: path,
@@ -88,10 +54,6 @@ const BleepEditorHook = {
         document.getElementById(result_id).innerHTML = error_msg;
       }
     };
-
-    this.monaco_editor.onDidChangeModelContent(() => {
-      autoResizeMonacoEditor(this.monaco_editor);
-    });
 
     run_button.addEventListener("click", (e) => {
       evalCode("run-code");
@@ -108,13 +70,11 @@ const BleepEditorHook = {
       window.bleep.restart_editor_session(editor_id);
     });
 
-    autoResizeMonacoEditor(this.monaco_editor);
-
-    window.bleep.add_editor(editor_id, this.monaco_editor);
+    window.bleep.add_editor(editor_id, this.editor);
   },
 
   destroyed() {
-    if (this.monaco_editor) this.monaco_editor.dispose();
+    if (this.editor) this.editor.dispose();
   },
 };
 
