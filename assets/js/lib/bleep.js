@@ -1,7 +1,7 @@
 import BleepAudioCore from "./bleep_audio/core";
 import { linearPath, polarPath } from "../../vendor/waveform-path.js";
 import BleepComms from "./bleep_comms";
-import "./bleep_editor";
+import "./bleep_monaco_editor_config";
 
 export default class Bleep {
   #user_id;
