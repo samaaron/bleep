@@ -219,6 +219,14 @@ export default class BleepAudioCore {
     }
   }
 
+  loadSample(sample_name) {
+    this.#buffer_cache.load_buffer(
+      `/bleep_audio/samples/${sample_name}.flac`,
+      this.#audio_context
+    );
+    console.log("loaded sample", sample_name);
+  }
+
   triggerSample(time, sample_name, output_id, opts) {
     console.log("triggering sample", sample_name, output_id, opts);
     const sample_path = `/bleep_audio/samples/${sample_name}.flac`;

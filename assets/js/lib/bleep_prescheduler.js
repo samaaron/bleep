@@ -23,6 +23,7 @@ export default class BleepPrescheduler {
       time_delta_s
     );
     const adjusted_time_s = time_s + run_id_cached_delta_s + this.#latency_s;
+    this.#pre_dispatch(msg);
     this.#insert_event(user_id, tag, run_id, adjusted_time_s, msg);
   }
 
@@ -110,7 +111,7 @@ export default class BleepPrescheduler {
       console.log("Late audio event! ", (sched_delta_s * -1).toFixed(3), msg);
     }
     this.#scheduled_events.shift();
-    this.#bleep_audio.jsonDispatch(adjusted_time_s, msg);
+    this.#timed_dispatch(adjusted_time_s, msg);
     this.#schedule_next_event();
   }
 
@@ -130,5 +131,20 @@ export default class BleepPrescheduler {
     setInterval(() => {
       this.#gc();
     }, 5000);
+  }
+
+  #pre_dispatch(msg) {
+    // Called before a message is scheduled
+    //console.log("Pre dispatch: ", msg);
+
+    if (msg.cmd === "triggerSample" || msg.cmd === "triggerGrains") {
+      this.#bleep_audio.loadSample(msg.sample_name);
+    }
+  }
+
+  #timed_dispatch(adjusted_time_s, msg) {
+    // Called at the scheduled time
+    //console.log("Timed dispatch: ", adjusted_time_s, msg);
+    this.#bleep_audio.jsonDispatch(adjusted_time_s, msg);
   }
 }
