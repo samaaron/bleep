@@ -389,18 +389,17 @@ function CreateLuaTokenStream(text) {
   let tokenBuffer = [];
 
   // Get a character or '' if at eof
-  function look(n) {
-    n = n || 0;
-    if (p <= length) {
-      return text.substr(p + n, 1);
+  function look(ahead = 0) {
+    if (p + ahead < length) {
+      return text.charAt(p + ahead);
     } else {
       return "";
     }
   }
 
   function get() {
-    if (p <= length) {
-      let c = text.substr(p, 1);
+    if (p < length) {
+      let c = text.charAt(p);
       p++;
       return c;
     } else {
@@ -430,11 +429,12 @@ function CreateLuaTokenStream(text) {
   }
 
   // Consume a long data with equals count of `eqcount`
+
   function longdata(eqcount) {
     while (true) {
       let c = get();
       if (c == "") {
-        error("Unfinished long string.");
+        throw new Error("Syntax Error: Unfinished long string or comment.");
       } else if (c == "]") {
         let done = true; // Until contested
         let i;
@@ -467,7 +467,7 @@ function CreateLuaTokenStream(text) {
       return p - startp - 1;
     } else {
       p = startp;
-      return;
+      return null;
     }
   }
 
@@ -524,8 +524,11 @@ function CreateLuaTokenStream(text) {
             let eqcount = getopen();
             if (eqcount != null) {
               // Long comment body
+              // whiteStart = p
+              // console.log("longdata comment start");
               longdata(eqcount);
-              whiteStart = p;
+              // Edit by Sam Aaron - don't consume multiline comment
+              // console.log("longdata comment start end");
             } else {
               // Normal comment body
               while (true) {
