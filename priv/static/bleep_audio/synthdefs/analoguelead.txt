@@ -1,0 +1,241 @@
+@synth analoguelead
+longname : Analogue lead
+type : synth
+author : Guy J Brown
+version : 1.0
+doc : Analogue lead with filter envelope control
+@end
+
+# parameters
+
+@param cutoff
+type : float
+mutable: yes
+step : 0.01
+min : 100
+max : 8000
+default : 3500
+doc : cutoff frequency
+@end
+
+@param resonance
+type : float
+mutable: yes
+step : 0.01
+min : 0
+max : 20
+default : 2
+doc : filter resonance
+@end
+
+@param detune
+type : float
+mutable: yes
+step : 0.01
+min : 0
+max : 200
+default : 5.6
+doc : detuning
+@end
+
+@param lfo1_rate
+type : float
+mutable: yes
+step : 0.01
+min : 0.01
+max : 10
+default : 3.4
+doc : rate of LFO1
+@end
+
+@param lfo1_depth
+type : float
+mutable: yes
+step : 0.01
+min : 0
+max : 10
+default : 0.05
+doc : depth of LFO1
+@end
+
+
+@param lfo2_rate
+type : float
+mutable: yes
+step : 0.01
+min : 0.01
+max : 10
+default : 1.3
+doc : rate of LFO2
+@end
+
+@param lfo2_depth
+type : float
+mutable: yes
+step : 0.01
+min : 0
+max : 10
+default : 0.06
+doc : depth of LFO2
+@end
+
+@param attack
+type: float
+mutable: yes
+step: 0.01
+min: 0
+max: 5
+default: 0.1
+doc: attack time
+@end
+
+
+@param decay
+type: float
+mutable: yes
+step: 0.01
+min: 0
+max: 5
+default: 0.1
+doc: decay time
+@end
+
+
+@param sustain
+type: float
+mutable: yes
+step: 0.01
+min: 0
+max: 1
+default: 1
+doc: sustain level
+@end
+
+@param release
+type: float
+mutable: yes
+step: 0.01
+min: 0
+max: 5
+default: 2
+doc: release time
+@end
+
+@param vcf_attack
+type: float
+mutable: yes
+step: 0.01
+min: 0
+max: 5
+default: 0.48
+doc: attack time
+@end
+
+@param vcf_decay
+type: float
+mutable: yes
+step: 0.01
+min: 0
+max: 10
+default: 5
+doc: decay time
+@end
+
+@param vcf_sustain
+type: float
+mutable: yes
+step: 0.01
+min: 0
+max: 1
+default: 0.05
+doc: sustain level
+@end
+
+@param vcf_release
+type: float
+mutable: yes
+step: 0.01
+min: 0
+max: 5
+default: 2.5
+doc: release time
+@end
+
+@param volume
+type : float
+mutable: yes
+step : 0.01
+min : 0
+max : 1
+default : 0.7
+doc : overall volume
+@end
+
+# modules
+
+SAW-OSC : osc1
+SAW-OSC : osc2
+SIN-OSC : lfo1
+SIN-OSC : lfo2
+LPF : lowpass
+VCA : vca
+VCA : mix
+VCA : gain1
+VCA : gain2
+ADSR : ampenv
+ADSR : filterenv
+
+# patch
+
+osc1.out -> mix.in
+osc2.out -> mix.in
+mix.out -> lowpass.in
+lowpass.out -> vca.in
+vca.out -> audio.in
+
+lfo1.out -> gain1.in
+gain1.out -> osc1.pitchCV
+
+lfo2.out -> gain2.in
+gain2.out -> osc2.pitchCV
+
+ampenv.out -> vca.levelCV
+
+filterenv.out -> lowpass.cutoffCV
+
+# tweak
+
+osc1.pitch = param.pitch
+osc2.pitch = param.pitch
+osc1.detune = param.detune
+osc2.detune = -1*param.detune
+lowpass.cutoff = param.cutoff
+lowpass.resonance = param.resonance
+
+lfo1.pitch = param.lfo1_rate
+lfo2.pitch = param.lfo2_rate
+
+gain1.level = param.lfo1_depth
+gain2.level = param.lfo2_depth
+
+mix.level = 0.3
+
+# amplitude envelope
+
+ampenv.level = param.level*param.volume
+ampenv.attack = param.attack
+ampenv.decay = param.decay
+ampenv.sustain = param.sustain*param.level*param.volume
+ampenv.release = param.release
+
+filterenv.level = param.cutoff
+filterenv.attack = param.vcf_attack
+filterenv.decay = param.vcf_decay
+filterenv.sustain = param.cutoff*param.vcf_sustain
+filterenv.release = param.vcf_release
+
+# filter envelope
+
+
+
+# end

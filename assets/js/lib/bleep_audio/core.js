@@ -31,6 +31,7 @@ export default class BleepAudioCore {
     this.#monitor = new Monitor();
 
     this.#default_synthdef_paths = [
+      "/bleep_audio/synthdefs/analoguelead.txt",
       "/bleep_audio/synthdefs/bansuri.txt",
       "/bleep_audio/synthdefs/bishi-bass.txt",
       "/bleep_audio/synthdefs/bishi-wobble.txt",
@@ -49,6 +50,7 @@ export default class BleepAudioCore {
       "/bleep_audio/synthdefs/funkybass.txt",
       "/bleep_audio/synthdefs/hammond.txt",
       "/bleep_audio/synthdefs/highnoise.txt",
+      "/bleep_audio/synthdefs/junopad.txt",
       "/bleep_audio/synthdefs/ninth.txt",
       "/bleep_audio/synthdefs/noise.txt",
       "/bleep_audio/synthdefs/noisehat.txt",
@@ -63,6 +65,7 @@ export default class BleepAudioCore {
       "/bleep_audio/synthdefs/submarine.txt",
       "/bleep_audio/synthdefs/supersaw.txt",
       "/bleep_audio/synthdefs/sweepbass.txt",
+      "/bleep_audio/synthdefs/synthstrings.txt",
       "/bleep_audio/synthdefs/tanpura.txt",
       "/bleep_audio/synthdefs/thickbass.txt",
       "/bleep_audio/synthdefs/voxhumana.txt",
