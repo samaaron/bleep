@@ -1,6 +1,5 @@
-import BleepAudioCore from "./bleep_audio/core";
+import BleepAudioCore from "./bleep_audio_core";
 import BleepPrescheduler from "./bleep_prescheduler";
-import { linearPath, polarPath } from "../../vendor/waveform-path.js";
 import BleepComms from "./bleep_comms";
 import "./bleep_monaco_editor_config";
 
@@ -63,7 +62,11 @@ export default class Bleep {
     return this.#bleep_audio.idempotentStartFinalMix(final_mix_fx_id);
   }
 
-  restartFinalMix(final_mix_fx_id) {
-    this.#bleep_audio.restartFinalMix(final_mix_fx_id);
+  stopFinalMix(final_mix_fx_id) {
+    this.#bleep_audio.stopFinalMix(final_mix_fx_id);
+  }
+
+  createNodeAnalyser(audio_node) {
+    return this.#bleep_audio.createNodeAnalyser(audio_node);
   }
 }

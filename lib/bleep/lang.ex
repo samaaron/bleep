@@ -15,11 +15,11 @@ defmodule Bleep.Lang do
     global_time_s + start_time_s
   end
 
-  def __bleep_ex_start_fx(user_id, editor_id, run_id, lua, [uuid, fx_id]) do
-    __bleep_ex_start_fx(user_id, editor_id, run_id, lua, [uuid, fx_id, []])
+  def __bleep_ex_start_fx(user_id, editor_id, run_id, lua, [uuid, fx_name]) do
+    __bleep_ex_start_fx(user_id, editor_id, run_id, lua, [uuid, fx_name, []])
   end
 
-  def __bleep_ex_start_fx(user_id, editor_id, run_id, lua, [uuid, fx_id, opts_table]) do
+  def __bleep_ex_start_fx(user_id, editor_id, run_id, lua, [uuid, fx_name, opts_table]) do
     output_id = fetch_current_output_id(lua)
     time_s = lua_time(lua)
     opts = Bleep.VM.lua_table_to_map(opts_table)
@@ -30,7 +30,7 @@ defmodule Bleep.Lang do
       run_id: run_id,
       server_time_s: time_s,
       cmd: "triggerFX",
-      fx_id: fx_id,
+      fx_name: fx_name,
       uuid: uuid,
       output_id: output_id,
       opts: opts

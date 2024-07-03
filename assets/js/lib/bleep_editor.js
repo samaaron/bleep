@@ -1,24 +1,31 @@
 import { linearPath, polarPath } from "../../vendor/waveform-path.js";
 import * as monaco from "../../vendor/monaco-editor/esm/vs/editor/editor.main";
+
 export default class BleepEditor {
+  #bleep;
   #id;
   #monaco_editor;
   #log;
-  #final_fxs;
-  #running_scope_loops;
-  #stopping_scope_loops;
-  #bleep;
+  #running_scope_loop;
+  #stopping_scope_loop;
+  #scope_node;
+  #scope_analyser;
+  #final_mix_fx;
+  #final_mix_fx_id;
 
-  constructor(bleep, code, language, id, monaco_container) {
+  constructor(bleep, code, language, id, monaco_container, scope_node) {
     this.#bleep = bleep;
-    this.#final_fxs = {};
-    this.#running_scope_loops = {};
-    this.#stopping_scope_loops = {};
+    this.#id = id;
     this.#monaco_editor = this.#init_monaco_editor(
       monaco_container,
       language,
       code
     );
+    this.#running_scope_loop = null;
+    this.#scope_node = scope_node;
+    this.#scope_analyser = null;
+    this.#final_mix_fx = null;
+    this.#final_mix_fx_id = `${id}-final-mix-fx`;
   }
 
   getCode() {
@@ -29,30 +36,30 @@ export default class BleepEditor {
     this.#monaco_editor.setValue(code);
   }
 
-  restart_editor_session(editor_id) {
-    this.#bleep.restartFinalMix(`${editor_id}-final-mix-fx`);
-    this.#stopping_scope_loops[editor_id] = true;
+  stop_editor_session() {
+    this.#bleep.stopFinalMix(this.#final_mix_fx_id);
+    this.#stopping_scope_loop = true;
     setTimeout(() => {
-      if (this.#stopping_scope_loops[editor_id]) {
-        this.#running_scope_loops[editor_id] = false;
+      if (this.#stopping_scope_loop) {
+        this.#running_scope_loop = false;
       }
     }, 1000);
   }
 
-  idempotent_start_editor_session(editor_id, scope_node) {
-    this.#bleep.idempotentInitAudio();
-    const final_mix_fx_id = `${editor_id}-final-mix-fx`;
-    const final_fx = this.#bleep.idempotentStartFinalMix(final_mix_fx_id);
-    if (final_fx !== null) {
-      this.#final_fxs[editor_id] = final_fx; // Store the latest final_fx
-      if (!this.#running_scope_loops[editor_id]) {
-        this.start_scope(scope_node, editor_id);
-      }
+  async idempotent_start_editor_session() {
+    await this.#bleep.idempotentInitAudio();
+    const final_mix_fx = this.#bleep.idempotentStartFinalMix(
+      this.#final_mix_fx_id
+    );
+    if (final_mix_fx !== null) {
+      this.#scope_analyser = this.#bleep.createNodeAnalyser(final_mix_fx);
+      this.#final_mix_fx = final_mix_fx;
+      this.start_scope();
     }
   }
 
-  start_scope(scope_node, editor_id) {
-    scope_node.style.strokeWidth = "2px";
+  start_scope() {
+    this.#scope_node.style.strokeWidth = "2px";
 
     const options = {
       type: "bars",
@@ -81,20 +88,21 @@ export default class BleepEditor {
       ],
     };
     const update_waveform_path = () => {
-      if (!this.#running_scope_loops[editor_id]) return; // Stop the loop if it's been cleared
-      const final_fx = this.#final_fxs[editor_id]; // Get the latest final_fx
-      const data = final_fx.getScopeData();
+      if (!this.#running_scope_loop) return; // Stop the loop if it's been cleared
+      const data = this.#scope_analyser.getScopeData();
       const path = polarPath(data, options);
-      scope_node.setAttribute("d", path);
+      this.#scope_node.setAttribute("d", path);
       requestAnimationFrame(update_waveform_path);
     };
 
-    this.#running_scope_loops[editor_id] = true;
-    this.#stopping_scope_loops[editor_id] = false;
+    this.#running_scope_loop = true;
+    this.#stopping_scope_loop = false;
     update_waveform_path();
   }
 
   dispose() {
+    this.stop_editor_session();
+    this.#running_scope_loop = false;
     this.#monaco_editor.dispose();
   }
 

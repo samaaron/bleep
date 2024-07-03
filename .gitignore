@@ -27,6 +27,7 @@ bleep-*.tar
 
 # Ignore assets that are produced by build tools.
 /priv/static/assets/
+/priv/static/bleep-synth-assets/
 /priv/static/**/*-[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f].*
 /priv/static/robots.txt.gz
 /priv/static/**/*.gz

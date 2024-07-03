@@ -140,6 +140,10 @@ export default class BleepPrescheduler {
     if (msg.cmd === "triggerSample" || msg.cmd === "triggerGrains") {
       this.#bleep_audio.loadSample(msg.sample_name);
     }
+
+    if (msg.cmd === "triggerFX") {
+      this.#bleep_audio.preloadFX(msg.fx_name);
+    }
   }
 
   #timed_dispatch(adjusted_time_s, msg) {
