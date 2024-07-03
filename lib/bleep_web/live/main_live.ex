@@ -8,6 +8,10 @@ defmodule BleepWeb.MainLive do
   def mount(params, session, socket) do
     user_id = get_connect_params(socket)["bleep_user_id"]
 
+    socket =
+      socket
+      |> assign(:page_title, "Bleep")
+
     if connected?(socket) do
       {:ok, _pid} = Registry.register(Registry.Bleep, user_id, self())
     end

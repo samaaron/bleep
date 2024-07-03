@@ -30,6 +30,7 @@ defmodule BleepWeb.Router do
     live("/", MainLive)
     live("/artist/:artist", MainLive, :artist)
     live("/user/", MainLive, :user)
+    live("/designer", SynthDesignerLive)
   end
 
   # Other scopes may use custom stacks.

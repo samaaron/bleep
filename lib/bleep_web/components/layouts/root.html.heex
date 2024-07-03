@@ -7,10 +7,21 @@
     <.live_title>
       <%= assigns[:page_title] || "Bleep" %>
     </.live_title>
-    <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
-    <link phx-track-static rel="stylesheet" href={~p"/assets/style.css"} />
-    <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
-    </script>
+
+    <%= if assigns[:synth_builder] do %>
+      <link phx-track-static rel="stylesheet" href={~p"/synth-designer-style.css"} />
+      <script
+        defer
+        phx-track-static
+        type="text/javascript"
+        src={~p"/assets/synth_designer/synth_designer_live.js"}
+      />
+      <script defer phx-track-static type="module" src={~p"/assets/synth_designer/app.js"} />
+    <% else %>
+      <link phx-track-static rel="stylesheet" href={~p"/assets/style.css"} />
+      <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
+      <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"} />
+    <% end %>
   </head>
   <body class="antialiased bg-zinc-900">
     <%= @inner_content %>

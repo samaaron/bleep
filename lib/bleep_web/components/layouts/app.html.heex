@@ -14,35 +14,36 @@
     <.flash_group flash={@flash} />
     <%= @inner_content %>
   </div>
+  <%= if ! assigns[:synth_builder] do %>
+    <div
+      phx-update="ignore"
+      id="bleep-init-modal"
+      class="fixed top-0 left-0 z-50 hidden w-full h-full backdrop-grayscale backdrop-brightness-50 backdrop-contrast-50 backdrop-blur-sm"
+    >
+      <div class="flex flex-col justify-center p-4 text-left text-white backgrop-blur">
+        <div class="bg-[url('/images/bleep-splash.jpg')]  bg-cover text-center pt-5 bg-opacity-10 bg-">
+          <div class="p-1 text-center]">
+            <p class="text-2xl font-bold">Welcome to C &ne; F</p>
+            <p>Code your future....</p>
 
-  <div
-    phx-update="ignore"
-    id="bleep-init-modal"
-    class="fixed top-0 left-0 z-50 hidden w-full h-full backdrop-grayscale backdrop-brightness-50 backdrop-contrast-50 backdrop-blur-sm"
-  >
-    <div class="flex flex-col justify-center p-4 text-left text-white backgrop-blur">
-      <div class="bg-[url('/images/bleep-splash.jpg')]  bg-cover text-center pt-5 bg-opacity-10 bg-">
-        <div class="p-1 text-center]">
-          <p class="text-2xl font-bold">Welcome to C &ne; F</p>
-          <p>Code your future....</p>
-
-          <button
-            id="bleep-init-button"
-            class="p-2 px-10 m-3 text-orange-800 rounded-sm bg-zinc-100 modal-close hover:text-white hover:bg-orange-900 animate-pulse"
-          >
-            Start
-          </button>
-        </div>
-        <div class="flex flex-row justify-center bg-orange-800 bg-opacity-30">
-          <div>
-            <p class="p-5 text-xs">Created by <br /> Sam Aaron &#38; Guy J Brown</p>
+            <button
+              id="bleep-init-button"
+              class="p-2 px-10 m-3 text-orange-800 rounded-sm bg-zinc-100 modal-close hover:text-white hover:bg-orange-900 animate-pulse"
+            >
+              Start
+            </button>
           </div>
-          <div class="flex-grow"></div>
-          <div class="flex justify-right">
-            <img src={~p"/images/UOSLogo_Primary_White_RGB.svg"} width="150" class="p-5" />
+          <div class="flex flex-row justify-center bg-orange-800 bg-opacity-30">
+            <div>
+              <p class="p-5 text-xs">Created by <br /> Sam Aaron &#38; Guy J Brown</p>
+            </div>
+            <div class="flex-grow"></div>
+            <div class="flex justify-right">
+              <img src={~p"/images/UOSLogo_Primary_White_RGB.svg"} width="150" class="p-5" />
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
+  <% end %>
 </main>

@@ -68,12 +68,16 @@ defmodule Bleep.MixProject do
         "copy_bleep_synth_assets",
         "tailwind default",
         "esbuild default",
-        "esbuild monaco_editor"
+        "esbuild monaco_editor",
+        "esbuild synth_designer_live",
+        "esbuild synth_designer"
       ],
       "assets.deploy": [
         "tailwind default --minify",
         "esbuild default --minify",
         "esbuild monaco_editor --minify",
+        "esbuild synth_designer_live --minify",
+        "esbuild synth_designer --minify",
         "phx.digest"
       ]
     ]

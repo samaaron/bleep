@@ -42,6 +42,23 @@ config :esbuild,
       --outdir=../priv/static/assets/monaco-editor
       ),
     cd: Path.expand("../assets", __DIR__)
+  ],
+  synth_designer_live: [
+    args: ~w(
+      js/synth_designer_live.js
+      --bundle
+      --target=es2017
+      --outdir=../priv/static/assets/synth_designer/),
+    cd: Path.expand("../assets", __DIR__),
+    env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
+  ],
+  synth_designer: [
+    args: ~w(
+      vendor/bleep-synth/app.js
+      --bundle
+      --target=es2017
+      --outdir=../priv/static/assets/synth_designer/),
+    cd: Path.expand("../assets", __DIR__)
   ]
 
 # Configure tailwind (the version is required)
