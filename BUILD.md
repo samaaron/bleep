@@ -23,7 +23,7 @@ https://github.com/samaaron/bleep
 
 Either download the latest zip or if you want to be able to easily keep up to date with future development clone via git (into a suitable directory on your system):
 
-git clone https://github.com/samaaron/bleep
+git clone --recurse-submodules https://github.com/samaaron/bleep
 
 ## Build the app
 
