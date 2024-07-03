@@ -64,7 +64,12 @@ defmodule Bleep.MixProject do
     [
       setup: ["deps.get", "assets.setup", "assets.build"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
-      "assets.build": ["tailwind default", "esbuild default", "esbuild monaco_editor"],
+      "assets.build": [
+        "copy_bleep_synth_assets",
+        "tailwind default",
+        "esbuild default",
+        "esbuild monaco_editor"
+      ],
       "assets.deploy": [
         "tailwind default --minify",
         "esbuild default --minify",

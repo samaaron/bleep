@@ -9,17 +9,15 @@ defmodule Mix.Tasks.CopyBleepSynthAssets do
     File.rm_rf!(destination)
 
     copy_files(source, destination)
-
-    Mix.shell().info("Assets copied from #{source} to #{destination}")
   end
 
   defp copy_files(source, destination) do
     case File.cp_r(source, destination) do
       {:ok, _} ->
-        IO.puts("Files copied successfully from #{source} to #{destination}")
+        Mix.shell().info("Assets copied from #{source} to #{destination}")
 
       {:error, reason, file} ->
-        IO.puts("Failed to copy #{file}: #{reason}")
+        Mix.shell().error("Failed to copy #{file}: #{reason}")
     end
   end
 end
