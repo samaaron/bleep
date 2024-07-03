@@ -1,0 +1,3 @@
+[submodule "assets/vendor/bleep-synth"]
+	path = assets/vendor/bleep-synth
+	url = https://github.com/samaaron/synth-designer.git
