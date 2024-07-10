@@ -3,47 +3,26 @@ bpm = 120
 content = {
 
 markdown [[
-Blank template
-]],
-
-editor [[
-use_bpm(120)
-use_synth("rolandtb")
-play(C4)
-]],
-
-editor [[
-    grains("guit_em9")
+## Latest changes 10/7/2024
 ]],
 
 markdown [[
-## Pan control
-Sampler now has a pan control, with lazy webaudio graph creation - we only create a StereoPannerNode
-if a pan value is given.
+* New audio engine integrated into bleep
+* The play command now takes a single note or a list of notes to play together (in other words, a chord)
+* Granular synthesis added - see manual page [here](https://bleep.sheffield.ac.uk/artist/grains)
 ]],
 
 editor [[
-for pan_value = - 1, 1, 0.2 do
-  sample("guit_em9", {level=0.7,pan=pan_value})
-  sleep(4)
+-- demo of the new play command
+use_synth("elpiano")
+play(C4,{level=0.3,duration=1}) -- single note
+sleep(4)
+play({C4,E4,G4},{level=0.3,duration=1}) -- chord
+sleep(4)
+for i = 0, 8 do
+  play({C4-i,E4-i,G4-i},{level=0.3,duration=0.5}) -- notes can be variables too
+  sleep(0.5)
 end
-]],
-
-markdown [[
-## Cutoff control
-Sampler now has a cutoff control, with lazy webaudio graph creation - we only create a BiquadFilterNode
-if a cutoff value is given.
-]],
-
-editor [[
-  use_bpm(120)
-  for cutoff = 500, 5500, 1000 do
-    sample("loop_amen", {level=0.7,cutoff=cutoff})
-    sleep(3.51)
-  end
-]],
-
-editor [[
 ]],
 
 editor [[

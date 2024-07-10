@@ -4,7 +4,13 @@ end
 
 function play(note, opts_table)
   local opts_table = opts_table or {}
-  __bleep_ex_play(note, opts_table)
+  if type(note) == "table" then
+    for _, n in ipairs(note) do
+      __bleep_ex_play(n, opts_table)
+    end
+  else
+    __bleep_ex_play(note, opts_table)
+  end
 end
 
 function sample(samp, opts_table)
