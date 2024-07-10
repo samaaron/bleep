@@ -26,6 +26,19 @@ end
 ]],
 
 editor [[
+-- another demo of the play command
+notes = scale("harmonic_minor", D3, 2)
+set_seed(142)
+use_synth("voxhumana")
+push_fx("stereo_delay", {wetLevel=0.1,leftDelay=0.8,rightDelay=0.6,feedback=0.4})
+push_fx("reverb_massive", {wetLevel=0.4,dryLevel=1})
+for i = 1, 8 do
+  p1 = notes[randi(1, 16)]
+  p2 = notes[randi(1, 16)]
+  p3 = notes[randi(1, 16)]
+  play({p1,p2,p3}, {level=0.3,duration=1}) -- random triad
+  sleep(8)
+end
 ]],
 
 editor [[
