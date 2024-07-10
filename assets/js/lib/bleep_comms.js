@@ -51,7 +51,9 @@ export default class BleepComms {
 
       channel.on("stop-all-runs", (_payload) => {
         this.#prescheduler.cancel_all_tags();
+        this.#prescheduler.reset_time_deltas();
         this.#bleep_core.restartMainOut();
+
       });
 
       channel

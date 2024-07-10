@@ -39,6 +39,10 @@ export default class BleepPrescheduler {
     this.#schedule_next_event();
   }
 
+  reset_time_deltas() {
+    this.#time_deltas = new Map();
+  }
+
   #get_or_set_time_delta(run_id, delta) {
     const res = this.#time_deltas.get(run_id);
     const now = Date.now() / 1000;
