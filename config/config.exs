@@ -55,6 +55,7 @@ config :esbuild,
   synth_designer: [
     args: ~w(
       vendor/bleep-synth/app.js
+      vendor/bleep-synth/sheet.css
       --bundle
       --target=es2017
       --outdir=../priv/static/assets/synth_designer/),
