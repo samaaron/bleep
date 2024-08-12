@@ -3,6 +3,26 @@ bpm = 120
 content = {
 
 markdown [[
+## Three band EQ
+We've now provided a three-band EQ that mirrors the functionality of the corresponding device in Ableton. 
+* ``lowFreq`` - frequency of low cutoff in Hz (defaults to 400 Hz)
+* ``highFreq`` - frequency of high cutoff in Hz (defaults to 4000 Hz)
+* ``lowGain`` - gain of the low band (below ``lowFreq``) in dB from -30 to +30 (defaults to 0)
+* ``midGain`` - gain of the mid band (between ``lowFreq`` and ``highFreq``) in dB from -30 to +30 (defaults to 0)
+* ``highGain`` - gain of the high band (above ``highFreq``) in dB from -30 to +30 (defaults to 0)
+]],
+
+editor [[
+push_fx("eqthree",{
+   lowFreq=500,
+   highFreq=2000,
+   lowGain=-6,
+   midGain=0,
+   highGain=0})
+sample("loop_amen")
+]],
+
+markdown [[
 ## Analogue lead
 [Click here for documentation](https://github.com/guyjbrown/bleepmanual/wiki/analoguelead)
 ]],
