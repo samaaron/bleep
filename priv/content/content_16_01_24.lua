@@ -70,7 +70,7 @@ sleep(1)
 -- I am sorry for the 1980s reference but it must be done
 
 use_synth("saveaprayer")
-push_fx("roland_chorus", {wetLevel=1,dryLevel=0})
+push_fx("chorus", {wetLevel=1,dryLevel=0})
 push_fx("mono_delay", {wetLevel=0.3,delay=0.375,pan=0.5,feedback=0.1})
 push_fx("reverb", {wetLevel=0.2})
 

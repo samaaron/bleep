@@ -3,6 +3,11 @@ bpm = 120
 content = {
 
 markdown [[
+## Chorus name updated
+Note that the chorus is now just called "chorus" and not "roland_chorus" - we decided to remove the trade name.
+]],
+
+markdown [[
 ## Three band EQ
 We've now provided a three-band EQ that mirrors the functionality of the corresponding device in Ableton. 
 * ``lowFreq`` - frequency of low cutoff in Hz (defaults to 400 Hz)
@@ -32,7 +37,7 @@ sample("analog_lead_d4")
 sleep(5)
 sample("analog_lead_d2")
 sleep(6)
-push_fx("roland_chorus", {wetLevel=1,dryLevel=0})
+push_fx("chorus", {wetLevel=1,dryLevel=0})
 push_fx("reverb_large", {wetLevel=0.4})
 use_synth("analoguelead")
 play(D4, {duration=2, level=0.7})
@@ -63,7 +68,7 @@ markdown [[
 editor [[
 sample("juno_pad_d4")
 sleep(12)
-push_fx("roland_chorus", {wetLevel=1,dryLevel=0})
+push_fx("chorus", {wetLevel=1,dryLevel=0})
 push_fx("reverb_large", {wetLevel=0.4})
 use_synth("junopad")
 play(D4, {duration=2.5, level=0.5})
@@ -77,7 +82,7 @@ frequency of the filter on the Juno pad to 800Hz, you can use the following code
 ]],
 
 editor [[
-push_fx("roland_chorus", {wetLevel=1,dryLevel=0})
+push_fx("chorus", {wetLevel=1,dryLevel=0})
 push_fx("reverb_large", {wetLevel=0.4})
 use_synth("junopad")
 play(D4, {duration=2.5, level=0.5, cutoff=800})
