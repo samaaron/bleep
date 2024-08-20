@@ -456,12 +456,12 @@ defmodule BleepWeb.MainLive do
       <!-- Toggle Button Always Visible at pt-28 -->
       <button
         id="toggle-controls"
-        class="box-border px-4 py-2 mb-2 text-white bg-orange-600 rounded cursor-pointer"
+        class="box-border px-4 py-2 mb-2 text-xs text-left text-white bg-orange-600 rounded cursor-pointer translate-x-2/3"
         phx-click={
           JS.toggle(
             to: "#menuContent",
-            in: {"ease-out duration-150", "translate-x-full", "translate-x-0"},
-            out: {"ease-in duration-150", "translate-x-0", "translate-x-full"}
+            in: {"ease-in duration-200", "translate-x-full", "translate-x-0"},
+            out: {"ease-in duration-200", "translate-x-0", "translate-x-full"}
           )
           |> JS.toggle_class("translate-x-2/3 text-left text-xs", to: "#toggle-controls")
         }
@@ -469,7 +469,10 @@ defmodule BleepWeb.MainLive do
         Launcher
       </button>
       <!-- Scrollable Controls with dynamic content -->
-      <div id="menuContent" class="box-border flex flex-col w-full overflow-y-auto">
+      <div
+        id="menuContent"
+        class="box-border flex flex-col hidden w-full overflow-y-auto translate-x-full"
+      >
         <%= for frag <- @frags do %>
           <.render_frag_control {frag} />
         <% end %>
