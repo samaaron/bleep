@@ -73,6 +73,7 @@ defmodule Bleep.MixProject do
         "esbuild synth_designer"
       ],
       "assets.deploy": [
+        "copy_bleep_synth_assets",
         "tailwind default --minify",
         "esbuild default --minify",
         "esbuild monaco_editor --minify",
