@@ -476,7 +476,7 @@ defmodule BleepWeb.MainLive do
       </div>
     </div>
 
-    <div class="flex flex-col main-content md:flex-row">
+    <div class="flex flex-col pt-20 main-content md:flex-row">
       <div class="flex-1">
         <%= for frag <- @frags do %>
           <.render_frag {frag} />
