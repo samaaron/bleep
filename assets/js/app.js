@@ -24,7 +24,11 @@ const csrfToken = document
   .getAttribute("content");
 
 let liveSocket = new LiveSocket("/live", Socket, {
-  hooks: { BleepEditorHook, BleepSaveHook, BleepLoadHook },
+  hooks: {
+    BleepEditorHook,
+    BleepSaveHook,
+    BleepLoadHook
+  },
   params: { _csrf_token: csrfToken, bleep_user_id: bleep_user_id },
 });
 

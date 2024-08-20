@@ -39,18 +39,37 @@ function jsonToLua(json) {
   return lua;
 }
 
+function isGenericEditorName(frag, editor_count) {
+  return frag.editor_name == `${editor_count}.`
+}
+
 function jsonFragsToLua(frags) {
+  let editor_count = 0;
   let lua = "";
   frags.forEach((frag) => {
+
     lua += `\n`;
     if (frag.kind == "editor") {
-      const editor_content = window.bleep.editor_content(frag.frag_id);
-      if (isBlank(editor_content)) {
-        lua += `editor [[ ]],\n\n`;
+      editor_count += 1;
+      if (isGenericEditorName(frag, editor_count)) {
+        lua += `editor `;
       } else {
-        lua += `editor [[\n`;
+        lua += `editor("${frag.editor_name}", `;
+      }
+
+      const editor_content = window.bleep.editor_content(frag.frag_id);
+
+      if (isBlank(editor_content)) {
+        lua += `[[ ]]),\n\n`;
+      } else {
+        lua += `[[\n`;
         lua += `${editor_content}`;
-        lua += `]],\n\n`;
+        if (isGenericEditorName(frag, editor_count)) {
+          lua += `]],\n\n`;
+        } else {
+          lua += `]]),\n\n`;
+        }
+
       }
     } else if (frag.kind == "markdown") {
       lua += `markdown [[\n`;

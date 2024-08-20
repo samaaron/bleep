@@ -96,6 +96,22 @@ defmodule BleepWeb.MainLive do
     |> assign(:bleep_default_quantum, data[:default_quantum])
   end
 
+  def update_editor_name(socket, editor_id, name) do
+    frags = socket.assigns.frags
+
+    new_frags =
+      Enum.map(frags, fn frag ->
+        if frag[:frag_id] == editor_id do
+          Map.put(frag, :editor_name, name)
+        else
+          frag
+        end
+      end)
+
+    socket
+    |> assign(:frags, new_frags)
+  end
+
   def load_user_content(socket, content) do
     data = Bleep.Content.data_from_lua(content)
     :ets.insert(:lua_user_content_cache, {socket.assigns.user_id, data})
@@ -149,6 +165,7 @@ defmodule BleepWeb.MainLive do
 
   def render_frag(%{kind: "editor"} = assigns) do
     frag_id = assigns[:frag_id]
+    assigns = assign(assigns, :editor_id, "editor-#{frag_id}")
     assigns = assign(assigns, :run_button_id, "run-button-#{frag_id}")
     assigns = assign(assigns, :cue_button_id, "cue-button-#{frag_id}")
     assigns = assign(assigns, :stop_button_id, "stop-button-#{frag_id}")
@@ -156,9 +173,11 @@ defmodule BleepWeb.MainLive do
     assigns = assign(assigns, :monaco_id, "monaco-#{frag_id}")
     assigns = assign(assigns, :result_id, "result-#{frag_id}")
     assigns = assign(assigns, :scope_id, "scope-#{frag_id}")
+    assigns = assign(assigns, :editor_name_input_id, "editor-name-input-#{frag_id}")
 
     ~H"""
-    <div class="h-full pt-0 p-7">
+    <div class="pt-0 p-7">
+      <div class="pb-28" id={@editor_id}></div>
       <div
         id={@frag_id}
         class="relative editor-container"
@@ -173,12 +192,12 @@ defmodule BleepWeb.MainLive do
         data-cue-button-id={@cue_button_id}
         data-stop-button-id={@stop_button_id}
         data-scope-id={@scope_id}
+        data-editor-name={@editor_name}
       >
-        <div class="sticky z-10 p-0 top-20 bg-zinc-950">
-          <div class="flex pt-0 bg-zinc-900">
+        <div class="z-10 p-0 top-20 bg-zinc-950">
+          <div class="z-20 flex pt-0 bg-zinc-900">
             <button
-              class="flex items-center justify-center px-2 mt-5 mb-0 mr-1 text-sm font-bold text-blue-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-blue-600 hover:text-zinc-200"
-              id={@run_button_id}
+              class={"#{@run_button_id} flex items-center justify-center px-2 mt-5 mb-0 mr-1 text-sm font-bold text-blue-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-blue-600 hover:text-zinc-200"}
               aria-label="Run code"
             >
               <svg
@@ -197,8 +216,7 @@ defmodule BleepWeb.MainLive do
             </button>
 
             <button
-              class="flex items-center justify-center px-2 mt-5 mr-1 text-sm font-bold text-blue-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-blue-600 hover:text-zinc-200"
-              id={@cue_button_id}
+              class={"#{@cue_button_id} flex items-center justify-center px-2 mt-5 mr-1 text-sm font-bold text-blue-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-blue-600 hover:text-zinc-200"}
               aria-label="Cue code"
             >
               <svg
@@ -218,8 +236,7 @@ defmodule BleepWeb.MainLive do
             </button>
 
             <button
-              class="flex items-center justify-center px-2 mt-5 mr-1 text-sm font-bold text-orange-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-orange-600 hover:text-zinc-200"
-              id={@stop_button_id}
+              class={"#{@stop_button_id} flex items-center justify-center px-2 mt-5 mr-1 text-sm font-bold text-orange-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-orange-600 hover:text-zinc-200"}
               aria-label="Stop code"
             >
               <svg
@@ -236,9 +253,24 @@ defmodule BleepWeb.MainLive do
               </svg>
               Stop
             </button>
+            <div class="ml-auto">
+              <input
+                id={@editor_name_input_id}
+                type="text"
+                class="mt-5 text-xs italic text-gray-400 border-zinc-900 hover:rounded-sm hover:border hover:border-zinc-600 bg-zinc-900 focus:border focus:border-blue-600 focus:text-white focus:not-italic focus:outline-none"
+                value={@editor_name}
+                phx-blur="save_editor_name"
+                phx-value-frag-id={@frag_id}
+                phx-keyup="save_editor_name"
+                phx-target={"##{@editor_name_input_id}"}
+              />
+            </div>
 
-            <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" class="ml-auto">
-              <path id={@scope_id} style="stroke:url(#bleep-rgrad); stroke-width: 2px; fill: none;" />
+            <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" class="">
+              <path
+                class={@scope_id}
+                style="stroke:url(#bleep-rgrad); stroke-width: 2px; fill: none;"
+              />
             </svg>
           </div>
         </div>
@@ -255,10 +287,93 @@ defmodule BleepWeb.MainLive do
     """
   end
 
+  def render_frag_control(%{kind: "editor"} = assigns) do
+    frag_id = assigns[:frag_id]
+    assigns = assign(assigns, :editor_id, "editor-#{frag_id}")
+    assigns = assign(assigns, :run_button_id, "run-button-#{frag_id}")
+    assigns = assign(assigns, :cue_button_id, "cue-button-#{frag_id}")
+    assigns = assign(assigns, :stop_button_id, "stop-button-#{frag_id}")
+    assigns = assign(assigns, :monaco_path, "#{frag_id}.lua")
+    assigns = assign(assigns, :monaco_id, "monaco-#{frag_id}")
+    assigns = assign(assigns, :result_id, "result-#{frag_id}")
+    assigns = assign(assigns, :scope_id, "scope-#{frag_id}")
+
+    ~H"""
+    <div class="top-0 flex flex-col p-1 border border-zinc-700 hover:bg-zinc-800">
+      <div class="flex ">
+        <a href={"##{@editor_id}"}>
+          <div class="z-50 flex-1 w-20 pt-2 pl-1 overflow-x-auto text-xs text-white">
+            <%= @editor_name %>
+          </div>
+        </a>
+        <div class={"#{@run_button_id} flex items-center justify-center w-8 p-1"}>
+          <svg
+            class="stroke-slate-400 hover:stroke-blue-600"
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#e4e4e7"
+            stroke-width="1"
+          >
+            <path d="M2 2 L18 10 L2 18 Z" />
+          </svg>
+        </div>
+        <div class={"#{@cue_button_id} flex items-center justify-center w-8 p-1"}>
+          <svg
+            class="stroke-slate-400 hover:stroke-blue-600"
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#e4e4e7"
+            stroke-width="1"
+          >
+            <path d="M2 2 L10 10 L2 18 Z" />
+            <path d="M12 2 L20 10 L12 18 Z" />
+          </svg>
+        </div>
+        <div class={"#{@stop_button_id} flex items-center justify-center w-8 p-1"}>
+          <svg
+            class="hover:stroke-orange-600 stroke-slate-400"
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#e4e4e7"
+            stroke-width="1"
+          >
+            <rect x="1" y="1" width="18" height="18" />
+          </svg>
+        </div>
+        <div class="flex items-center justify-center w-8 pt-1">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+            <path
+              class={@scope_id}
+              d="M12 2 A10 10 0 1 1 11.999 21.999 A10 10 0 1 1 12 2 Z"
+              transform="translate(-0, -0) scale(0.9)"
+              style="stroke:url(#bleep-rgrad); stroke-width: 2px; fill: none;"
+            />
+          </svg>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  def render_frag_control(assigns) do
+    ~H"""
+
+    """
+  end
+
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="fixed top-0 left-0 z-50 w-full text-sm border-b shadow-lg border-zinc-100 bg-zinc-950 backdrop-blur-md bg-opacity-70 border-b-zinc-600">
+    <div class="fixed top-0 left-0 z-20 w-full text-sm border-b shadow-lg border-zinc-100 bg-zinc-950 backdrop-blur-md bg-opacity-70 border-b-zinc-600">
       <div class="relative flex items-center justify-between w-full gap-2 px-5 py-1">
         <div class="flex items-center gap-2">
           <div id="file-upload" phx-hook="BleepLoadHook" class="flex items-center">
@@ -326,10 +441,47 @@ defmodule BleepWeb.MainLive do
       </div>
     </div>
 
-    <div class="pt-24 border-t-8">
+    <%!-- <div class="fixed right-0 z-10 flex flex-col justify-center h-full max-h-screen overflow-y-auto rounded-sm top-28 pt-28 md:pt-20 backdrop-blur-md md:w-56 transform-none">
       <%= for frag <- @frags do %>
-        <.render_frag {frag} />
+        <div class="flex float-right w-56">
+          <.render_frag_control {frag} />
+        </div>
       <% end %>
+    </div> --%>
+
+    <div
+      class="fixed right-0 z-10 flex flex-col h-full max-h-screen pt-24 overflow-y-auto rounded-sm backdrop-blur-md md:w-56"
+      id="bleep-editor-controls"
+    >
+      <!-- Toggle Button Always Visible at pt-28 -->
+      <button
+        id="toggle-controls"
+        class="box-border px-4 py-2 mb-2 text-white bg-orange-600 rounded cursor-pointer"
+        phx-click={
+          JS.toggle(
+            to: "#menuContent",
+            in: {"ease-out duration-150", "translate-x-full", "translate-x-0"},
+            out: {"ease-in duration-150", "translate-x-0", "translate-x-full"}
+          )
+          |> JS.toggle_class("translate-x-2/3 text-left text-xs", to: "#toggle-controls")
+        }
+      >
+        Launcher
+      </button>
+      <!-- Scrollable Controls with dynamic content -->
+      <div id="menuContent" class="box-border flex flex-col w-full overflow-y-auto">
+        <%= for frag <- @frags do %>
+          <.render_frag_control {frag} />
+        <% end %>
+      </div>
+    </div>
+
+    <div class="flex flex-col main-content md:flex-row">
+      <div class="flex-1">
+        <%= for frag <- @frags do %>
+          <.render_frag {frag} />
+        <% end %>
+      </div>
     </div>
     """
   end
@@ -338,6 +490,13 @@ defmodule BleepWeb.MainLive do
   def handle_params(params, _uri, socket) do
     # Add logic to handle the parameters and update the socket
     {:noreply, assign(socket, :params, params)}
+  end
+
+  @impl true
+  def handle_event("save_editor_name", %{"value" => value, "frag-id" => frag_id}, socket) do
+    # user_id = socket.assigns.user_id
+    # Bleep.Lang.save_editor_name(user_id, editor_id, name)
+    {:noreply, update_editor_name(socket, frag_id, value)}
   end
 
   @impl true

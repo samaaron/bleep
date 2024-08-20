@@ -15,18 +15,38 @@ defmodule Bleep.Content do
       quantum = 4
       content = {}
 
+
+      function editor(...)
+        local args = {...}  -- Capture all arguments in a table
+        local frag_id = __bleep_vm_uuid()
+        local name
+        local content
+
+        if #args == 1 then
+          -- If only one argument, assume it's just markdown
+          name = nil
+          content = args[1]
+        elseif #args == 2 then
+          name = args[1]
+          content = args[2]
+        else
+          error("Invalid number of arguments. Expected 1 or 2 arguments, got " .. #args)
+        end
+
+        return {
+          kind = "editor",
+          lang = "lua",
+          content = content,
+          frag_id = frag_id,
+          editor_name = name
+        }
+      end
+
       function markdown(s)
         return {
           kind = "markdown",
           content = s,
-        }
-      end
-
-      function editor(s)
-        return {
-          kind = "editor",
-          content = s,
-          lang = "lua",
+          frag_id = __bleep_vm_uuid()
         }
       end
 
@@ -34,6 +54,7 @@ defmodule Bleep.Content do
         return {
           kind = "video",
           src = s,
+          frag_id = __bleep_vm_uuid()
         }
       end
       """)
@@ -58,12 +79,24 @@ defmodule Bleep.Content do
 
     content_list = Bleep.VM.lua_table_array_to_list(content)
 
-    frags =
-      Enum.map(content_list, fn frag_info ->
-        frag_info = Bleep.VM.lua_table_to_map(frag_info)
+    {frags, _editor_count} =
+      Enum.map_reduce(content_list, 1, fn frag_info, editor_count ->
+        frag_info_map = Bleep.VM.lua_table_to_map(frag_info)
 
-        frag_info
-        |> Map.put(:frag_id, UUID.uuid4())
+        case Map.get(frag_info_map, :kind) do
+          "editor" ->
+            updated_map =
+              Map.put(
+                frag_info_map,
+                :editor_name,
+                Map.get(frag_info_map, :editor_name) || Integer.to_string(editor_count) <> "."
+              )
+
+            {updated_map, editor_count + 1}
+
+          _ ->
+            {frag_info_map, editor_count}
+        end
       end)
 
     %{

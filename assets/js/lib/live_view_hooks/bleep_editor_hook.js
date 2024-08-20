@@ -10,17 +10,24 @@ const BleepEditorHook = {
     const editor_id = this.el.dataset.editorId;
     const result_id = this.el.dataset.resultId;
     const scope_id = this.el.dataset.scopeId;
-    const run_button = this.el.querySelector(`#${run_button_id}`);
-    const cue_button = this.el.querySelector(`#${cue_button_id}`);
-    const stop_button = this.el.querySelector(`#${stop_button_id}`);
+    const run_buttons = document.querySelectorAll(`.${run_button_id}`);
+    const cue_buttons = document.querySelectorAll(`.${cue_button_id}`);
+    const stop_buttons = document.querySelectorAll(`.${stop_button_id}`);
     const container = this.el.querySelector("[monaco-code-editor]");
-    const scope = this.el.querySelector(`#${scope_id}`);
+    const scopes = document.querySelectorAll(`.${scope_id}`);
 
     const code = sessionStorage.getItem(editor_id) ?? this.el.dataset.content;
 
-    this.editor = new BleepEditor(bleep, code, language, editor_id, container, scope);
+    this.editor = new BleepEditor(
+      bleep,
+      code,
+      language,
+      editor_id,
+      container,
+      scopes
+    );
     const evalCode = (strategy) => {
-      this.editor.idempotent_start_editor_session(editor_id, scope).then(() => {
+      this.editor.idempotent_start_editor_session().then(() => {
         const code = this.editor.getCode();
 
         if (code.length > 20 * 1024) {
@@ -55,19 +62,25 @@ const BleepEditorHook = {
       });
     };
 
-    run_button.addEventListener("click", (e) => {
-      evalCode("run-code");
-    });
-
-    cue_button.addEventListener("click", (e) => {
-      evalCode("cue-code");
-    });
-
-    stop_button.addEventListener("click", (e) => {
-      this.pushEvent("stop-editor-runs", {
-        editor_id: editor_id,
+    run_buttons.forEach((run_button) => {
+      run_button.addEventListener("click", (e) => {
+        evalCode("run-code");
       });
-      this.editor.stop_editor_session();
+    });
+
+    cue_buttons.forEach((cue_button) => {
+      cue_button.addEventListener("click", (e) => {
+        evalCode("cue-code");
+      });
+    });
+
+    stop_buttons.forEach((stop_button) => {
+      stop_button.addEventListener("click", (e) => {
+        this.pushEvent("stop-editor-runs", {
+          editor_id: editor_id,
+        });
+        this.editor.stop_editor_session();
+      });
     });
 
     window.bleep.add_editor(editor_id, this.editor);
