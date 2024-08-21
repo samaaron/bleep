@@ -40,14 +40,13 @@ function jsonToLua(json) {
 }
 
 function isGenericEditorName(frag, editor_count) {
-  return frag.editor_name == `${editor_count}.`
+  return frag.editor_name == `${editor_count}.`;
 }
 
 function jsonFragsToLua(frags) {
   let editor_count = 0;
   let lua = "";
   frags.forEach((frag) => {
-
     lua += `\n`;
     if (frag.kind == "editor") {
       editor_count += 1;
@@ -60,7 +59,11 @@ function jsonFragsToLua(frags) {
       const editor_content = window.bleep.editor_content(frag.frag_id);
 
       if (isBlank(editor_content)) {
-        lua += `[[ ]]),\n\n`;
+        if (isGenericEditorName(frag, editor_count)) {
+          lua += `[[ ]],\n\n`;
+        } else {
+          lua += `[[ ]]),\n\n`;
+        }
       } else {
         lua += `[[\n`;
         lua += `${editor_content}`;
@@ -69,7 +72,6 @@ function jsonFragsToLua(frags) {
         } else {
           lua += `]]),\n\n`;
         }
-
       }
     } else if (frag.kind == "markdown") {
       lua += `markdown [[\n`;
