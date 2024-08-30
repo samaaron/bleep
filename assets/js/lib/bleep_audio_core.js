@@ -11,7 +11,6 @@ export default class BleepAudioCore {
   #init_promise = null;
 
   constructor() {
-    this.idempotentInitAudio();
   }
 
   async idempotentInitAudio() {
