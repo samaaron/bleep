@@ -118,6 +118,11 @@ export default class BleepEditor {
     const path = polarPath(data, this.#scope_options);
 
     this.#scope_nodes.forEach((scope_node) => {
+      if(!bbox.width || !bbox.height) {
+        // Skip if the scope node has no width or height
+        return;
+      }
+
       scope_node.setAttribute("d", path);
 
       const viewBox = scope_node.ownerSVGElement.getAttribute("viewBox");
