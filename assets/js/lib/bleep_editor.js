@@ -117,7 +117,10 @@ export default class BleepEditor {
     const data = this.#scope_analyser.getScopeData();
     const path = polarPath(data, this.#scope_options);
 
+
+
     this.#scope_nodes.forEach((scope_node) => {
+      const bbox = scope_node.getBBox();
       if(!bbox.width || !bbox.height) {
         // Skip if the scope node has no width or height
         return;
@@ -129,7 +132,7 @@ export default class BleepEditor {
       if (viewBox) {
         const [minX, minY, width, height] = viewBox.split(" ").map(Number);
 
-        const bbox = scope_node.getBBox();
+
 
         const scaleX = width / bbox.width;
         const scaleY = height / bbox.height;
