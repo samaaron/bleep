@@ -195,7 +195,7 @@ defmodule Bleep.Lang do
       |> Bleep.VM.set_global("__bleep_core_bpm", bpm)
       |> Bleep.VM.set_global("__bleep_core_start_time", start_time_s)
       |> Bleep.VM.set_global("__bleep_core_global_time", 0)
-      |> Bleep.VM.set_global("__bleep_core_current_synth", "fmbell")
+      |> Bleep.VM.set_global("__bleep_core_current_synth", "rolandtb")
       |> Bleep.VM.set_global("__bleep_core_current_fx_stack", [final_mix_fx_id])
       |> Bleep.VM.add_fn(
         "__bleep_ex_play",
