@@ -2,6 +2,36 @@ bpm = 120
 
 content = {
 
+   markdown [[
+## New samples added
+I changed the names to make them shorter and use underscores, they are as follows:
+* tbd_fxbed_loop
+* tbd_highkey_c4
+* tbd_pad_1
+* tbd_pad_2
+* tbd_pad_3
+* tbd_pad_4
+* tbd_perc_blip
+* tbd_perc_hat
+* tbd_perc_tap_1
+* tbd_perc_tap_2
+* tbd_voctone
+   ]],
+
+markdown [[
+To use the pads, you could use the grain synth to extend the time as shown below. Keeping the grain size long (0.9 sec)
+and the density fairly low (10 grains/sec) should let you run it for extended periods of time, 20-30 seconds.
+]],
+
+editor [[
+sample("tbd_fxbed_loop")
+grains("tbd_pad_1", {
+    duration=20,
+    density=10,
+    index=0.5,
+    size=0.9})
+]],
+
 markdown [[
 ## Chorus name updated
 Note that the chorus is now just called "chorus" and not "roland_chorus" - we decided to remove the trade name.
