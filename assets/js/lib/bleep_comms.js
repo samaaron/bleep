@@ -9,11 +9,13 @@ export default class BleepComms {
   #jam_session_channels;
   #time_sync_channel;
   #server_time_info;
-  #bleep_core;
+  #bleep_audio;
+  #bleep;
 
-  constructor(user_id, bleep_core, prescheduler) {
+  constructor(user_id, bleep, bleep_audio, prescheduler) {
     this.#user_id = user_id;
-    this.#bleep_core = bleep_core;
+    this.#bleep = bleep;
+    this.#bleep_audio = bleep_audio;
     this.#prescheduler = prescheduler;
     this.#bleep_socket = new Socket("/bleep-socket", {
       params: { user_id: user_id },
@@ -52,7 +54,7 @@ export default class BleepComms {
       channel.on("stop-all-runs", (_payload) => {
         this.#prescheduler.cancel_all_tags();
         this.#prescheduler.reset_time_deltas();
-        this.#bleep_core.restartMainOut();
+        this.#bleep_audio.restartMainOut();
 
       });
 

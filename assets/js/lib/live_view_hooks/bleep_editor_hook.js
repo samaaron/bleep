@@ -26,7 +26,14 @@ const BleepEditorHook = {
       container,
       scopes
     );
-    const evalCode = (strategy) => {
+
+    window.addEventListener(`phx:run-editor-with-id`, (e) => {
+      if(e.detail.editor_id === editor_id) {
+        evalCode("run-code", e.detail.start_time_s);
+      }
+    });
+
+    const evalCode = (strategy, start_time_s = null) => {
       this.editor.idempotent_start_editor_session().then(() => {
         const code = this.editor.getCode();
 
@@ -53,6 +60,7 @@ const BleepEditorHook = {
             path: path,
             result_id: result_id,
             editor_id: editor_id,
+            start_time_s: start_time_s
           });
         } catch (error) {
           formatted = code;

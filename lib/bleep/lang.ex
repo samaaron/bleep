@@ -15,6 +15,12 @@ defmodule Bleep.Lang do
     global_time_s + start_time_s
   end
 
+  def __bleep_ex_run_label(user_id, _editor_id, _run_id, lua, [label]) do
+    start_time_s = lua_time(lua)
+    BleepWeb.MainLive.id_send(user_id, {:run_editor_with_name, label, start_time_s})
+    :ok
+  end
+
   def __bleep_ex_start_fx(user_id, editor_id, run_id, lua, [uuid, fx_name]) do
     __bleep_ex_start_fx(user_id, editor_id, run_id, lua, [uuid, fx_name, []])
   end
@@ -220,6 +226,10 @@ defmodule Bleep.Lang do
       |> Bleep.VM.add_fn(
         "__bleep_ex_stop_fx",
         &__bleep_ex_stop_fx(user_id, editor_id, run_id, &1, &2)
+      )
+      |> Bleep.VM.add_fn(
+        "__bleep_ex_run_label",
+        &__bleep_ex_run_label(user_id, editor_id, run_id, &1, &2)
       )
 
     res_or_exception =

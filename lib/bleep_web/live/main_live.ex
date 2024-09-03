@@ -112,6 +112,13 @@ defmodule BleepWeb.MainLive do
     |> assign(:frags, new_frags)
   end
 
+  def editor_ids_from_name(socket, name) do
+    frags = socket.assigns.frags
+
+    Enum.filter(frags, &(&1[:editor_name] == name))
+      |> Enum.map(& &1[:frag_id])
+  end
+
   def load_user_content(socket, content) do
     data = Bleep.Content.data_from_lua(content)
     :ets.insert(:lua_user_content_cache, {socket.assigns.user_id, data})
@@ -555,7 +562,7 @@ defmodule BleepWeb.MainLive do
   @impl true
   def handle_event(
         "cue-code",
-        %{"code" => code, "result_id" => result_id, "editor_id" => editor_id},
+        %{"code" => code, "result_id" => result_id, "editor_id" => editor_id, "start_time_s" => start_time_s},
         socket
       ) do
     bpm = socket.assigns.bleep_default_bpm
@@ -567,14 +574,21 @@ defmodule BleepWeb.MainLive do
     {:noreply, eval_and_display(socket, editor_id, start_time_s, code, result_id)}
   end
 
-  def handle_event(
-        "run-code",
-        %{"code" => code, "result_id" => result_id, "editor_id" => editor_id},
-        socket
-      ) do
-    start_time_s = :erlang.system_time(:milli_seconds) / 1000.0
 
-    {:noreply, eval_and_display(socket, editor_id, start_time_s, code, result_id)}
+
+  def handle_event(
+    "run-code",
+    %{"code" => code, "result_id" => result_id, "editor_id" => editor_id, "start_time_s" => nil},
+    socket) do
+      start_time_s = :erlang.system_time(:milli_seconds) / 1000
+      {:noreply, eval_and_display(socket, editor_id, start_time_s, code, result_id)}
+  end
+
+  def handle_event(
+    "run-code",
+    %{"code" => code, "result_id" => result_id, "editor_id" => editor_id, "start_time_s" => start_time_s},
+    socket) do
+      {:noreply, eval_and_display(socket, editor_id, start_time_s, code, result_id)}
   end
 
   def display_eval_result(socket, {:exception, _e, _trace}, result_id) do
@@ -635,6 +649,16 @@ defmodule BleepWeb.MainLive do
     {:noreply,
      socket
      |> assign(:bleep_ping, ping)}
+  end
+
+  @impl true
+  def handle_info({:run_editor_with_name, name, start_time_s}, socket) do
+    editor_ids = editor_ids_from_name(socket, name)
+    {:noreply,
+    Enum.reduce(editor_ids, socket, fn editor_id, acc_socket ->
+      push_event(acc_socket, "run-editor-with-id", %{editor_id: editor_id, start_time_s: start_time_s})
+    end)
+    }
   end
 
   def id_send(user_id, msg) do

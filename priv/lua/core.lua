@@ -2,6 +2,16 @@ function uuid()
   __bleep_vm_uuid()
 end
 
+function run(label)
+  if type(label) == "table" then
+    for _, l in ipairs(label) do
+      __bleep_ex_run_label(l)
+    end
+  else
+    __bleep_ex_run_label(label)
+  end
+end
+
 function play(note, opts_table)
   local opts_table = opts_table or {}
   if type(note) == "table" then
@@ -786,4 +796,4 @@ function set_seed(seed)
         math.randomseed(os.time())
     end
 end
-    
+
