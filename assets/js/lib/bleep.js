@@ -16,7 +16,7 @@ export default class Bleep {
     this.#editors = {};
     this.#bleep_audio = new BleepAudioCore();
     this.#prescheduler = new BleepPrescheduler(this.#bleep_audio);
-    this.#comms = new BleepComms(this.#user_id, this.#bleep_audio, this.#prescheduler);
+    this.#comms = new BleepComms(this.#user_id, this, this.#bleep_audio, this.#prescheduler);
 
   }
 
