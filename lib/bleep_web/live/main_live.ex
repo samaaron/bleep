@@ -458,7 +458,7 @@ defmodule BleepWeb.MainLive do
     </div> --%>
 
     <div
-      class="fixed right-0 z-10 flex flex-col h-full max-h-screen pt-24 overflow-y-auto rounded-sm backdrop-blur-md md:w-56"
+      class="fixed right-0 z-10 flex flex-col h-full max-h-screen pt-24 overflow-y-auto rounded-sm md:w-56"
       id="bleep-editor-controls"
     >
       <!-- Toggle Button Always Visible at pt-28 -->
@@ -479,7 +479,7 @@ defmodule BleepWeb.MainLive do
       <!-- Scrollable Controls with dynamic content -->
       <div
         id="menuContent"
-        class="box-border flex flex-col hidden w-full overflow-y-auto translate-x-full"
+        class="box-border flex flex-col hidden w-full overflow-y-auto translate-x-full backdrop-blur-md "
       >
         <%= for frag <- @frags do %>
           <.render_frag_control {frag} />
