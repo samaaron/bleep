@@ -591,11 +591,11 @@ defmodule BleepWeb.MainLive do
       {:noreply, eval_and_display(socket, editor_id, start_time_s, code, result_id)}
   end
 
-  def display_eval_result(socket, {:exception, _e, _trace}, result_id) do
+  def display_eval_result(socket, {:exception, e, trace}, result_id) do
+    Logger.error(Exception.format(:error, e, trace))
     socket
     |> push_event("update-luareplres", %{
-      # lua_repl_result: Exception.format(:error, e, trace),
-      lua_repl_result: "Exception",
+      lua_repl_result: "Internal Exception",
       result_id: result_id
     })
   end
