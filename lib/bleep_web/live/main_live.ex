@@ -13,7 +13,8 @@ defmodule BleepWeb.MainLive do
       |> assign(:page_title, "Bleep")
 
     if connected?(socket) do
-      {:ok, _pid} = Registry.register(Registry.Bleep, user_id, self())
+      # TODO - check what happens here when the URL is changed in the browser
+      Registry.register(Registry.Bleep, user_id, self())
     end
 
     case socket.assigns.live_action do
