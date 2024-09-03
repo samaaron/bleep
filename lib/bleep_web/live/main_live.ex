@@ -560,22 +560,28 @@ defmodule BleepWeb.MainLive do
     {:noreply, socket}
   end
 
+
+
+
+  @impl true
+  def handle_event(
+        "cue-code",
+        %{"code" => code, "result_id" => result_id, "editor_id" => editor_id, "start_time_s" => nil},
+        socket
+      ) do
+
+    start_time_s = :erlang.system_time(:milli_seconds) / 1000
+    cue_code(code, result_id, editor_id, start_time_s, socket)
+  end
+
   @impl true
   def handle_event(
         "cue-code",
         %{"code" => code, "result_id" => result_id, "editor_id" => editor_id, "start_time_s" => start_time_s},
         socket
       ) do
-    bpm = socket.assigns.bleep_default_bpm
-    quantum = socket.assigns.bleep_default_quantum
-    start_time_ms = :erlang.system_time(:milli_seconds)
-    bar_duration_ms = round(quantum * (60.0 / bpm) * 1000)
-    offset_ms = bar_duration_ms - rem(start_time_ms, bar_duration_ms)
-    start_time_s = (start_time_ms + offset_ms) / 1000.0
-    {:noreply, eval_and_display(socket, editor_id, start_time_s, code, result_id)}
+    cue_code(code, result_id, editor_id, start_time_s, socket)
   end
-
-
 
   def handle_event(
     "run-code",
@@ -590,6 +596,16 @@ defmodule BleepWeb.MainLive do
     %{"code" => code, "result_id" => result_id, "editor_id" => editor_id, "start_time_s" => start_time_s},
     socket) do
       {:noreply, eval_and_display(socket, editor_id, start_time_s, code, result_id)}
+  end
+
+  def cue_code(code, result_id, editor_id, start_time_s, socket) do
+    bpm = socket.assigns.bleep_default_bpm
+    quantum = socket.assigns.bleep_default_quantum
+    start_time_ms = start_time_s * 1000
+    bar_duration_ms = round(quantum * (60.0 / bpm) * 1000)
+    offset_ms = bar_duration_ms - rem(start_time_ms, bar_duration_ms)
+    start_time_s = (start_time_ms + offset_ms) / 1000.0
+    {:noreply, eval_and_display(socket, editor_id, start_time_s, code, result_id)}
   end
 
   def display_eval_result(socket, {:exception, e, trace}, result_id) do
