@@ -53,7 +53,6 @@ export default class BleepEditor {
     this.#scope_analyser = null;
     this.#final_mix_fx = null;
     this.#final_mix_fx_id = `${id}-final-mix-fx`;
-
   }
 
   getCode() {
@@ -87,14 +86,10 @@ export default class BleepEditor {
     }
   }
 
-
-
   start_scopes() {
-
     this.#scope_nodes.forEach((scope_node) => {
       scope_node.style.strokeWidth = "2px";
     });
-
 
     const run_scope_animation = () => {
       if (!this.#running_scope_loop) return; // Stop the loop if it's been cleared
@@ -117,34 +112,27 @@ export default class BleepEditor {
     const data = this.#scope_analyser.getScopeData();
     const path = polarPath(data, this.#scope_options);
 
-
-
     this.#scope_nodes.forEach((scope_node) => {
-      const bbox = scope_node.getBBox();
-      if(!bbox.width || !bbox.height) {
-        // Skip if the scope node has no width or height
-        return;
-      }
-
       scope_node.setAttribute("d", path);
+      const bbox = scope_node.getBBox();
+      if (bbox.width && bbox.height) {
+        const viewBox = scope_node.ownerSVGElement.getAttribute("viewBox");
+        if (viewBox) {
+          const [minX, minY, width, height] = viewBox.split(" ").map(Number);
 
-      const viewBox = scope_node.ownerSVGElement.getAttribute("viewBox");
-      if (viewBox) {
-        const [minX, minY, width, height] = viewBox.split(" ").map(Number);
+          const scaleX = width / bbox.width;
+          const scaleY = height / bbox.height;
+          const scale = Math.min(scaleX, scaleY) * 0.8;
 
+          const translateX = (width - bbox.width * scale) / 2 - bbox.x * scale;
+          const translateY =
+            (height - bbox.height * scale) / 2 - bbox.y * scale;
 
-
-        const scaleX = width / bbox.width;
-        const scaleY = height / bbox.height;
-        const scale = Math.min(scaleX, scaleY) * 0.8;
-
-        const translateX = (width - bbox.width * scale) / 2 - bbox.x * scale;
-        const translateY = (height - bbox.height * scale) / 2 - bbox.y * scale;
-
-        scope_node.setAttribute(
-          "transform",
-          `translate(${translateX}, ${translateY}) scale(${scale})`
-        );
+          scope_node.setAttribute(
+            "transform",
+            `translate(${translateX}, ${translateY}) scale(${scale})`
+          );
+        }
       }
     });
   }
