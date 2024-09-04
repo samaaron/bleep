@@ -15,17 +15,17 @@ defmodule Bleep.Lang do
     global_time_s + start_time_s
   end
 
-  def __bleep_ex_run_label(user_id, _editor_id, _run_id, lua, [label]) do
+  def __bleep_ex_run_label(user_id, _editor_id, _run_id, _run_tag, lua, [label]) do
     start_time_s = lua_time(lua)
     BleepWeb.MainLive.id_send(user_id, {:run_editor_with_name, label, start_time_s})
     :ok
   end
 
-  def __bleep_ex_start_fx(user_id, editor_id, run_id, lua, [uuid, fx_name]) do
-    __bleep_ex_start_fx(user_id, editor_id, run_id, lua, [uuid, fx_name, []])
+  def __bleep_ex_start_fx(user_id, editor_id, run_id, run_tag, lua, [uuid, fx_name]) do
+    __bleep_ex_start_fx(user_id, editor_id, run_id, lua, run_tag, [uuid, fx_name, []])
   end
 
-  def __bleep_ex_start_fx(user_id, editor_id, run_id, lua, [uuid, fx_name, opts_table]) do
+  def __bleep_ex_start_fx(user_id, editor_id, run_id, run_tag, lua, [uuid, fx_name, opts_table]) do
     output_id = fetch_current_output_id(lua)
     time_s = lua_time(lua)
     opts = Bleep.VM.lua_table_to_map(opts_table)
@@ -34,6 +34,7 @@ defmodule Bleep.Lang do
       user_id: user_id,
       editor_id: editor_id,
       run_id: run_id,
+      run_tag: run_tag,
       server_time_s: time_s,
       cmd: "triggerFX",
       fx_name: fx_name,
@@ -45,13 +46,14 @@ defmodule Bleep.Lang do
     bleep_broadcast(user_id, "sched-bleep-audio", msg)
   end
 
-  def __bleep_ex_stop_fx(user_id, editor_id, run_id, lua, [fx_id]) do
+  def __bleep_ex_stop_fx(user_id, editor_id, run_id, run_tag, lua, [fx_id]) do
     time_s = lua_time(lua)
 
     msg = %{
       user_id: user_id,
       editor_id: editor_id,
       run_id: run_id,
+      run_tag: run_tag,
       server_time_s: time_s,
       fx_id: fx_id,
       cmd: "releaseFX"
@@ -60,12 +62,12 @@ defmodule Bleep.Lang do
     bleep_broadcast(user_id, "sched-bleep-audio", msg)
   end
 
-  def __bleep_ex_sample(user_id, editor_id, run_id, lua, [sample_name])
+  def __bleep_ex_sample(user_id, editor_id, run_id, run_tag, lua, [sample_name])
       when is_binary(sample_name) do
-    __bleep_ex_sample(user_id, editor_id, run_id, lua, [sample_name, []])
+    __bleep_ex_sample(user_id, editor_id, run_id, run_tag, lua, [sample_name, []])
   end
 
-  def __bleep_ex_sample(user_id, editor_id, run_id, lua, [sample_name, opts_table])
+  def __bleep_ex_sample(user_id, editor_id, run_id, run_tag, lua, [sample_name, opts_table])
       when is_list(opts_table) do
     output_id = fetch_current_output_id(lua)
     time_s = lua_time(lua)
@@ -75,6 +77,7 @@ defmodule Bleep.Lang do
       user_id: user_id,
       editor_id: editor_id,
       run_id: run_id,
+      run_tag: run_tag,
       server_time_s: time_s,
       cmd: "triggerSample",
       sample_name: sample_name,
@@ -85,12 +88,12 @@ defmodule Bleep.Lang do
     bleep_broadcast(user_id, "sched-bleep-audio", msg)
   end
 
-  def __bleep_ex_grains(user_id, editor_id, run_id, lua, [sample_name])
+  def __bleep_ex_grains(user_id, editor_id, run_id, run_tag, lua, [sample_name])
       when is_binary(sample_name) do
-    __bleep_ex_grains(user_id, editor_id, run_id, lua, [sample_name, []])
+    __bleep_ex_grains(user_id, editor_id, run_id, run_tag, lua, [sample_name, []])
   end
 
-  def __bleep_ex_grains(user_id, editor_id, run_id, lua, [sample_name, opts_table])
+  def __bleep_ex_grains(user_id, editor_id, run_id, run_tag, lua, [sample_name, opts_table])
       when is_list(opts_table) do
     output_id = fetch_current_output_id(lua)
     time_s = lua_time(lua)
@@ -100,6 +103,7 @@ defmodule Bleep.Lang do
       user_id: user_id,
       editor_id: editor_id,
       run_id: run_id,
+      run_tag: run_tag,
       server_time_s: time_s,
       cmd: "triggerGrains",
       sample_name: sample_name,
@@ -110,12 +114,12 @@ defmodule Bleep.Lang do
     bleep_broadcast(user_id, "sched-bleep-audio", msg)
   end
 
-  def __bleep_ex_play(user_id, editor_id, run_id, lua, [note])
+  def __bleep_ex_play(user_id, editor_id, run_id, run_tag, lua, [note])
       when is_integer(note) or is_float(note) do
-    __bleep_ex_play(user_id, editor_id, run_id, lua, [note, []])
+    __bleep_ex_play(user_id, editor_id, run_id, run_tag, lua, [note, []])
   end
 
-  def __bleep_ex_play(user_id, editor_id, run_id, lua, [opts_table]) when is_list(opts_table) do
+  def __bleep_ex_play(user_id, editor_id, run_id, run_tag, lua, [opts_table]) when is_list(opts_table) do
     output_id = fetch_current_output_id(lua)
     time_s = lua_time(lua)
     opts = Bleep.VM.lua_table_to_map(opts_table)
@@ -125,6 +129,7 @@ defmodule Bleep.Lang do
       user_id: user_id,
       editor_id: editor_id,
       run_id: run_id,
+      run_tag: run_tag,
       server_time_s: time_s,
       cmd: "triggerOneShotSynth",
       synthdef_id: synth,
@@ -135,24 +140,24 @@ defmodule Bleep.Lang do
     bleep_broadcast(user_id, "sched-bleep-audio", msg)
   end
 
-  def __bleep_ex_play(user_id, editor_id, run_id, lua, [note, opts_table])
+  def __bleep_ex_play(user_id, editor_id, run_id, run_tag, lua, [note, opts_table])
       when is_integer(note) or is_float(note) do
-    __bleep_ex_play(user_id, editor_id, run_id, lua, [[{"note", note} | opts_table]])
+    __bleep_ex_play(user_id, editor_id, run_id, run_tag, lua, [[{"note", note} | opts_table]])
   end
 
-  def __bleep_ex_control_fx(user_id, editor_id, run_id, lua, [opts_table])
+  def __bleep_ex_control_fx(user_id, editor_id, run_id, run_tag, lua, [opts_table])
       when is_list(opts_table) do
-    __bleep_ex_control_fx(user_id, editor_id, run_id, lua, [
+    __bleep_ex_control_fx(user_id, editor_id, run_id, run_tag, lua, [
       fetch_current_output_id(lua),
       opts_table
     ])
   end
 
-  def __bleep_ex_control_fx(user_id, editor_id, run_id, lua, [uuid]) when is_binary(uuid) do
-    __bleep_ex_control_fx(user_id, editor_id, run_id, lua, [uuid, []])
+  def __bleep_ex_control_fx(user_id, editor_id, run_id, run_tag, lua, [uuid]) when is_binary(uuid) do
+    __bleep_ex_control_fx(user_id, editor_id, run_id, run_tag, lua, [uuid, []])
   end
 
-  def __bleep_ex_control_fx(user_id, editor_id, run_id, lua, [fx_id, opts_table])
+  def __bleep_ex_control_fx(user_id, editor_id, run_id, run_tag, lua, [fx_id, opts_table])
       when is_list(opts_table) do
     time_s = lua_time(lua)
     opts = Bleep.VM.lua_table_to_map(opts_table)
@@ -161,6 +166,7 @@ defmodule Bleep.Lang do
       user_id: user_id,
       editor_id: editor_id,
       run_id: run_id,
+      run_tag: run_tag,
       server_time_s: time_s,
       fx_id: fx_id,
       cmd: "controlFX",
@@ -170,15 +176,23 @@ defmodule Bleep.Lang do
     bleep_broadcast(user_id, "sched-bleep-audio", msg)
   end
 
+  def stop_editor(user_id, editor_id) do
+    bleep_broadcast(user_id, "stop-editor", %{editor_id: editor_id})
+  end
+
   def stop_editor_runs(user_id, editor_id) do
-    bleep_broadcast(user_id, "stop-editor-runs", %{editor_id: editor_id})
+    bleep_broadcast(user_id, "stop-editor-tag", %{editor_id: editor_id, run_tag: "run"})
+  end
+
+  def stop_editor_cues(user_id, editor_id, run_tag) do
+    bleep_broadcast(user_id, "stop-editor-tag", %{editor_id: editor_id, run_tag: run_tag})
   end
 
   def stop_all_runs(user_id) do
-    bleep_broadcast(user_id, "stop-all-runs", %{})
+    bleep_broadcast(user_id, "stop-all", %{})
   end
 
-  def start_run(user_id, editor_id, start_time_s, code, init_code, opts \\ %{}) do
+  def start_run(run_tag, user_id, editor_id, start_time_s, code, init_code, opts \\ %{}) do
     core_lua =
       if Application.get_env(:bleep, :reload_lua) do
         # for dev environments reload the lua file on each run
@@ -205,31 +219,31 @@ defmodule Bleep.Lang do
       |> Bleep.VM.set_global("__bleep_core_current_fx_stack", [final_mix_fx_id])
       |> Bleep.VM.add_fn(
         "__bleep_ex_play",
-        &__bleep_ex_play(user_id, editor_id, run_id, &1, &2)
+        &__bleep_ex_play(user_id, editor_id, run_id, run_tag, &1, &2)
       )
       |> Bleep.VM.add_fn(
         "__bleep_ex_sample",
-        &__bleep_ex_sample(user_id, editor_id, run_id, &1, &2)
+        &__bleep_ex_sample(user_id, editor_id, run_id, run_tag, &1, &2)
       )
       |> Bleep.VM.add_fn(
         "__bleep_ex_grains",
-        &__bleep_ex_grains(user_id, editor_id, run_id, &1, &2)
+        &__bleep_ex_grains(user_id, editor_id, run_id, run_tag, &1, &2)
       )
       |> Bleep.VM.add_fn(
         "__bleep_ex_control_fx",
-        &__bleep_ex_control_fx(user_id, editor_id, run_id, &1, &2)
+        &__bleep_ex_control_fx(user_id, editor_id, run_id, run_tag, &1, &2)
       )
       |> Bleep.VM.add_fn(
         "__bleep_ex_start_fx",
-        &__bleep_ex_start_fx(user_id, editor_id, run_id, &1, &2)
+        &__bleep_ex_start_fx(user_id, editor_id, run_id, run_tag, &1, &2)
       )
       |> Bleep.VM.add_fn(
         "__bleep_ex_stop_fx",
-        &__bleep_ex_stop_fx(user_id, editor_id, run_id, &1, &2)
+        &__bleep_ex_stop_fx(user_id, editor_id, run_id, run_tag, &1, &2)
       )
       |> Bleep.VM.add_fn(
         "__bleep_ex_run_label",
-        &__bleep_ex_run_label(user_id, editor_id, run_id, &1, &2)
+        &__bleep_ex_run_label(user_id, editor_id, run_id, run_tag, &1, &2)
       )
 
     res_or_exception =

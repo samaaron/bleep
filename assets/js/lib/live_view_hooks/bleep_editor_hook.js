@@ -84,7 +84,7 @@ const BleepEditorHook = {
 
     stop_buttons.forEach((stop_button) => {
       stop_button.addEventListener("click", (e) => {
-        this.pushEvent("stop-editor-runs", {
+        this.pushEvent("stop-editor-runs-and-cues", {
           editor_id: editor_id,
         });
         this.editor.stop_editor_session();

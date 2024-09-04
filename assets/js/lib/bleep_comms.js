@@ -47,15 +47,18 @@ export default class BleepComms {
         this.#handle_server_event_sched_bleep_audio(payload);
       });
 
-      channel.on("stop-editor-runs", (payload) => {
-        this.#prescheduler.cancel_tag(payload.editor_id);
+      channel.on("stop-editor", (payload) => {
+        this.#prescheduler.cancel_editor(payload.editor_id);
       });
 
-      channel.on("stop-all-runs", (_payload) => {
+      channel.on("stop-editor-tag", (payload) => {
+        this.#prescheduler.cancel_editor_tag(payload.editor_id, payload.run_tag);
+      });
+
+      channel.on("stop-all", (_payload) => {
         this.#prescheduler.cancel_all_tags();
         this.#prescheduler.reset_time_deltas();
         this.#bleep_audio.restartMainOut();
-
       });
 
       channel
@@ -174,11 +177,14 @@ export default class BleepComms {
       const user_id = e.user_id;
       const editor_id = e.editor_id;
       const run_id = e.run_id;
+      const run_tag = e.run_tag;
       const server_time_s = e.server_time_s;
+
       this.#prescheduler.schedule(
         user_id,
         editor_id,
         run_id,
+        run_tag,
         server_time_s,
         this.#server_time_info.delta_s,
         e

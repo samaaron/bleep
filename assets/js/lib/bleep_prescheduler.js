@@ -6,7 +6,7 @@ export default class BleepPrescheduler {
   #current_timer;
   #time_deltas;
 
-  #minimum_schedule_requirement_s = 1.2;
+  #minimum_schedule_requirement_s = 0.1;
   #latency_s = 0.5;
 
   constructor(bleep_audio) {
@@ -17,19 +17,26 @@ export default class BleepPrescheduler {
     this.#start_gc();
   }
 
-  schedule(user_id, tag, run_id, time_s, time_delta_s, msg) {
+  schedule(user_id, editor_id, run_id, run_tag, time_s, time_delta_s, msg) {
     const run_id_cached_delta_s = this.#get_or_set_time_delta(
       run_id,
       time_delta_s
     );
     const adjusted_time_s = time_s + run_id_cached_delta_s + this.#latency_s;
     this.#pre_dispatch(msg);
-    this.#insert_event(user_id, tag, run_id, adjusted_time_s, msg);
+    this.#insert_event(user_id, editor_id, run_id, run_tag, adjusted_time_s, msg);
   }
 
-  cancel_tag(tag) {
+  cancel_editor_tag(editor_id, run_tag) {
     this.#scheduled_events = this.#scheduled_events.filter(
-      (e) => e[1].tag !== tag
+      (e) => e[1].run_tag !== run_tag || e[1].editor_id !== editor_id
+    );
+    this.#schedule_next_event();
+  }
+
+  cancel_editor(editor_id) {
+    this.#scheduled_events = this.#scheduled_events.filter(
+      (e) => e[1].editor_id !== editor_id
     );
     this.#schedule_next_event();
   }
@@ -57,8 +64,8 @@ export default class BleepPrescheduler {
     }
   }
 
-  #insert_event(user_id, tag, run_id, adjusted_time_s, msg) {
-    const info = { user_id: user_id, tag: tag, run_id: run_id };
+  #insert_event(user_id, editor_id, run_id, run_tag, adjusted_time_s, msg) {
+    const info = { user_id: user_id, editor_id: editor_id, run_tag: run_tag, run_id: run_id };
     this.#scheduled_events.push([adjusted_time_s, info, msg]);
     this.#scheduled_events.sort((a, b) => a[0] - b[0]);
     this.#schedule_next_event();

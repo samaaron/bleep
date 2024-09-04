@@ -541,27 +541,14 @@ defmodule BleepWeb.MainLive do
 
   @impl true
   def handle_event(
-        "eval-code",
-        %{"value" => code, "result_id" => result_id, "editor_id" => editor_id},
-        socket
-      ) do
-    start_time_s = :erlang.system_time(:milli_seconds) / 1000
-    {:noreply, eval_and_display(socket, editor_id, start_time_s, code, result_id)}
-  end
-
-  @impl true
-  def handle_event(
-        "stop-editor-runs",
+        "stop-editor-runs-and-cues",
         %{"editor_id" => editor_id},
         socket
       ) do
     user_id = socket.assigns.user_id
-    Bleep.Lang.stop_editor_runs(user_id, editor_id)
+    Bleep.Lang.stop_editor(user_id, editor_id)
     {:noreply, socket}
   end
-
-
-
 
   @impl true
   def handle_event(
@@ -588,24 +575,27 @@ defmodule BleepWeb.MainLive do
     %{"code" => code, "result_id" => result_id, "editor_id" => editor_id, "start_time_s" => nil},
     socket) do
       start_time_s = :erlang.system_time(:milli_seconds) / 1000
-      {:noreply, eval_and_display(socket, editor_id, start_time_s, code, result_id)}
+      {:noreply, eval_and_display(socket, "run", editor_id, start_time_s, code, result_id)}
   end
 
   def handle_event(
     "run-code",
     %{"code" => code, "result_id" => result_id, "editor_id" => editor_id, "start_time_s" => start_time_s},
     socket) do
-      {:noreply, eval_and_display(socket, editor_id, start_time_s, code, result_id)}
+      {:noreply, eval_and_display(socket, "run", editor_id, start_time_s, code, result_id)}
   end
 
   def cue_code(code, result_id, editor_id, start_time_s, socket) do
+    user_id = socket.assigns.user_id
     bpm = socket.assigns.bleep_default_bpm
     quantum = socket.assigns.bleep_default_quantum
     start_time_ms = round(start_time_s * 1000)
     bar_duration_ms = round(quantum * (60.0 / bpm) * 1000)
     offset_ms = bar_duration_ms - rem(start_time_ms, bar_duration_ms)
     start_time_s = (start_time_ms + offset_ms) / 1000.0
-    {:noreply, eval_and_display(socket, editor_id, start_time_s, code, result_id)}
+    run_tag = "cue-#{start_time_s}"
+    Bleep.Lang.stop_editor_cues(user_id, editor_id, run_tag)
+    {:noreply, eval_and_display(socket, run_tag, editor_id, start_time_s, code, result_id)}
   end
 
   def display_eval_result(socket, {:exception, e, trace}, result_id) do
@@ -649,14 +639,14 @@ defmodule BleepWeb.MainLive do
     })
   end
 
-  def eval_and_display(socket, editor_id, start_time_s, code, result_id) do
+  def eval_and_display(socket, run_tag, editor_id, start_time_s, code, result_id) do
     if byte_size(code) > 1024 * 10 do
       display_eval_result(socket, {:error, "code too large to run", nil}, result_id)
     else
       init_code = socket.assigns.init_code
       bpm = socket.assigns.bleep_default_bpm
       user_id = socket.assigns.user_id
-      res = Bleep.Lang.start_run(user_id, editor_id, start_time_s, code, init_code, %{bpm: bpm})
+      res = Bleep.Lang.start_run(run_tag, user_id, editor_id, start_time_s, code, init_code, %{bpm: bpm})
       display_eval_result(socket, res, result_id)
     end
   end
