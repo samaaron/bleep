@@ -601,7 +601,7 @@ defmodule BleepWeb.MainLive do
   def cue_code(code, result_id, editor_id, start_time_s, socket) do
     bpm = socket.assigns.bleep_default_bpm
     quantum = socket.assigns.bleep_default_quantum
-    start_time_ms = start_time_s * 1000
+    start_time_ms = round(start_time_s * 1000)
     bar_duration_ms = round(quantum * (60.0 / bpm) * 1000)
     offset_ms = bar_duration_ms - rem(start_time_ms, bar_duration_ms)
     start_time_s = (start_time_ms + offset_ms) / 1000.0
