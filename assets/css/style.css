@@ -107,7 +107,7 @@
   }
 
   a {
-    @apply text-pink-600 hover:text-pink-700;
+    @apply text-pink-600 hover:underline;
   }
 
 }
