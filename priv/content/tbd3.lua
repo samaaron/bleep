@@ -4,31 +4,35 @@ content = {
 
 markdown [[
 # A Techno Music Programming Masterclass With The Black Dog
-## Playing samples
+## Using effects
 ]],
 
 markdown [[
-You can play a clip of sound using the **sample** command. Put the sample name in quotes.
+Apply an audio effect by using the **push_fx** command. Reverberation (**reverb**) adds a sense of space.
 ]],
 
 editor [[
-sample("tbd_fxbed_loop")
+push_fx("reverb_large",{wetLevel=0.8})
+sample("tbd_perc_tap_1")
 ]],
 
 markdown [[
-See the separate sheet for a list of samples. There are many to choose from. 
+Change the **wetLevel** to between 0 and 1 to vary the amount of effect. This example used a **delay** effect.
 ]],
 
 editor [[
-sample("tbd_voctone")
+push_fx("stereo_delay",{wetLevel=0.4})
+sample("tbd_perc_tap_2")
 ]],
 
 markdown [[
-Change the **rate** of the sample to get interesting effects. A rate less than 1 slows it down, greater than 1 speeds it up.
+Use **chorus** to thicken a sound.
 ]],
 
 editor [[
-sample("tbd_voctone",{rate=0.5})
+push_fx("chorus")
+use_synth("rolandtb")
+play(C2, {duration=2})
 ]],
 
 markdown [[
@@ -36,38 +40,40 @@ markdown [[
 ]],
 
 markdown [[
-Don't worry about using a sample straight. You can get a distinctive sound by changing the rate of a sample to extreme values.
-The same sample can be made into percussion ...
+Lines that start with `--` are **comments**, which are ignored. You can add and remove comments to quickly turn effects on and off.
 ]],
 
 editor [[
-sample("tbd_fxbed_loop",{rate=20})
+--push_fx("stereo_delay", {wetLevel=0.5})
+use_synth("breton")
+play(Cs6)
+sleep(1)
+play(As5)
+sleep(0.5)
+play(Fs5)
 ]],
 
 markdown [[
-... or an atmospheric background for your track.
+Use a **phaser** effect to add a sense of movement to a sound.
 ]],
 
 editor [[
-sample("tbd_fxbed_loop",{rate=0.1})
+push_fx("deep_phaser")
+use_synth("synthstrings")
+play(Ds4, {duration=4})
+play(C3, {duration=4})
+play(C2, {duration=4})
 ]],
 
 markdown [[
-You can also filter a sample to remove frequencies. Change the **cutoff** value to hear the effect.
+Create huge washes of sound by **chaining** effects together, such as a delay into a reverb, or a reverb into another reverb!
 ]],
 
 editor [[
-sample("tbd_pad_3",{cutoff=300})
-]],
-
-markdown [[
-You can also play samples with the **grain player**, which will stretch out a sample over time without changing its pitch.
-]],
-
-editor [[
-grains("tbd_pad_1",{duration=8,
-   size=0.9,
-   density=10})
+push_fx("stereo_delay", { feedback=0.6, wetLevel=0.8})
+push_fx("reverb_massive", {wetLevel=0.8})
+use_synth("submarine")
+play(C6, {level=0.8})
 ]],
 
 }

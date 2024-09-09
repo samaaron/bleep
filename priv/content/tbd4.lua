@@ -4,31 +4,35 @@ content = {
 
 markdown [[
 # A Techno Music Programming Masterclass With The Black Dog
-## Playing samples
+## Repetition using loops
 ]],
 
 markdown [[
-You can play a clip of sound using the **sample** command. Put the sample name in quotes.
+Often you want to repeat sequences of notes or drum sounds. We can do this using a **loop**. The **for** command is used to count the number of repetitions (in this case, 8)
 ]],
 
 editor [[
-sample("tbd_fxbed_loop")
+use_synth("rolandtb")
+for i = 1, 8 do
+  play(D2, {duration=0.25,
+            env_mod=0.7,
+            cutoff=600})
+  sleep(0.5)
+end
 ]],
 
 markdown [[
-See the separate sheet for a list of samples. There are many to choose from. 
+The symbol **i** is a **variable** that contains a number. The first time around the loop it contains 1, then 2 and so on until it reaches 8. Then the loop stops. Now try this - can you see why the sequence is longer and faster?
 ]],
 
 editor [[
-sample("tbd_voctone")
-]],
-
-markdown [[
-Change the **rate** of the sample to get interesting effects. A rate less than 1 slows it down, greater than 1 speeds it up.
-]],
-
-editor [[
-sample("tbd_voctone",{rate=0.5})
+use_synth("rolandtb")
+for i = 1, 16 do
+  play(D2, {duration=0.1,
+            env_mod=0.7,
+            cutoff=600})
+  sleep(0.25)
+end
 ]],
 
 markdown [[
@@ -36,38 +40,31 @@ markdown [[
 ]],
 
 markdown [[
-Don't worry about using a sample straight. You can get a distinctive sound by changing the rate of a sample to extreme values.
-The same sample can be made into percussion ...
+The variable in a loop can be accessed inside the loop by writing its name. That means we can use it to control synth parameters.
 ]],
 
 editor [[
-sample("tbd_fxbed_loop",{rate=20})
+use_synth("rolandtb")
+for i = 1, 16 do
+  play(D2, {duration=0.1,
+            env_mod=0.7,
+            cutoff=300 + 150 * i})
+  sleep(0.25)
+end
 ]],
 
 markdown [[
-... or an atmospheric background for your track.
+When controlling synth parameters you can directly use the range of numbers you want in the for command. You can also specify a **step**. This varies the cutoff parameter from 300 to 1800 in steps of 100.
 ]],
 
 editor [[
-sample("tbd_fxbed_loop",{rate=0.1})
-]],
-
-markdown [[
-You can also filter a sample to remove frequencies. Change the **cutoff** value to hear the effect.
-]],
-
-editor [[
-sample("tbd_pad_3",{cutoff=300})
-]],
-
-markdown [[
-You can also play samples with the **grain player**, which will stretch out a sample over time without changing its pitch.
-]],
-
-editor [[
-grains("tbd_pad_1",{duration=8,
-   size=0.9,
-   density=10})
+use_synth("rolandtb")
+for i = 300, 1800, 100 do
+  play(D2, {duration=0.1,
+            env_mod=0.7,
+            cutoff=i})
+  sleep(0.25)
+end
 ]],
 
 }

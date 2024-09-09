@@ -4,31 +4,40 @@ content = {
 
 markdown [[
 # A Techno Music Programming Masterclass With The Black Dog
-## Playing samples
+## Making a bass line
 ]],
 
 markdown [[
-You can play a clip of sound using the **sample** command. Put the sample name in quotes.
+You can make a bass line using **play** and **sleep**, using arrays to hold the note values and sleep times.
 ]],
 
 editor [[
-sample("tbd_fxbed_loop")
+use_synth("rolandtb")
+notes = {A1,A1,A1,A1,A1,A2,A1}
+sleeps = {0.5,1,1.5,1,0.5,1,2.5}
+for i = 1, 7 do
+  play(notes[i], {duration=0.25})
+  sleep(sleeps[i])
+end
 ]],
 
 markdown [[
-See the separate sheet for a list of samples. There are many to choose from. 
-]],
-
-editor [[
-sample("tbd_voctone")
+An array is just a list, so notes[i] means the ith note in the list. The first note is i[1], the second note is notes[2] and so on.
 ]],
 
 markdown [[
-Change the **rate** of the sample to get interesting effects. A rate less than 1 slows it down, greater than 1 speeds it up.
+The **rolandtb** synth simulates the sound of the classic Roland TB-303 Bassline synth. Play with the **cutoff**, **resonance** and **env_mod** (envelope modulation) controls.
 ]],
 
 editor [[
-sample("tbd_voctone",{rate=0.5})
+use_synth("rolandtb")
+notes = {A1,A1,A1,A1,A1,A2,A1}
+sleeps = {0.5,1,1.5,1,0.5,1,2.5}
+for i = 1, 7 do
+  play(notes[i],{duration=0.25,
+       cutoff=700,env_mod=0.7,resonance=12})
+  sleep(sleeps[i])
+end
 ]],
 
 markdown [[
@@ -36,38 +45,32 @@ markdown [[
 ]],
 
 markdown [[
-Don't worry about using a sample straight. You can get a distinctive sound by changing the rate of a sample to extreme values.
-The same sample can be made into percussion ...
+The interplay of the bass line and the drums is very important. Cue this drum loop in another box and listen to it with the bassline above. Now remove the sleep command and hear the difference.
 ]],
 
 editor [[
-sample("tbd_fxbed_loop",{rate=20})
+sleep(0.5)
+for i = 1, 6 do
+  drum_pattern("B--- B--- B--- B---", {
+     duration=0.25,
+     cutoff=700,
+     level=0.3,
+     B="bd_sone"})
+end
 ]],
 
 markdown [[
-... or an atmospheric background for your track.
+Sub-bass can be important to help set the groove and underpin the kick drum. But don't play it fast, speakers can't cope!
 ]],
 
 editor [[
-sample("tbd_fxbed_loop",{rate=0.1})
+sleep(0.5)
+use_synth("subbass")
+for i = 1, 6 do
+  play(A0, {duration=0.5,level=1.5})
+  sleep(4)
+end
 ]],
 
-markdown [[
-You can also filter a sample to remove frequencies. Change the **cutoff** value to hear the effect.
-]],
-
-editor [[
-sample("tbd_pad_3",{cutoff=300})
-]],
-
-markdown [[
-You can also play samples with the **grain player**, which will stretch out a sample over time without changing its pitch.
-]],
-
-editor [[
-grains("tbd_pad_1",{duration=8,
-   size=0.9,
-   density=10})
-]],
 
 }

@@ -4,31 +4,45 @@ content = {
 
 markdown [[
 # A Techno Music Programming Masterclass With The Black Dog
-## Playing samples
+## Drum patterns
 ]],
 
 markdown [[
-You can play a clip of sound using the **sample** command. Put the sample name in quotes.
+Let's make a techno drum pattern. Start with a kick drum on each beat. We use the **for** command to repeat the pattern 4 times.
 ]],
 
 editor [[
-sample("tbd_fxbed_loop")
+for i = 1, 4 do
+  drum_pattern("b--- b--- b--- b---", {
+  b ="bd_sone",
+  duration =0.25})
+end
 ]],
 
 markdown [[
-See the separate sheet for a list of samples. There are many to choose from. 
+Now put a hi-hat on the off-beat (in between the kick drum sounds).
 ]],
 
 editor [[
-sample("tbd_voctone")
+for i = 1, 4 do
+  drum_pattern("b-h- b-h- b-h- b-h-", {
+  b ="bd_sone",
+  h ="hat_gnu",
+  duration =0.25})
+end
 ]],
 
 markdown [[
-Change the **rate** of the sample to get interesting effects. A rate less than 1 slows it down, greater than 1 speeds it up.
+In a different code box, add faster hi-hats at a lower volume. Press **Cue** on each box to hear them play together in time.
 ]],
 
 editor [[
-sample("tbd_voctone",{rate=0.5})
+for i = 1, 4 do
+  drum_pattern("xxxx xxxx xxxx xxxx", {
+  x ="hat_metal",
+  duration =0.25,
+  level =0.1})
+end
 ]],
 
 markdown [[
@@ -36,38 +50,39 @@ markdown [[
 ]],
 
 markdown [[
-Don't worry about using a sample straight. You can get a distinctive sound by changing the rate of a sample to extreme values.
-The same sample can be made into percussion ...
+Start with  a short loop and try shifting one or two drum hits to create different rhythms.
 ]],
 
 editor [[
-sample("tbd_fxbed_loop",{rate=20})
+for i = 1, 4 do
+  drum_pattern("b-h- b-h- b-h- -bh-",{
+  b ="bd_sone",
+  h ="hat_gnu",
+  duration =0.25})
+end
 ]],
 
 markdown [[
-... or an atmospheric background for your track.
+Try swapping the hi-hat and kick for other sounds. They should be in the same part of the pitch space (low/middle/high) as the original sounds otherwise the mix will become "muddy".
 ]],
 
 editor [[
-sample("tbd_fxbed_loop",{rate=0.1})
+for i = 1, 4 do
+  drum_pattern("htbT bthb btTh TtTb",{
+     duration=0.25,
+     b="tbd_perc_blip",
+     h="tbd_perc_hat",
+     t="tbd_perc_tap_1",
+     T="tbd_perc_tap_2"})
+end
 ]],
 
 markdown [[
-You can also filter a sample to remove frequencies. Change the **cutoff** value to hear the effect.
+Use delay to turn simple rhythms into more complex ones. Add this line to one of the boxes above.
 ]],
 
 editor [[
-sample("tbd_pad_3",{cutoff=300})
-]],
-
-markdown [[
-You can also play samples with the **grain player**, which will stretch out a sample over time without changing its pitch.
-]],
-
-editor [[
-grains("tbd_pad_1",{duration=8,
-   size=0.9,
-   density=10})
+push_fx("stereo_delay",{wetLevel=0.2,feedback=0.1})
 ]],
 
 }
