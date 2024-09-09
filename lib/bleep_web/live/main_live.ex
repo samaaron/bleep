@@ -184,8 +184,9 @@ defmodule BleepWeb.MainLive do
     assigns = assign(assigns, :editor_name_input_id, "editor-name-input-#{frag_id}")
 
     ~H"""
-    <div class="pt-0 p-7">
-      <div class="pb-28" id={@editor_id}></div>
+    <div class="relative pt-0 p-7">
+      <div class="absolute -top-20" id={@editor_id}></div>
+
       <div
         id={@frag_id}
         class="relative editor-container"
