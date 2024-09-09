@@ -105,4 +105,9 @@
   input[type=range]:hover::-moz-range-thumb {
     border-color: #ea580c;
   }
+
+  a {
+    @apply text-pink-600 hover:text-pink-700;
+  }
+
 }
