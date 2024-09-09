@@ -117,7 +117,7 @@ defmodule BleepWeb.MainLive do
     frags = socket.assigns.frags
 
     Enum.filter(frags, &(&1[:editor_name] == name))
-      |> Enum.map(& &1[:frag_id])
+    |> Enum.map(& &1[:frag_id])
   end
 
   def load_user_content(socket, content) do
@@ -554,10 +554,14 @@ defmodule BleepWeb.MainLive do
   @impl true
   def handle_event(
         "cue-code",
-        %{"code" => code, "result_id" => result_id, "editor_id" => editor_id, "start_time_s" => nil},
+        %{
+          "code" => code,
+          "result_id" => result_id,
+          "editor_id" => editor_id,
+          "start_time_s" => nil
+        },
         socket
       ) do
-
     start_time_s = :erlang.system_time(:milli_seconds) / 1000
     cue_code(code, result_id, editor_id, start_time_s, socket)
   end
@@ -565,25 +569,42 @@ defmodule BleepWeb.MainLive do
   @impl true
   def handle_event(
         "cue-code",
-        %{"code" => code, "result_id" => result_id, "editor_id" => editor_id, "start_time_s" => start_time_s},
+        %{
+          "code" => code,
+          "result_id" => result_id,
+          "editor_id" => editor_id,
+          "start_time_s" => start_time_s
+        },
         socket
       ) do
     cue_code(code, result_id, editor_id, start_time_s, socket)
   end
 
   def handle_event(
-    "run-code",
-    %{"code" => code, "result_id" => result_id, "editor_id" => editor_id, "start_time_s" => nil},
-    socket) do
-      start_time_s = :erlang.system_time(:milli_seconds) / 1000
-      {:noreply, eval_and_display(socket, "run", editor_id, start_time_s, code, result_id)}
+        "run-code",
+        %{
+          "code" => code,
+          "result_id" => result_id,
+          "editor_id" => editor_id,
+          "start_time_s" => nil
+        },
+        socket
+      ) do
+    start_time_s = :erlang.system_time(:milli_seconds) / 1000
+    {:noreply, eval_and_display(socket, "run", editor_id, start_time_s, code, result_id)}
   end
 
   def handle_event(
-    "run-code",
-    %{"code" => code, "result_id" => result_id, "editor_id" => editor_id, "start_time_s" => start_time_s},
-    socket) do
-      {:noreply, eval_and_display(socket, "run", editor_id, start_time_s, code, result_id)}
+        "run-code",
+        %{
+          "code" => code,
+          "result_id" => result_id,
+          "editor_id" => editor_id,
+          "start_time_s" => start_time_s
+        },
+        socket
+      ) do
+    {:noreply, eval_and_display(socket, "run", editor_id, start_time_s, code, result_id)}
   end
 
   def cue_code(code, result_id, editor_id, start_time_s, socket) do
@@ -601,6 +622,7 @@ defmodule BleepWeb.MainLive do
 
   def display_eval_result(socket, {:exception, e, trace}, result_id) do
     Logger.error(Exception.format(:error, e, trace))
+
     socket
     |> push_event("update-luareplres", %{
       lua_repl_result: "Internal Exception",
@@ -647,7 +669,12 @@ defmodule BleepWeb.MainLive do
       init_code = socket.assigns.init_code
       bpm = socket.assigns.bleep_default_bpm
       user_id = socket.assigns.user_id
-      res = Bleep.Lang.start_run(run_tag, user_id, editor_id, start_time_s, code, init_code, %{bpm: bpm})
+
+      res =
+        Bleep.Lang.start_run(run_tag, user_id, editor_id, start_time_s, code, init_code, %{
+          bpm: bpm
+        })
+
       display_eval_result(socket, res, result_id)
     end
   end
@@ -662,11 +689,14 @@ defmodule BleepWeb.MainLive do
   @impl true
   def handle_info({:run_editor_with_name, name, start_time_s}, socket) do
     editor_ids = editor_ids_from_name(socket, name)
+
     {:noreply,
-    Enum.reduce(editor_ids, socket, fn editor_id, acc_socket ->
-      push_event(acc_socket, "run-editor-with-id", %{editor_id: editor_id, start_time_s: start_time_s})
-    end)
-    }
+     Enum.reduce(editor_ids, socket, fn editor_id, acc_socket ->
+       push_event(acc_socket, "run-editor-with-id", %{
+         editor_id: editor_id,
+         start_time_s: start_time_s
+       })
+     end)}
   end
 
   def id_send(user_id, msg) do
