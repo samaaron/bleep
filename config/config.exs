@@ -39,7 +39,7 @@ config :esbuild,
       js/lib/bleep_prescheduler.worker.js
       --bundle
       --target=es2017
-      --outdir=../priv/static/assets/workers/),
+      --outdir=../priv/static/assets/),
     cd: Path.expand("../assets", __DIR__)
   ],
   monaco_editor: [

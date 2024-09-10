@@ -6,7 +6,7 @@ export default class BleepPrescheduler {
 
   constructor(bleepAudio) {
     this.#bleep_audio = bleepAudio;
-    this.#worker = new Worker("assets/workers/bleep_prescheduler.worker.js");
+    this.#worker = new Worker("/assets/bleep_prescheduler.worker.js");
 
     this.#worker.onmessage = (e) => {
       const data = e.data;
