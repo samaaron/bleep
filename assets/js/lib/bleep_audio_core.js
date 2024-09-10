@@ -10,8 +10,7 @@ export default class BleepAudioCore {
   #started = false;
   #init_promise = null;
 
-  constructor() {
-  }
+  constructor() {}
 
   async idempotentInitAudio() {
     if (this.#started) {
@@ -115,7 +114,7 @@ export default class BleepAudioCore {
 
   loadSample(sample_name) {
     this.#audio_engine.loadSample(sample_name);
-    console.log("cached sample", sample_name);
+    // console.log("cached sample", sample_name);
   }
 
   preloadFX(fx_name) {
@@ -131,7 +130,7 @@ export default class BleepAudioCore {
 
   triggerSample(time, sample_name, output_id, opts) {
     const audio_context_sched_s = this.#clockTimeToAudioTime(time);
-    console.log("triggering sample", sample_name, output_id, opts);
+    // console.log("triggering sample", sample_name, output_id, opts);
     const output_node = this.#resolveOutputId(output_id);
     this.#audio_engine.playSample(
       audio_context_sched_s,
@@ -143,7 +142,7 @@ export default class BleepAudioCore {
 
   triggerGrains(time, sample_name, output_id, opts) {
     const audio_context_sched_s = this.#clockTimeToAudioTime(time);
-    console.log("triggering grains", sample_name, output_id, opts);
+    // console.log("triggering grains", sample_name, output_id, opts);
 
     const output_node = this.#resolveOutputId(output_id);
     this.#audio_engine.playGrains(
