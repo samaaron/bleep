@@ -80,7 +80,9 @@ function scheduleNextEvent() {
   }
 
   const [adjustedTimeS] = scheduledEvents[0];
-  addRunNextEventTimer(adjustedTimeS);
+  if (!currentTimer || (currentTimer && currentTimer.timeS > adjustedTimeS)) {
+    addRunNextEventTimer(adjustedTimeS);
+  }
 }
 
 function clearCurrentTimer() {
