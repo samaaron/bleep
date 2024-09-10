@@ -118,8 +118,9 @@ function runNextEvent() {
   const schedDeltaS = adjustedTimeS - nowS;
   if (schedDeltaS < 0) {
     self.postMessage({
-      action: "consoleLog",
-      logMsg: `Late audio event! ${((schedDeltaS * -1).toFixed(3), msg)}`,
+      action: "logLate",
+      schedDeltaS,
+      msg,
     });
   }
 

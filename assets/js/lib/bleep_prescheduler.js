@@ -14,8 +14,8 @@ export default class BleepPrescheduler {
         case "timedDispatch":
           this.#bleep_audio.jsonDispatch(data.adjustedTimeS, data.msg);
           break;
-        case "consoleLog":
-          console.log(data.logMsg);
+        case "logLate":
+          console.log("Late audio event", (data.schedDeltaS * -1).toFixed(3), data.msg);
           break;
       }
     };
