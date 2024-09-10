@@ -34,6 +34,14 @@ config :esbuild,
     cd: Path.expand("../assets", __DIR__),
     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
   ],
+  web_workers: [
+    args: ~w(
+      js/lib/bleep_prescheduler.worker.js
+      --bundle
+      --target=es2017
+      --outdir=../priv/static/assets/workers/),
+    cd: Path.expand("../assets", __DIR__)
+  ],
   monaco_editor: [
     args: ~w(
       vendor/monaco-editor/esm/vs/editor/editor.worker.js

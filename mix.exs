@@ -70,6 +70,7 @@ defmodule Bleep.MixProject do
         "esbuild default",
         "esbuild monaco_editor",
         "esbuild synth_designer_live",
+        "esbuild web_workers",
         "esbuild synth_designer"
       ],
       "assets.deploy": [
@@ -78,6 +79,7 @@ defmodule Bleep.MixProject do
         "esbuild default --minify",
         "esbuild monaco_editor --minify",
         "esbuild synth_designer_live --minify",
+        "esbuild web_workers --minify",
         "esbuild synth_designer --minify",
         "phx.digest"
       ]
