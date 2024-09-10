@@ -162,10 +162,10 @@ export default class BleepComms {
         this.#server_time_info.ping_times.enq(roundtrip_time_s);
         const average_ping_time = this.#average_ping_time();
         const average_one_way_trip_time = average_ping_time / 2;
-        const delta_s =
-          resp.server_timestamp - (start_time_s + average_one_way_trip_time);
+        const adjusted_client_start_time = start_time_s - average_one_way_trip_time;
+        const client_server_delta = adjusted_client_start_time - resp.server_timestamp;
         this.#server_time_info.ping_s = average_ping_time;
-        this.#server_time_info.delta_s = delta_s;
+        this.#server_time_info.delta_s = client_server_delta;
       })
       .receive("error", (resp) => {
         console.log("Unable to send time sync", resp);
