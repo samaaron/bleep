@@ -11,7 +11,7 @@ defmodule BleepWeb.MainLive do
     socket =
       socket
       |> assign(:page_title, "Bleep")
-      |> assign(:loop_timer_refs, %{})
+      |> assign(:all_loop_info, %{})
 
     if connected?(socket) do
       # TODO - check what happens here when the URL is changed in the browser
@@ -114,6 +114,33 @@ defmodule BleepWeb.MainLive do
     |> assign(:frags, new_frags)
   end
 
+  def cancel_all_editors_looping(socket) do
+    frags = socket.assigns.frags
+
+    Enum.map(frags, fn frag ->
+      cancel_editor_looping(socket, frag[:frag_id])
+    end)
+
+    assign(socket, :all_loop_info, %{})
+  end
+
+  def cancel_editor_looping(socket, editor_id) do
+    all_loop_info = socket.assigns.all_loop_info
+    loop_info = all_loop_info[editor_id]
+
+    if loop_info do
+      ref = loop_info[:timer_ref]
+      Process.cancel_timer(ref)
+      user_id = socket.assigns.user_id
+      next_loop_run_tag = loop_info[:next_loop_run_tag]
+      Bleep.Lang.stop_editor_cues(user_id, editor_id, next_loop_run_tag)
+      updated_all_loop_info = Map.delete(all_loop_info, editor_id)
+      assign(socket, :all_loop_info, updated_all_loop_info)
+    else
+      socket
+    end
+  end
+
   def toggle_editor_loop_mode(socket, editor_id) do
     frags = socket.assigns.frags
 
@@ -126,8 +153,15 @@ defmodule BleepWeb.MainLive do
         end
       end)
 
-    socket
-    |> assign(:frags, new_frags)
+    updated_socket = assign(socket, :frags, new_frags)
+
+    now_looping = is_loop_mode?(updated_socket, editor_id)
+
+    if(now_looping) do
+      updated_socket
+    else
+      cancel_editor_looping(updated_socket, editor_id)
+    end
   end
 
   def is_loop_mode?(socket, editor_id) do
@@ -612,7 +646,8 @@ defmodule BleepWeb.MainLive do
   def handle_event("stop_all", _value, socket) do
     user_id = socket.assigns.user_id
     Bleep.Lang.stop_all_runs(user_id)
-    {:noreply, socket}
+
+    {:noreply, cancel_all_editors_looping(socket)}
   end
 
   @impl true
@@ -623,7 +658,7 @@ defmodule BleepWeb.MainLive do
       ) do
     user_id = socket.assigns.user_id
     Bleep.Lang.stop_editor(user_id, editor_id)
-    {:noreply, socket}
+    {:noreply, cancel_editor_looping(socket, editor_id)}
   end
 
   @impl true
@@ -637,14 +672,8 @@ defmodule BleepWeb.MainLive do
         },
         socket
       ) do
-    now_s = :erlang.system_time(:milli_seconds) / 1000
-    quantum = socket.assigns.bleep_default_quantum
-    bpm = socket.assigns.bleep_default_bpm
-    now_ms = round(now_s * 1000)
-    bar_duration_ms = round(quantum * (60.0 / bpm) * 1000)
-    offset_ms = bar_duration_ms - rem(now_ms, bar_duration_ms)
-    start_time_s = (now_ms + offset_ms) / 1000.0
-    cue_code(code, result_id, editor_id, start_time_s, socket)
+    start_time_s = time_of_next_bar_s(socket)
+    cue_or_loop_code(code, result_id, editor_id, start_time_s, socket)
   end
 
   @impl true
@@ -658,7 +687,7 @@ defmodule BleepWeb.MainLive do
         },
         socket
       ) do
-    cue_code(code, result_id, editor_id, start_time_s, socket)
+    cue_or_loop_code(code, result_id, editor_id, start_time_s, socket)
   end
 
   def handle_event(
@@ -674,7 +703,7 @@ defmodule BleepWeb.MainLive do
     start_time_s = :erlang.system_time(:milli_seconds) / 1000
 
     {socket, _duration} =
-      eval_and_display(socket, "run", editor_id, start_time_s, code, result_id, false)
+      eval_and_display(socket, "run", editor_id, start_time_s, code, result_id)
 
     {:noreply, socket}
   end
@@ -690,7 +719,7 @@ defmodule BleepWeb.MainLive do
         socket
       ) do
     {socket, _duration} =
-      eval_and_display(socket, "run", editor_id, start_time_s, code, result_id, false)
+      eval_and_display(socket, "run", editor_id, start_time_s, code, result_id)
 
     {:noreply, socket}
   end
@@ -703,42 +732,163 @@ defmodule BleepWeb.MainLive do
     {:noreply, toggle_editor_loop_mode(socket, editor_id)}
   end
 
-  def cue_code(code, result_id, editor_id, start_time_s, socket) do
+  def cue_or_loop_code(code, result_id, editor_id, start_time_s, socket) do
+    if is_loop_mode?(socket, editor_id) do
+      loop_code(code, result_id, editor_id, start_time_s, socket)
+    else
+      cue_code(code, result_id, editor_id, start_time_s, socket)
+    end
+  end
+
+  def init_loop_code(code, result_id, editor_id, start_time_s, socket) do
     now_ms = :erlang.system_time(:milli_seconds)
-    start_time_ms = start_time_s * 1000
-    loop_mode = is_loop_mode?(socket, editor_id)
     user_id = socket.assigns.user_id
-    loop_timer_refs = socket.assigns[:loop_timer_refs]
+    start_time_ms = start_time_s * 1000
+
     run_tag = "cue-#{start_time_s}"
     Bleep.Lang.stop_editor_cues(user_id, editor_id, run_tag)
 
-    {socket, duration_s} =
-      eval_and_display(socket, run_tag, editor_id, start_time_s, code, result_id, loop_mode)
+    {socket, loop_duration_s} =
+      eval_and_display(socket, run_tag, editor_id, start_time_s, code, result_id)
 
-    # If there is an existing timer, cancel it
-    editor_loop_timer_ref = loop_timer_refs[editor_id]
+    next_loop_start_time_s = start_time_s + loop_duration_s
+    next_loop_run_tag = "cue-#{next_loop_start_time_s}"
+    timer_sleep_time_ms = max(0, round(start_time_ms - now_ms))
 
-    if editor_loop_timer_ref do
-      Process.cancel_timer(editor_loop_timer_ref)
-    end
-
-    # Set the new timer and store its reference in the socket assigns
-    if loop_mode && duration_s > 0 do
+    if timer_sleep_time_ms > 0 do
       timer_ref =
         Process.send_after(
           self(),
-          {:cue_code_loop, code, result_id, editor_id, start_time_s + duration_s},
-          round(start_time_ms - now_ms)
+          {:cue_code_loop, editor_id, next_loop_start_time_s},
+          timer_sleep_time_ms
         )
 
-      loop_timer_refs = Map.put(loop_timer_refs, editor_id, timer_ref)
+      editor_loop_info = %{
+        code: code,
+        editor_id: editor_id,
+        result_id: result_id,
+        start_time_s: start_time_s,
+        run_tag: run_tag,
+        next_loop_run_tag: next_loop_run_tag,
+        loop_duration_s: loop_duration_s,
+        timer_ref: timer_ref,
+        next_loop_start_time_s: next_loop_start_time_s
+      }
 
-      # Assign the new timer reference to the socket
-      {:noreply, assign(socket, :loop_timer_refs, loop_timer_refs)}
+      all_loop_info = socket.assigns.all_loop_info
+      updated_loop_info = Map.put(all_loop_info, editor_id, editor_loop_info)
+
+      {:noreply, assign(socket, :all_loop_info, updated_loop_info)}
     else
-      loop_timer_refs = Map.delete(loop_timer_refs, editor_id)
-      {:noreply, assign(socket, :loop_timer_refs, loop_timer_refs)}
+      {:noreply, socket}
     end
+  end
+
+  def update_loop_code(code, editor_id, socket) do
+    all_loop_info = socket.assigns.all_loop_info
+    loop_info = all_loop_info[editor_id]
+    loop_code = loop_info[:code]
+
+    if code == loop_code do
+      {:noreply, socket}
+    else
+      next_loop_start_time_s = loop_info[:next_loop_start_time_s]
+      next_loop_run_tag = loop_info[:next_loop_run_tag]
+      run_tag = loop_info[:run_tag]
+      start_time_s = loop_info[:start_time_s]
+      user_id = socket.assigns.user_id
+      result_id = loop_info[:result_id]
+
+      Bleep.Lang.stop_editor_cues(user_id, editor_id, run_tag)
+
+      {socket, next_loop_duration_s} =
+        eval_and_display(
+          socket,
+          run_tag,
+          editor_id,
+          start_time_s,
+          code,
+          result_id
+        )
+
+      updated_loop_info =
+        loop_info
+        |> Map.put(:code, code)
+        |> Map.put(:loop_duration_s, next_loop_duration_s)
+
+      updated_all_loop_info = Map.put(all_loop_info, editor_id, updated_loop_info)
+
+      {:noreply, assign(socket, :all_loop_info, updated_all_loop_info)}
+    end
+  end
+
+  def reloop_code(socket, editor_id, start_time_s) do
+    now_ms = :erlang.system_time(:milli_seconds)
+    all_loop_info = socket.assigns.all_loop_info
+    loop_info = all_loop_info[editor_id]
+    code = loop_info[:code]
+    result_id = loop_info[:result_id]
+    start_time_ms = start_time_s * 1000
+
+    if(start_time_s !== loop_info[:next_loop_start_time_s]) do
+      Logger.error(
+        "loop error - times don't match - #{start_time_s} != #{loop_info[:next_loop_start_time_s]}"
+      )
+    end
+
+    run_tag = "cue-#{start_time_s}"
+
+    {socket, next_loop_duration_s} =
+      eval_and_display(socket, run_tag, editor_id, start_time_s, code, result_id)
+
+    next_loop_start_time_s = start_time_s + next_loop_duration_s
+    next_loop_run_tag = "cue-#{next_loop_start_time_s}"
+    timer_sleep_time_ms = max(0, round(start_time_ms - now_ms))
+
+    if timer_sleep_time_ms > 0 do
+      timer_ref =
+        Process.send_after(
+          self(),
+          {:cue_code_loop, editor_id, next_loop_start_time_s},
+          timer_sleep_time_ms
+        )
+
+      updated_loop_info =
+        loop_info
+        |> Map.put(:loop_duration_s, next_loop_duration_s)
+        |> Map.put(:start_time_s, start_time_s)
+        |> Map.put(:next_loop_start_time_s, next_loop_start_time_s)
+        |> Map.put(:run_tag, run_tag)
+        |> Map.put(:next_loop_run_tag, next_loop_run_tag)
+        |> Map.put(:timer_ref, timer_ref)
+
+      updated_all_loop_info = Map.put(all_loop_info, editor_id, updated_loop_info)
+
+      {:noreply, assign(socket, :all_loop_info, updated_all_loop_info)}
+    else
+      {:noreply, cancel_editor_looping(socket, editor_id)}
+    end
+  end
+
+  def loop_code(code, result_id, editor_id, start_time_s, socket) do
+    loop_info = socket.assigns.all_loop_info[editor_id]
+
+    if(!loop_info) do
+      init_loop_code(code, result_id, editor_id, start_time_s, socket)
+    else
+      update_loop_code(code, editor_id, socket)
+    end
+  end
+
+  def cue_code(code, result_id, editor_id, start_time_s, socket) do
+    user_id = socket.assigns.user_id
+    run_tag = "cue-#{start_time_s}"
+    Bleep.Lang.stop_editor_cues(user_id, editor_id, run_tag)
+
+    {socket, _duration_s} =
+      eval_and_display(socket, run_tag, editor_id, start_time_s, code, result_id)
+
+    {:noreply, socket}
   end
 
   def display_eval_result(socket, {:exception, e, trace}, result_id) do
@@ -783,7 +933,7 @@ defmodule BleepWeb.MainLive do
     })
   end
 
-  def eval_and_display(socket, run_tag, editor_id, start_time_s, code, result_id, loop) do
+  def eval_and_display(socket, run_tag, editor_id, start_time_s, code, result_id) do
     if byte_size(code) > 1024 * 10 do
       display_eval_result(socket, {:error, "code too large to run", nil}, result_id)
     else
@@ -793,8 +943,7 @@ defmodule BleepWeb.MainLive do
 
       {res, duration} =
         Bleep.Lang.start_run(run_tag, user_id, editor_id, start_time_s, code, init_code, %{
-          bpm: bpm,
-          loop: loop
+          bpm: bpm
         })
 
       socket = display_eval_result(socket, res, result_id)
@@ -823,12 +972,25 @@ defmodule BleepWeb.MainLive do
   end
 
   @impl true
-  def handle_info({:cue_code_loop, code, result_id, editor_id, start_time_s}, socket) do
+  def handle_info({:cue_code_loop, editor_id, start_time_s}, socket) do
     if is_loop_mode?(socket, editor_id) do
-      cue_code(code, result_id, editor_id, start_time_s, socket)
+      reloop_code(socket, editor_id, start_time_s)
     else
       {:noreply, socket}
     end
+  end
+
+  def bar_duration_ms(socket) do
+    quantum = socket.assigns.bleep_default_quantum
+    bpm = socket.assigns.bleep_default_bpm
+    round(quantum * (60.0 / bpm) * 1000)
+  end
+
+  def time_of_next_bar_s(socket) do
+    now_ms = :erlang.system_time(:milli_seconds)
+    bar_ms = bar_duration_ms(socket)
+    offset_ms = bar_ms - rem(now_ms, bar_ms)
+    (now_ms + offset_ms) / 1000.0
   end
 
   def id_send(user_id, msg) do
