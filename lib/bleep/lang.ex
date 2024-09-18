@@ -254,6 +254,7 @@ defmodule Bleep.Lang do
         {:ok, _res, lua} = Bleep.VM.eval(lua, init_code)
         {state, res, lua} = Bleep.VM.eval(lua, code)
         duration = Bleep.VM.get_global(lua, "__bleep_core_global_time")
+        {:ok, _res, _lua} = Bleep.VM.eval(lua, "sleep(10)\npop_all_fx()")
 
         {{state, res, lua}, duration}
       rescue
