@@ -204,7 +204,6 @@ defmodule Bleep.Lang do
       end
 
     bpm = opts[:bpm] || 60
-    loop = opts[:loop] || false
     run_id = UUID.uuid4()
 
     # Note - this needs to match the id in BleepEditorHook

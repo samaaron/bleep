@@ -715,8 +715,6 @@ defmodule BleepWeb.MainLive do
     {socket, duration_s} =
       eval_and_display(socket, run_tag, editor_id, start_time_s, code, result_id, loop_mode)
 
-    duration_ms = duration_s * 1000
-
     # If there is an existing timer, cancel it
     editor_loop_timer_ref = loop_timer_refs[editor_id]
 
