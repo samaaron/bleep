@@ -96,11 +96,15 @@ export default class BleepAudioCore {
     }
   }
 
-  releaseFX(time, id) {
+  releaseFX(timeS, id) {
+    const timeMS = timeS * 1000;
+    const nowMS = Date.now();
     if (this.#running_fx.has(id)) {
-      const fx = this.#running_fx.get(id);
-      this.#running_fx.delete(id);
-      fx.stop();
+      setTimeout(() => {
+        const fx = this.#running_fx.get(id);
+        this.#running_fx.delete(id);
+        fx.stop();
+      }, timeMS - nowMS);
     }
   }
 
