@@ -53,6 +53,12 @@ function pop_fx()
   __bleep_ex_stop_fx(uuid)
 end
 
+function pop_all_fx()
+  for n = 2, #__bleep_core_current_fx_stack do
+    pop_fx()
+  end
+end
+
 function use_synth(s)
   __bleep_core_current_synth = s
 end
