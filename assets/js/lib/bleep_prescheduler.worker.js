@@ -2,8 +2,8 @@
 
 let scheduledEvents = [];
 let currentTimer = null;
-let timeDeltas = new Map();
-const minimumScheduleRequirementS = 0.1;
+let cachedTimeDelta = null;
+const minimumScheduleRequirementS = 0.2;
 const latencyS = 0.5;
 
 self.onmessage = function (e) {
@@ -30,26 +30,17 @@ self.onmessage = function (e) {
       cancelAllTags();
       break;
     case "resetTimeDeltas":
-      resetTimeDeltas();
-      break;
-    case "gc":
-      gc();
+      resetTimeDelta();
       break;
   }
 };
 
-function getOrSetTimeDelta(runId, delta) {
-  const res = timeDeltas.get(runId);
-  const now = Date.now() / 1000;
-
-  if (!res) {
-    timeDeltas.set(runId, [delta, now]);
-    return delta;
-  } else {
-    const [currentDelta, _ts] = res;
-    timeDeltas.set(runId, [currentDelta, now]);
-    return currentDelta;
+function getOrSetTimeDelta(delta) {
+  if (!cachedTimeDelta) {
+    cachedTimeDelta = delta;
   }
+
+  return cachedTimeDelta;
 }
 
 function scheduleEvent(
@@ -61,7 +52,7 @@ function scheduleEvent(
   timeDeltaS,
   msg
 ) {
-  const runIdCachedDeltaS = getOrSetTimeDelta(runId, timeDeltaS);
+  const runIdCachedDeltaS = getOrSetTimeDelta(timeDeltaS);
   const adjustedTimeS = timeS + runIdCachedDeltaS + latencyS;
   insertEvent(userId, editorId, runId, runTag, adjustedTimeS, msg);
 }
@@ -113,19 +104,7 @@ function runNextEvent() {
   if (scheduledEvents.length === 0) {
     return;
   }
-
   const [adjustedTimeS, _info, msg] = scheduledEvents.shift();
-
-  const nowS = Date.now() / 1000;
-  const schedDeltaS = adjustedTimeS - nowS;
-  if (schedDeltaS < 0) {
-    self.postMessage({
-      action: "logLate",
-      schedDeltaS,
-      msg,
-    });
-  }
-
   self.postMessage({ action: "timedDispatch", adjustedTimeS, msg });
   scheduleNextEvent();
 }
@@ -147,18 +126,6 @@ function cancelAllTags() {
   scheduleNextEvent();
 }
 
-function resetTimeDeltas() {
-  timeDeltas = new Map();
-}
-
-function gc() {
-  // stop this.#time_deltas from continuously growing
-  // by pruning things that are older than 5 seconds
-  const now = Date.now() / 1000;
-  for (let [key, [_delta, ts]] of timeDeltas) {
-    // If the timestamp is less than the given timestamp, delete the entry
-    if (ts + 5 < now) {
-      timeDeltas.delete(key);
-    }
-  }
+function resetTimeDelta() {
+  cachedTimeDelta = null;
 }

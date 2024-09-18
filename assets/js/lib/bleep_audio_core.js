@@ -202,6 +202,9 @@ export default class BleepAudioCore {
   }
 
   jsonDispatch(adjusted_time_s, json) {
+    const now_s = Date.now() / 1000;
+    const delta_s = adjusted_time_s - now_s
+
     switch (json.cmd) {
       case "triggerOneShotSynth":
         this.triggerOneShotSynth(

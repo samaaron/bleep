@@ -14,13 +14,8 @@ export default class BleepPrescheduler {
         case "timedDispatch":
           this.#bleep_audio.jsonDispatch(data.adjustedTimeS, data.msg);
           break;
-        case "logLate":
-          console.log("Late audio event", (data.schedDeltaS * -1).toFixed(3), data.msg);
-          break;
       }
     };
-
-    this.#start_gc();
   }
 
   schedule(userId, editorId, runId, runTag, timeS, timeDeltaS, msg) {
@@ -60,14 +55,8 @@ export default class BleepPrescheduler {
 
   reset_time_deltas() {
     this.#worker.postMessage({
-      action: "cancelEditor",
+      action: "resetTimeDeltas",
     });
-  }
-
-  #start_gc() {
-    setInterval(() => {
-      this.#worker.postMessage({action: "gc"});
-    }, 5000);
   }
 
   #pre_schedule(msg) {
