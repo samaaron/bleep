@@ -7,12 +7,14 @@ const BleepEditorHook = {
     const run_button_id = this.el.dataset.runButtonId;
     const cue_button_id = this.el.dataset.cueButtonId;
     const stop_button_id = this.el.dataset.stopButtonId;
+    const loop_button_id = this.el.dataset.loopButtonId;
     const editor_id = this.el.dataset.editorId;
     const result_id = this.el.dataset.resultId;
     const scope_id = this.el.dataset.scopeId;
     const run_buttons = document.querySelectorAll(`.${run_button_id}`);
     const cue_buttons = document.querySelectorAll(`.${cue_button_id}`);
     const stop_buttons = document.querySelectorAll(`.${stop_button_id}`);
+    const loop_buttons = document.querySelectorAll(`.${loop_button_id}`);
     const container = this.el.querySelector("[monaco-code-editor]");
     const scopes = document.querySelectorAll(`.${scope_id}`);
 
@@ -28,7 +30,7 @@ const BleepEditorHook = {
     );
 
     window.addEventListener(`phx:run-editor-with-id`, (e) => {
-      if(e.detail.editor_id === editor_id) {
+      if (e.detail.editor_id === editor_id) {
         evalCode("run-code", e.detail.start_time_s);
       }
     });
@@ -60,7 +62,7 @@ const BleepEditorHook = {
             path: path,
             result_id: result_id,
             editor_id: editor_id,
-            start_time_s: start_time_s
+            start_time_s: start_time_s,
           });
         } catch (error) {
           formatted = code;
@@ -79,6 +81,14 @@ const BleepEditorHook = {
     cue_buttons.forEach((cue_button) => {
       cue_button.addEventListener("click", (e) => {
         evalCode("cue-code");
+      });
+    });
+
+    loop_buttons.forEach((loop_button) => {
+      loop_button.addEventListener("click", (e) => {
+        this.pushEvent("toggle-loop-cue", {
+          editor_id: editor_id,
+        });
       });
     });
 

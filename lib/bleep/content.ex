@@ -38,7 +38,8 @@ defmodule Bleep.Content do
           lang = "lua",
           content = content,
           frag_id = frag_id,
-          editor_name = name
+          editor_name = name,
+          loop_cue = false
         }
       end
 

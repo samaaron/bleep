@@ -11,6 +11,7 @@ defmodule BleepWeb.MainLive do
     socket =
       socket
       |> assign(:page_title, "Bleep")
+      |> assign(:loop_timer_refs, %{})
 
     if connected?(socket) do
       # TODO - check what happens here when the URL is changed in the browser
@@ -113,6 +114,32 @@ defmodule BleepWeb.MainLive do
     |> assign(:frags, new_frags)
   end
 
+  def toggle_editor_loop_cue(socket, editor_id) do
+    frags = socket.assigns.frags
+
+    new_frags =
+      Enum.map(frags, fn frag ->
+        if frag[:frag_id] == editor_id do
+          Map.put(frag, :loop_cue, !frag[:loop_cue])
+        else
+          frag
+        end
+      end)
+
+    socket
+    |> assign(:frags, new_frags)
+  end
+
+  def is_loop_cue?(socket, editor_id) do
+    frags = socket.assigns.frags
+
+    Enum.find_value(frags, fn frag ->
+      if frag[:frag_id] == editor_id do
+        frag[:loop_cue]
+      end
+    end)
+  end
+
   def editor_ids_from_name(socket, name) do
     frags = socket.assigns.frags
 
@@ -176,6 +203,8 @@ defmodule BleepWeb.MainLive do
     assigns = assign(assigns, :editor_id, "editor-#{frag_id}")
     assigns = assign(assigns, :run_button_id, "run-button-#{frag_id}")
     assigns = assign(assigns, :cue_button_id, "cue-button-#{frag_id}")
+    assigns = assign(assigns, :editor_buttons_id, "editor-buttons-#{frag_id}")
+    assigns = assign(assigns, :loop_button_id, "loop-button-#{frag_id}")
     assigns = assign(assigns, :stop_button_id, "stop-button-#{frag_id}")
     assigns = assign(assigns, :monaco_path, "#{frag_id}.lua")
     assigns = assign(assigns, :monaco_id, "monaco-#{frag_id}")
@@ -187,6 +216,108 @@ defmodule BleepWeb.MainLive do
     <div class="relative pt-0 p-7">
       <div class="absolute -top-20" id={@editor_id}></div>
 
+      <div class="z-10 p-0 top-20 bg-zinc-950">
+        <div id={@editor_buttons_id} class="z-20 flex pt-0 bg-zinc-900">
+          <button
+            class={"#{@run_button_id} flex items-center justify-center px-2 mt-5 mb-0 mr-1 text-sm font-bold text-blue-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-blue-600 hover:text-zinc-200"}
+            aria-label="Run code"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="12"
+              height="12"
+              viewBox="0 0 22 20"
+              fill="none"
+              stroke="#e4e4e7"
+              stroke-width="1"
+              class="mr-1"
+            >
+              <path d="M2 2 L18 10 L2 18 Z" />
+            </svg>
+            Run
+          </button>
+
+          <button
+            class={"#{@cue_button_id} flex items-center justify-center px-2 mt-5 mr-0 text-sm font-bold text-blue-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-blue-600 hover:text-zinc-200"}
+            aria-label="Cue or Loop code"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="12"
+              height="12"
+              viewBox="0 0 22 20"
+              fill="none"
+              stroke="#e4e4e7"
+              stroke-width="1"
+              class="mr-1"
+            >
+              <path d="M2 2 L10 10 L2 18 Z" />
+              <path d="M12 2 L20 10 L12 18 Z" />
+            </svg>
+            <%= if @loop_cue, do: "Loop", else: "Cue" %>
+          </button>
+
+          <button
+            class={"#{@loop_button_id} #{if @loop_cue, do: "bg-pink-600 hover:bg-pink-600", else: " hover:bg-blue-600"} border-zinc-600 flex items-center justify-center px-2 mt-5 mr-1 text-sm font-bold text-blue-600 border rounded-sm hover:text-zinc-200"}
+            aria-label="Toggle Loop mode"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="15"
+              height="13"
+              viewBox="0 0 576.469 576.469"
+              fill="none"
+              stroke="#e4e4e7"
+              stroke-width="15"
+            >
+              <g transform="translate(10, 0)">
+                <path d="M275.762,95.253v38.955l116.228-67.104L275.762,0v39.283c-69.728,2.266-134.601,34.249-178.988,88.56l43.305,35.392
+                  C173.798,121.976,222.893,97.493,275.762,95.253z" />
+                <path d="M537.185,275.761c-2.268-69.73-34.25-134.602-88.562-178.989l-35.391,43.305c41.258,33.719,65.74,82.814,67.979,135.684
+                  h-38.951l67.104,116.228l67.105-116.228H537.185z" />
+                <path d="M300.706,481.211V442.26l-116.227,67.104l116.227,67.105v-39.285c69.73-2.268,134.604-34.25,178.988-88.562L436.39,413.23
+                  C402.671,454.488,353.575,478.971,300.706,481.211z" />
+                <path d="M95.255,300.705h38.953L67.106,184.477L0.001,300.705h39.284c2.267,69.729,34.249,134.604,88.56,178.988l35.392-43.305
+                  C121.978,402.67,97.495,353.574,95.255,300.705z" />
+              </g>
+            </svg>
+          </button>
+
+          <button
+            class={"#{@stop_button_id} flex items-center justify-center px-2 mt-5 mr-1 text-sm font-bold text-orange-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-orange-600 hover:text-zinc-200"}
+            aria-label="Stop code"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="12"
+              height="12"
+              viewBox="0 0 22 22"
+              fill="none"
+              stroke="#e4e4e7"
+              stroke-width="1"
+              class="mr-1"
+            >
+              <rect x="2" y="2" width="18" height="18" />
+            </svg>
+            Stop
+          </button>
+          <div class="ml-auto">
+            <input
+              id={@editor_name_input_id}
+              type="text"
+              class="mt-5 text-xs italic text-gray-400 border-zinc-900 hover:rounded-sm hover:border hover:border-zinc-600 bg-zinc-900 focus:border focus:border-blue-600 focus:text-white focus:not-italic focus:outline-none"
+              value={@editor_name}
+              phx-blur="save_editor_name"
+              phx-value-frag-id={@frag_id}
+              phx-keyup="save_editor_name"
+              phx-target={"##{@editor_name_input_id}"}
+            />
+          </div>
+          <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" class="">
+            <path class={@scope_id} style="stroke:url(#bleep-rgrad); stroke-width: 2px; fill: none;" />
+          </svg>
+        </div>
+      </div>
       <div
         id={@frag_id}
         class="relative editor-container"
@@ -199,98 +330,18 @@ defmodule BleepWeb.MainLive do
         data-result-id={@result_id}
         data-run-button-id={@run_button_id}
         data-cue-button-id={@cue_button_id}
+        data-loop-button-id={@loop_button_id}
         data-stop-button-id={@stop_button_id}
         data-scope-id={@scope_id}
         data-editor-name={@editor_name}
       >
-        <div class="z-10 p-0 top-20 bg-zinc-950">
-          <div class="z-20 flex pt-0 bg-zinc-900">
-            <button
-              class={"#{@run_button_id} flex items-center justify-center px-2 mt-5 mb-0 mr-1 text-sm font-bold text-blue-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-blue-600 hover:text-zinc-200"}
-              aria-label="Run code"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="12"
-                height="12"
-                viewBox="0 0 22 20"
-                fill="none"
-                stroke="#e4e4e7"
-                stroke-width="1"
-                class="mr-1"
-              >
-                <path d="M2 2 L18 10 L2 18 Z" />
-              </svg>
-              Run
-            </button>
-
-            <button
-              class={"#{@cue_button_id} flex items-center justify-center px-2 mt-5 mr-1 text-sm font-bold text-blue-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-blue-600 hover:text-zinc-200"}
-              aria-label="Cue code"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="12"
-                height="12"
-                viewBox="0 0 22 20"
-                fill="none"
-                stroke="#e4e4e7"
-                stroke-width="1"
-                class="mr-1"
-              >
-                <path d="M2 2 L10 10 L2 18 Z" />
-                <path d="M12 2 L20 10 L12 18 Z" />
-              </svg>
-              Cue
-            </button>
-
-            <button
-              class={"#{@stop_button_id} flex items-center justify-center px-2 mt-5 mr-1 text-sm font-bold text-orange-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-orange-600 hover:text-zinc-200"}
-              aria-label="Stop code"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="12"
-                height="12"
-                viewBox="0 0 22 22"
-                fill="none"
-                stroke="#e4e4e7"
-                stroke-width="1"
-                class="mr-1"
-              >
-                <rect x="2" y="2" width="18" height="18" />
-              </svg>
-              Stop
-            </button>
-            <div class="ml-auto">
-              <input
-                id={@editor_name_input_id}
-                type="text"
-                class="mt-5 text-xs italic text-gray-400 border-zinc-900 hover:rounded-sm hover:border hover:border-zinc-600 bg-zinc-900 focus:border focus:border-blue-600 focus:text-white focus:not-italic focus:outline-none"
-                value={@editor_name}
-                phx-blur="save_editor_name"
-                phx-value-frag-id={@frag_id}
-                phx-keyup="save_editor_name"
-                phx-target={"##{@editor_name_input_id}"}
-              />
-            </div>
-
-            <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" class="">
-              <path
-                class={@scope_id}
-                style="stroke:url(#bleep-rgrad); stroke-width: 2px; fill: none;"
-              />
-            </svg>
-          </div>
-        </div>
-
         <div class="h-full pt-3 pb-3 bg-black border rounded-sm editor-content border-zinc-800">
           <div class="h-full" id={@monaco_id} monaco-code-editor></div>
         </div>
-      </div>
 
-      <div class="font-mono text-sm border border-zinc-600 text-zinc-200 bg-zinc-500 bottom-9 dark:bg-zinc-800">
-        <div phx-update="ignore" id={@result_id}></div>
+        <div class="font-mono text-sm border border-zinc-600 text-zinc-200 bg-zinc-500 bottom-9 dark:bg-zinc-800">
+          <div phx-update="ignore" id={@result_id}></div>
+        </div>
       </div>
     </div>
     """
@@ -302,6 +353,7 @@ defmodule BleepWeb.MainLive do
     assigns = assign(assigns, :run_button_id, "run-button-#{frag_id}")
     assigns = assign(assigns, :cue_button_id, "cue-button-#{frag_id}")
     assigns = assign(assigns, :stop_button_id, "stop-button-#{frag_id}")
+    assigns = assign(assigns, :loop_button_id, "loop-button-#{frag_id}")
     assigns = assign(assigns, :monaco_path, "#{frag_id}.lua")
     assigns = assign(assigns, :monaco_id, "monaco-#{frag_id}")
     assigns = assign(assigns, :result_id, "result-#{frag_id}")
@@ -344,6 +396,30 @@ defmodule BleepWeb.MainLive do
             <path d="M12 2 L20 10 L12 18 Z" />
           </svg>
         </div>
+
+        <div class={"#{@loop_button_id} #{if @loop_cue, do: "bg-pink-600 hover:bg-pink-600 stroke-black hover:stroke-white", else: "stroke-slate-400 hover:stroke-blue-600"} flex rounded-md items-center justify-center w-8 p-1"}>
+          <svg
+            class="pb-1"
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 576.469 576.469"
+            fill="none"
+            stroke-width="19"
+          >
+            <g transform="translate(-20, 20)">
+              <path d="M275.762,95.253v38.955l116.228-67.104L275.762,0v39.283c-69.728,2.266-134.601,34.249-178.988,88.56l43.305,35.392
+                C173.798,121.976,222.893,97.493,275.762,95.253z" />
+              <path d="M537.185,275.761c-2.268-69.73-34.25-134.602-88.562-178.989l-35.391,43.305c41.258,33.719,65.74,82.814,67.979,135.684
+                h-38.951l67.104,116.228l67.105-116.228H537.185z" />
+              <path d="M300.706,481.211V442.26l-116.227,67.104l116.227,67.105v-39.285c69.73-2.268,134.604-34.25,178.988-88.562L436.39,413.23
+                C402.671,454.488,353.575,478.971,300.706,481.211z" />
+              <path d="M95.255,300.705h38.953L67.106,184.477L0.001,300.705h39.284c2.267,69.729,34.249,134.604,88.56,178.988l35.392-43.305
+                C121.978,402.67,97.495,353.574,95.255,300.705z" />
+            </g>
+          </svg>
+        </div>
+
         <div class={"#{@stop_button_id} flex items-center justify-center w-8 p-1"}>
           <svg
             class="hover:stroke-orange-600 stroke-slate-400"
@@ -375,7 +451,6 @@ defmodule BleepWeb.MainLive do
 
   def render_frag_control(assigns) do
     ~H"""
-
     """
   end
 
@@ -562,7 +637,13 @@ defmodule BleepWeb.MainLive do
         },
         socket
       ) do
-    start_time_s = :erlang.system_time(:milli_seconds) / 1000
+    now_s = :erlang.system_time(:milli_seconds) / 1000
+    quantum = socket.assigns.bleep_default_quantum
+    bpm = socket.assigns.bleep_default_bpm
+    now_ms = round(now_s * 1000)
+    bar_duration_ms = round(quantum * (60.0 / bpm) * 1000)
+    offset_ms = bar_duration_ms - rem(now_ms, bar_duration_ms)
+    start_time_s = (now_ms + offset_ms) / 1000.0
     cue_code(code, result_id, editor_id, start_time_s, socket)
   end
 
@@ -591,7 +672,11 @@ defmodule BleepWeb.MainLive do
         socket
       ) do
     start_time_s = :erlang.system_time(:milli_seconds) / 1000
-    {:noreply, eval_and_display(socket, "run", editor_id, start_time_s, code, result_id)}
+
+    {socket, _duration} =
+      eval_and_display(socket, "run", editor_id, start_time_s, code, result_id, false)
+
+    {:noreply, socket}
   end
 
   def handle_event(
@@ -604,20 +689,58 @@ defmodule BleepWeb.MainLive do
         },
         socket
       ) do
-    {:noreply, eval_and_display(socket, "run", editor_id, start_time_s, code, result_id)}
+    {socket, _duration} =
+      eval_and_display(socket, "run", editor_id, start_time_s, code, result_id, false)
+
+    {:noreply, socket}
+  end
+
+  def handle_event(
+        "toggle-loop-cue",
+        %{"editor_id" => editor_id},
+        socket
+      ) do
+    {:noreply, toggle_editor_loop_cue(socket, editor_id)}
   end
 
   def cue_code(code, result_id, editor_id, start_time_s, socket) do
+    now_ms = :erlang.system_time(:milli_seconds)
+    start_time_ms = start_time_s * 1000
+    loop_cue = is_loop_cue?(socket, editor_id)
     user_id = socket.assigns.user_id
-    bpm = socket.assigns.bleep_default_bpm
-    quantum = socket.assigns.bleep_default_quantum
-    start_time_ms = round(start_time_s * 1000)
-    bar_duration_ms = round(quantum * (60.0 / bpm) * 1000)
-    offset_ms = bar_duration_ms - rem(start_time_ms, bar_duration_ms)
-    start_time_s = (start_time_ms + offset_ms) / 1000.0
+    loop_timer_refs = socket.assigns[:loop_timer_refs]
     run_tag = "cue-#{start_time_s}"
     Bleep.Lang.stop_editor_cues(user_id, editor_id, run_tag)
-    {:noreply, eval_and_display(socket, run_tag, editor_id, start_time_s, code, result_id)}
+
+    {socket, duration_s} =
+      eval_and_display(socket, run_tag, editor_id, start_time_s, code, result_id, loop_cue)
+
+    duration_ms = duration_s * 1000
+
+    # If there is an existing timer, cancel it
+    editor_loop_timer_ref = loop_timer_refs[editor_id]
+
+    if editor_loop_timer_ref do
+      Process.cancel_timer(editor_loop_timer_ref)
+    end
+
+    # Set the new timer and store its reference in the socket assigns
+    if loop_cue && duration_s > 0 do
+      timer_ref =
+        Process.send_after(
+          self(),
+          {:cue_code_loop, code, result_id, editor_id, start_time_s + duration_s},
+          round(start_time_ms - now_ms)
+        )
+
+      loop_timer_refs = Map.put(loop_timer_refs, editor_id, timer_ref)
+
+      # Assign the new timer reference to the socket
+      {:noreply, assign(socket, :loop_timer_refs, loop_timer_refs)}
+    else
+      loop_timer_refs = Map.delete(loop_timer_refs, editor_id)
+      {:noreply, assign(socket, :loop_timer_refs, loop_timer_refs)}
+    end
   end
 
   def display_eval_result(socket, {:exception, e, trace}, result_id) do
@@ -662,7 +785,7 @@ defmodule BleepWeb.MainLive do
     })
   end
 
-  def eval_and_display(socket, run_tag, editor_id, start_time_s, code, result_id) do
+  def eval_and_display(socket, run_tag, editor_id, start_time_s, code, result_id, loop) do
     if byte_size(code) > 1024 * 10 do
       display_eval_result(socket, {:error, "code too large to run", nil}, result_id)
     else
@@ -670,12 +793,14 @@ defmodule BleepWeb.MainLive do
       bpm = socket.assigns.bleep_default_bpm
       user_id = socket.assigns.user_id
 
-      res =
+      {res, duration} =
         Bleep.Lang.start_run(run_tag, user_id, editor_id, start_time_s, code, init_code, %{
-          bpm: bpm
+          bpm: bpm,
+          loop: loop
         })
 
-      display_eval_result(socket, res, result_id)
+      socket = display_eval_result(socket, res, result_id)
+      {socket, duration}
     end
   end
 
@@ -697,6 +822,15 @@ defmodule BleepWeb.MainLive do
          start_time_s: start_time_s
        })
      end)}
+  end
+
+  @impl true
+  def handle_info({:cue_code_loop, code, result_id, editor_id, start_time_s}, socket) do
+    if is_loop_cue?(socket, editor_id) do
+      cue_code(code, result_id, editor_id, start_time_s, socket)
+    else
+      {:noreply, socket}
+    end
   end
 
   def id_send(user_id, msg) do

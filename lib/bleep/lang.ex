@@ -119,7 +119,8 @@ defmodule Bleep.Lang do
     __bleep_ex_play(user_id, editor_id, run_id, run_tag, lua, [note, []])
   end
 
-  def __bleep_ex_play(user_id, editor_id, run_id, run_tag, lua, [opts_table]) when is_list(opts_table) do
+  def __bleep_ex_play(user_id, editor_id, run_id, run_tag, lua, [opts_table])
+      when is_list(opts_table) do
     output_id = fetch_current_output_id(lua)
     time_s = lua_time(lua)
     opts = Bleep.VM.lua_table_to_map(opts_table)
@@ -153,7 +154,8 @@ defmodule Bleep.Lang do
     ])
   end
 
-  def __bleep_ex_control_fx(user_id, editor_id, run_id, run_tag, lua, [uuid]) when is_binary(uuid) do
+  def __bleep_ex_control_fx(user_id, editor_id, run_id, run_tag, lua, [uuid])
+      when is_binary(uuid) do
     __bleep_ex_control_fx(user_id, editor_id, run_id, run_tag, lua, [uuid, []])
   end
 
@@ -202,6 +204,7 @@ defmodule Bleep.Lang do
       end
 
     bpm = opts[:bpm] || 60
+    loop = opts[:loop] || false
     run_id = UUID.uuid4()
 
     # Note - this needs to match the id in BleepEditorHook
@@ -249,10 +252,13 @@ defmodule Bleep.Lang do
     res_or_exception =
       try do
         {:ok, _res, lua} = Bleep.VM.eval(lua, init_code)
-        Bleep.VM.eval(lua, code)
+        {state, res, lua} = Bleep.VM.eval(lua, code)
+        duration = Bleep.VM.get_global(lua, "__bleep_core_global_time")
+
+        {{state, res, lua}, duration}
       rescue
         e ->
-          {:exception, e, __STACKTRACE__}
+          {{:exception, e, __STACKTRACE__}, -1}
       end
 
     res_or_exception
