@@ -114,13 +114,13 @@ defmodule BleepWeb.MainLive do
     |> assign(:frags, new_frags)
   end
 
-  def toggle_editor_loop_cue(socket, editor_id) do
+  def toggle_editor_loop_mode(socket, editor_id) do
     frags = socket.assigns.frags
 
     new_frags =
       Enum.map(frags, fn frag ->
         if frag[:frag_id] == editor_id do
-          Map.put(frag, :loop_cue, !frag[:loop_cue])
+          Map.put(frag, :loop_mode, !frag[:loop_mode])
         else
           frag
         end
@@ -130,12 +130,12 @@ defmodule BleepWeb.MainLive do
     |> assign(:frags, new_frags)
   end
 
-  def is_loop_cue?(socket, editor_id) do
+  def is_loop_mode?(socket, editor_id) do
     frags = socket.assigns.frags
 
     Enum.find_value(frags, fn frag ->
       if frag[:frag_id] == editor_id do
-        frag[:loop_cue]
+        frag[:loop_mode]
       end
     end)
   end
@@ -254,11 +254,11 @@ defmodule BleepWeb.MainLive do
               <path d="M2 2 L10 10 L2 18 Z" />
               <path d="M12 2 L20 10 L12 18 Z" />
             </svg>
-            <%= if @loop_cue, do: "Loop", else: "Cue" %>
+            <%= if @loop_mode, do: "Loop", else: "Cue" %>
           </button>
 
           <button
-            class={"#{@loop_button_id} #{if @loop_cue, do: "bg-pink-600 hover:bg-pink-600", else: " hover:bg-blue-600"} border-zinc-600 flex items-center justify-center px-2 mt-5 mr-1 text-sm font-bold text-blue-600 border rounded-sm hover:text-zinc-200"}
+            class={"#{@loop_button_id} #{if @loop_mode, do: "bg-pink-600 hover:bg-pink-600", else: " hover:bg-blue-600"} border-zinc-600 flex items-center justify-center px-2 mt-5 mr-1 text-sm font-bold text-blue-600 border rounded-sm hover:text-zinc-200"}
             aria-label="Toggle Loop mode"
           >
             <svg
@@ -397,7 +397,7 @@ defmodule BleepWeb.MainLive do
           </svg>
         </div>
 
-        <div class={"#{@loop_button_id} #{if @loop_cue, do: "bg-pink-600 hover:bg-pink-600 stroke-black hover:stroke-white", else: "stroke-slate-400 hover:stroke-blue-600"} flex rounded-md items-center justify-center w-8 p-1"}>
+        <div class={"#{@loop_button_id} #{if @loop_mode, do: "bg-pink-600 hover:bg-pink-600 stroke-black hover:stroke-white", else: "stroke-slate-400 hover:stroke-blue-600"} flex rounded-md items-center justify-center w-8 p-1"}>
           <svg
             class="pb-1"
             xmlns="http://www.w3.org/2000/svg"
@@ -700,20 +700,20 @@ defmodule BleepWeb.MainLive do
         %{"editor_id" => editor_id},
         socket
       ) do
-    {:noreply, toggle_editor_loop_cue(socket, editor_id)}
+    {:noreply, toggle_editor_loop_mode(socket, editor_id)}
   end
 
   def cue_code(code, result_id, editor_id, start_time_s, socket) do
     now_ms = :erlang.system_time(:milli_seconds)
     start_time_ms = start_time_s * 1000
-    loop_cue = is_loop_cue?(socket, editor_id)
+    loop_mode = is_loop_mode?(socket, editor_id)
     user_id = socket.assigns.user_id
     loop_timer_refs = socket.assigns[:loop_timer_refs]
     run_tag = "cue-#{start_time_s}"
     Bleep.Lang.stop_editor_cues(user_id, editor_id, run_tag)
 
     {socket, duration_s} =
-      eval_and_display(socket, run_tag, editor_id, start_time_s, code, result_id, loop_cue)
+      eval_and_display(socket, run_tag, editor_id, start_time_s, code, result_id, loop_mode)
 
     duration_ms = duration_s * 1000
 
@@ -725,7 +725,7 @@ defmodule BleepWeb.MainLive do
     end
 
     # Set the new timer and store its reference in the socket assigns
-    if loop_cue && duration_s > 0 do
+    if loop_mode && duration_s > 0 do
       timer_ref =
         Process.send_after(
           self(),
@@ -826,7 +826,7 @@ defmodule BleepWeb.MainLive do
 
   @impl true
   def handle_info({:cue_code_loop, code, result_id, editor_id, start_time_s}, socket) do
-    if is_loop_cue?(socket, editor_id) do
+    if is_loop_mode?(socket, editor_id) do
       cue_code(code, result_id, editor_id, start_time_s, socket)
     else
       {:noreply, socket}

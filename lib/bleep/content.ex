@@ -39,7 +39,7 @@ defmodule Bleep.Content do
           content = content,
           frag_id = frag_id,
           editor_name = name,
-          loop_cue = false
+          loop_mode = false
         }
       end
 
