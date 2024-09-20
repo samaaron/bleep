@@ -12,14 +12,14 @@ Welcome to this online tutorial on techno music programming, brought to you by *
 ]],
 
 markdown [[
-* [Playing samples](https://bleep.sheffield.ac.uk/artist/tbd1)
-* [Playing synths](https://bleep.sheffield.ac.uk/artist/tbd2)
-* [Using effects](https://bleep.sheffield.ac.uk/artist/tbd3)
-* [Repetition using loops](https://bleep.sheffield.ac.uk/artist/tbd4)
-* [Drum patterns](https://bleep.sheffield.ac.uk/artist/tbd5)
-* [Making a bass line](https://bleep.sheffield.ac.uk/artist/tbd6)
-* [Atmosphere and structure](https://bleep.sheffield.ac.uk/artist/tbd7)
-* [Mixing and balancing parts](https://bleep.sheffield.ac.uk/artist/tbd8)
+* [Playing samples](/artist/tbd1)
+* [Playing synths](/artist/tbd2)
+* [Using effects](/artist/tbd3)
+* [Repetition using loops](/artist/tbd4)
+* [Drum patterns](/artist/tbd5)
+* [Making a bass line](/artist/tbd6)
+* [Atmosphere and structure](/artist/tbd7)
+* [Mixing and balancing parts](/artist/tbd8)
 ]],
 
 markdown [[
