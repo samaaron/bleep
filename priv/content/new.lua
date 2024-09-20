@@ -1,5 +1,5 @@
 title = "New"
-bpm = 60
+bpm = 120
 
 init = [[
   -- this code is automatically
@@ -29,4 +29,30 @@ editor [[
 -- put more code in here
 
 ]],
+
+editor [[
+-- put more code in here
+
+]],
+
+editor [[
+-- put more code in here
+
+]],
+
+editor [[
+-- put more code in here
+
+]],
+
+editor [[
+-- put more code in here
+
+]],
+
+editor [[
+-- put more code in here
+
+]]
+
 }
