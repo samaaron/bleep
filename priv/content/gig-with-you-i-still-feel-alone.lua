@@ -1,8 +1,8 @@
 -- Bleep Save
 
-title = "The Black Dog - With You I Still Feel Alone"
+title = "The Black Dog - With You I Stll Feel Alone"
 author = ""
-user_id = "09e72211-5123-48e2-8161-ef0a94568745"
+user_id = "2e295afb-48cb-41b6-930c-ade68ebf017e"
 description = ""
 bpm = 130
 quantum = 4
@@ -23,13 +23,14 @@ editor("1. FULL SEQ", [[
 -- FULL Sequence
 push_fx("reverb_small", {wetLevel=0.32})
 push_fx("eqthree", {lowFreq=140,highFreq=3500,lowGain=1.4,midGain=- 5,highGain=2})
-push_fx("compressor", {threshold=- 15, knee=8, ratio=1.6, attack=0.012, release=0.230})
+push_fx("compressor", {threshold=- 14, knee=8, ratio=1.6, attack=0.012, release=0.230})
+push_fx("gainpan", {level=1.1,pan=0})
 
 -- FX hit start
 sample("burst_reverb", {
     duration=4,
     rate=randf(0.1, 1.5),
-    level=randf(0.2, 0.6),
+    level=randf(0.2, 0.4),
     cutoff=randi(800, 5000)})
 
 -- "bars" is the bar count
@@ -61,7 +62,7 @@ for bars = 1, 80 do
     sample("burst_reverb", {
       duration=4,
       rate=randf(0.1, 1.5),
-      level=randf(0.2, 0.6),
+      level=randf(0.2, 0.4),
       cutoff=randi(800, 5000)})
   end
 
@@ -281,7 +282,7 @@ for bars = 1, 8 do
     sample("burst_reverb", {
     duration=4,
     rate=randf(0.1, 1.5),
-    level=randf(0.2, 0.6),
+    level=randf(0.2, 0.4),
     cutoff=randi(800, 5000)})
   end
 
@@ -297,11 +298,11 @@ end
 sample("burst_reverb", {
   duration=4,
   rate=randf(0.1, 1.5),
-  level=randf(0.2, 0.6),
+  level=randf(0.2, 0.4),
   cutoff=randi(800, 5000)})
 
---END
-]]),
+sleep(16)
+--END]]),
 
 
 editor("2. Kick & FX", [[
@@ -311,21 +312,18 @@ push_fx("reverb_small", {dryLevel=0.75,wetLevel=0.3})
 push_fx("eqthree", {lowFreq=120,highFreq=1900,lowGain=2,midGain=- 6,highGain=2})
 push_fx("compressor", {threshold=- 5, knee=4, ratio=4, attack=0.020, release=0.2})
 
-for i = 1, 32 do
-  if i == 1 or i == 6 or i == 9 or i == 16 or i == 21 or i == 27 then
-    sample("burst_reverb", {
-      rate=randf(0.1, 1.5),
-      level=randf(0.1, 0.3),
-      cutoff=randi(800, 5000)})
-  end
-  drum_pattern("B--- B--- B--B ----", {
-            duration=0.25,
-            cutoff=3200,
-            rate=0.8,
-            level={0.8,0,0,0,0.6,0,0.4,0,0.7,0,0,0.5,0,0,0,0},
-            B="bd_sone"})
+if dice(10) < 3 then
+  sample("burst_reverb", {
+    rate=randf(0.1, 1.5),
+    level=randf(0.1, 0.3),
+    cutoff=randi(800, 5000)})
 end
-
+drum_pattern("B--- B--- B--B ----", {
+          duration=0.25,
+          cutoff=3200,
+          rate=0.8,
+          level={0.8,0,0,0,0.6,0,0.4,0,0.7,0,0,0.5,0,0,0,0},
+          B="bd_sone"})
 ]]),
 
 
@@ -335,15 +333,13 @@ push_fx("deep_phaser", {wetLevel=0.9})
 push_fx("mono_delay", {delay=0.25,feedback=0.2,wetLevel=0.3})
 push_fx("reverb_medium", {wetLevel=0.7})
 push_fx("compressor", {threshold=- 3, knee=3, ratio=9, attack=0.020, release=0.1})
-for i = 1, 16 do
-  drum_pattern("--tt -t-t --tt --tt", {
-            duration=0.25,
-            cutoff=12000,
-            rate=2,
-            level={randf(0.3,0.5),randf(0.2,0.4),randf(0.3,0.6),randf(0.2,0.4)},
-            t="elec_plip"})
-end
---hat_cab
+
+drum_pattern("--tt -t-t --tt --tt", {
+          duration=0.25,
+          cutoff=12000,
+          rate=2,
+          level={randf(0.3,0.5),randf(0.2,0.4),randf(0.3,0.6),randf(0.2,0.4)},
+          t="elec_plip"})
 
 ]]),
 
@@ -351,9 +347,7 @@ end
 editor("4. Perc", [[
 -- perc loop
 push_fx("reverb_medium", {wetLevel=0.1})
-
-for i = 1, 32 do
-  drum_pattern("htbT bthb btTh TtTb", {
+drum_pattern("htbT bthb btTh TtTb", {
             duration=0.25,
             cutoff=12000,
             rate=1,
@@ -362,8 +356,6 @@ for i = 1, 32 do
             h="tbd_perc_hat",
             t="tbd_perc_tap_1",
             T="tbd_perc_tap_2"})
-end
-
 
 ]]),
 
@@ -372,12 +364,10 @@ editor("5. FX Bed", [[
 -- FX Bed
 push_fx("reverb_large", {wetLevel=0.7})
 
-for patternLoop = 1, 16 do
-  sample("tbd_fxbed_loop", {
-    level=0.2,
-    loop=false})
-  sleep(16)
-end
+sample("tbd_fxbed_loop", {
+  level=0.2,
+  loop=false})
+sleep(16)
 ]]),
 
 
@@ -391,26 +381,24 @@ padSamples = {"tbd_pad_1","tbd_pad_2","tbd_pad_3","tbd_pad_4"}
 padDurations = {14.5,7.3,3.7,3.7} -- measured in seconds
 padSleeps = {32,16,8,8} -- measured in beats!
 
-
-for patternloop = 1, 4 do
-  for sampleSelect = 1, 4 do
-    grains(padSamples[sampleSelect], {
-            level=0.4,
-            attack=2,
-            decay=2,
-            sustain=0.8,
-            release=3,
-            duration=padDurations[sampleSelect],
-            density=10,
-            index=0.5,
-            size=0.9,
-            shape=0.5,
-            pan_var=0.1,
-            index_var =0.01,
-            time_var =0.01,})
-    sleep(padSleeps[sampleSelect])
-  end
-end]]),
+for sampleSelect = 1, 4 do
+  grains(padSamples[sampleSelect], {
+          level=0.4,
+          attack=2,
+          decay=2,
+          sustain=0.8,
+          release=3,
+          duration=padDurations[sampleSelect],
+          density=10,
+          index=0.5,
+          size=0.9,
+          shape=0.5,
+          pan_var=0.1,
+          index_var =0.01,
+          time_var =0.01,})
+  sleep(padSleeps[sampleSelect])
+end
+]]),
 
 
 editor("7. High Keys", [[
@@ -463,7 +451,10 @@ sample("tbd_highkey_c4", {
     duration=12,
     rate=1,
     loop=false})
---sleep(12.5)]]),
+--sleep(12.5)
+
+sleep(16)
+]]),
 
 
 editor("8. Voc Tone", [[
@@ -487,23 +478,24 @@ sample("tbd_voctone", {
     duration=4,
     rate=0.666,
     loop=false})
---sleep(8)]]),
+--sleep(8)
+
+sleep(16)
+]]),
 
 
 editor("9. Burst FX", [[
 -- FX
 push_fx("reverb_massive", {dryLevel=0.2,wetLevel=0.6})
 
-for i = 1, 64 do
-  sleepInit = randi(0, 4)
-  sleep(sleepInit)
-  sample("burst_reverb", {
-    duration=4,
-    rate=randf(0.1, 1.5),
-    level=randf(0.2, 0.5),
-    cutoff=randi(800, 5000)})
-  sleep(8 - sleepInit)
-end
+sleepInit = randi(0, 4)
+sleep(sleepInit)
+sample("burst_reverb", {
+  duration=4,
+  rate=randf(0.1, 1.5),
+  level=randf(0.2, 0.5),
+  cutoff=randi(800, 5000)})
+sleep(8 - sleepInit)
 ]]),
 
 

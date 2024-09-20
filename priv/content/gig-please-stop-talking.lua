@@ -2,7 +2,7 @@
 
 title = "The Black Dog - Please Stop Talking"
 author = ""
-user_id = "1645f6bc-041e-4ffc-bebb-06ebab2ec5ce"
+user_id = "2e295afb-48cb-41b6-930c-ade68ebf017e"
 description = ""
 bpm = 75
 quantum = 4
@@ -37,7 +37,6 @@ arpeggioNotes = {E5,B4,{Fs2,B3},Fs5,E5,{Cs3,E4},E2,Fs2,Fs5,{E3,Fs4},B2,Cs3,{B3,C
 t = 0.5333333
 arpeggioTiming = {t*2,t,t,t*2,t,t,t,t,t,t,t,t*2,t,t,t*2,t,t,t*2,t,t,t*2,t,t,t,t,t,t,t,t*2,t,t,t,t,t*2,t,t,t*2,t,t,t*2,t,t,t*2,t,t,t,t,t,t,t,t*2,t,t,t*2,t,t,t*2,t,t,t,t,t,t,t,t,t,t,t,t*2,t,t,t,t,t*2,t,t,t*2,t,t,}
 
-
 for patternrepeat = 1, 4 do
   -- 16 bar arpeggio
   for eachNote = 1, 79 do
@@ -65,6 +64,7 @@ for patternrepeat = 1, 4 do
 
   end 
 end
+sleep(4)
 ]]),
 
 
@@ -94,7 +94,7 @@ end
 editor("Hi Synths", [[
 -- hi synth
 use_synth("synthstrings")
-push_fx("chorus", {rate=0.2,spread=0.8,depth=0.2,dryLevel=0.3,wetLevel=0.9})
+push_fx("chorus", {rate=0.2,spread=0.8,depth=0.2,dryLevel=0.4,wetLevel=0.9})
 push_fx("stereo_delay", {leftDelay=0.250,rightDelay=0.500,feedback=0.4,dryLevel=0.6,wetLevel=0.7})
 push_fx("reverb_large", {dryLevel=0.6,wetLevel=0.9})
 push_fx("eqthree", {lowFreq=500,highFreq=1600,lowGain=- 10,midGain=0,highGain=2})
@@ -157,9 +157,6 @@ for patternrepeat = 1, 2 do
   play({E3}, toneParams2)
   sleep(10)   
 end
-
-
-
 ]]),
 
 
@@ -168,7 +165,7 @@ editor("Bass", [[
 use_synth("thickbass")
 push_fx("reverb_large", {dryLevel=1,wetLevel=0.3})
 push_fx("eqthree", {lowFreq=90,highFreq=2000,lowGain=- 2,midGain=4,highGain=- 2})
-push_fx("gainpan", {level=1.5,pan=0.7})
+push_fx("gainpan", {level=1.5,pan=0})
 
 -- B1,Fs1,E1,Fs1
 
@@ -184,6 +181,7 @@ for patternrepeat = 1, 2 do
         sustain=0.5,
         release=0.2})
 end
+sleep(4)
 ]]),
 
 
@@ -191,7 +189,7 @@ editor("FX", [[
 -- background fx
 use_synth("noise")
 push_fx("reverb_massive", {dryLevel=0,wetLevel=0.9})
-push_fx("overdrive", {preGain=0.8,postGain=0.1,frequency=1000,bandwidth=2})
+push_fx("overdrive", {preGain=0.8,postGain=0.03,frequency=1000,bandwidth=2})
 push_fx("reverb_massive", {dryLevel=0,wetLevel=0.9})
 push_fx("eqthree", {lowFreq=140,highFreq=2400,lowGain=- 18,midGain=5,highGain=- 2})
 
@@ -214,7 +212,8 @@ for patternLoop = 1, 4 do
         level=randf(0.1, 0.2)})
   sleep(10) 
 
-end]]),
+end
+sleep(20)]]),
 
 
 editor("FX Hi", [[
@@ -235,7 +234,7 @@ sample(samples[dice(6)], {
         level=randf(0.6, 0.9)})
   --sleep(8 - sleepInit)
 --end
-
+sleep(20)
 ]]),
 
 
@@ -250,6 +249,7 @@ for i = 1, 32 do
             level={0.8,0.4,0.6,0.4},
             M="hat_sci"})
 end
+sleep(4)
 ]]),
 
 
@@ -264,12 +264,6 @@ sleep(bar * 2)
 run("Arpeggio")
 sleep(bar * 8)
 
--- run("Bass")
--- sleep(bar * 8)
-
--- run("Hi Synths")
--- sleep(bar * 8)
-
 run("Mid Synths")
 run("Bass")
 sleep(bar * 8)
@@ -277,12 +271,6 @@ sleep(bar * 8)
 run("Hi Synths")
 run("Bass")
 sleep(bar * 8)
-
--- run("Bass")
--- run("Hi Synths")
--- sleep(bar * 8)
-
-
 ]]),
 
 

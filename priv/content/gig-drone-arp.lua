@@ -2,7 +2,7 @@
 
 title = "The Black Dog - Drone & Arp"
 author = ""
-user_id = "86c6ffe9-90dd-424f-8416-7f1dbfacd67b"
+user_id = "2e295afb-48cb-41b6-930c-ade68ebf017e"
 description = ""
 bpm = 60
 quantum = 4
@@ -27,11 +27,11 @@ push_fx("chorus", {rate=0.3,spread=0.7,depth=0.2,dryLevel=0.4,wetLevel=0.6})
 push_fx("stereo_delay", {leftDelay=0.540, rightDelay=0.550, spread=0.6, feedback=0.7, drylevel=0.45, wetLevel=0.6})
 
 -- edit these...
-theNote = As0 -- As,F,C,Gs
+theNote = A0 -- As,F,C,Gs
 theCutoff = 1000 -- 100-8000
 theResonance = 2.5 -- 0-20
-theNoise = 0.25 -- 0-1
-theGain = 0.5 -- 0.01-1
+theNoise = 0.05 -- 0-1
+theGain = 0.15 -- 0.01-1
 theSymmetry = - 0.5 -- -1-1
 
 -- now play
@@ -52,7 +52,7 @@ play(theNote, {
     sustain=0.8,
     release=8})
 
---sleep(8)
+sleep(40)
 
 ]]),
 
@@ -69,7 +69,7 @@ theRepeats = 8
 
 -- parameter to change and re-cue
 theDuration = 1 -- 1 0.5 0.25
-theTranspose = - 12  -- 0 12 7
+theTranspose = 0  -- 0 12 7
 theCutoff = 1500 -- 0-10000
 
 theResonance = 9.0 -- 0-25

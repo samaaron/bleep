@@ -2,7 +2,7 @@
 
 title = "The Black Dog - I Call Me"
 author = ""
-user_id = "33369221-e739-4c9b-965a-0098caefaa1d"
+user_id = "2e295afb-48cb-41b6-930c-ade68ebf017e"
 description = ""
 bpm = 110
 quantum = 4
@@ -24,14 +24,13 @@ editor("1. Keys", [[
 use_synth("chiral", {attack=0,decay=0.50,sustain=0.3,release=0.5})
 push_fx("eqthree", {lowFreq=500,highFreq=1900,lowGain=- 10,midGain=1,highGain=- 2})
 push_fx("chorus", {rate=0.3,spread=0.7,depth=0.2,dryLevel=0.7,wetLevel=0.8})
-push_fx("reverb_large", {dryLevel=0.8,wetLevel=0.5})
+push_fx("reverb_large", {dryLevel=0.9,wetLevel=0.6})
 push_fx("stereo_delay", {leftDelay=0.540, rightDelay=0.550, spread=0.6, feedback=0.4, drylevel=0.45, wetLevel=0.55})
-
+push_fx("gainpan", {level=1.4,pan=- 0.3})
 
 chords = {{{C4,A4,A5},{D4,C5,A5},{A3,A4,E5},{C4,A4,A5}},{{A3,E4,D5},{A3,A4,E5},{D4,C5,A5},{A3,E4,D5}},{{C4,A4,A5},{D4,C5,A5},{A3,A4,E5},{C4,A4,A5}},{{A3,F4,D5},{A3,A4,E5},{D3,C4,A5},{A3,E4,D5}}}
 chordsleep = {0.5,1.0,1.5,0.5}
 chordduration = 0.2
-
 
 for patternloop = 1, 16 do
   -- 4 bar loop
@@ -54,17 +53,18 @@ for patternloop = 1, 16 do
       lpfmod = lpfmod + 8
     end
   end
-end]]),
+end
+sleep(4)]]),
 
 
 editor("2. Bass", [[
 -- bassline
 use_synth("rolandtb")
 push_fx("compressor", {threshold=- 8, knee=8, ratio=5, attack=0.012, release=0.140})
-push_fx("mono_delay", {delay=0.55, wetLevel=0.23})
+push_fx("mono_delay", {delay=0.6, wetLevel=0.28})
 push_fx("reverb_medium", {wetLevel=0.2})
 push_fx("eqthree", {lowFreq=400,highFreq=2000,lowGain=5,midGain=- 3,highGain=- 3})
-
+push_fx("gainpan", {level=1.5,pan=0})
 
 for patternrepeats = 1, 6 do
   -- one pass == 8 bars
@@ -95,7 +95,7 @@ for patternrepeats = 1, 6 do
       decay=0.25,
       sustain=0.2,
       release=0.1,
-      level=0.9,
+      level=0.80,
       bend=notesBend[patternloop],
       bend_time=0.3,
       cutoff=randi((300 + (patternrepeats * 200)), (1200 + (patternrepeats * 500))),
@@ -104,22 +104,23 @@ for patternrepeats = 1, 6 do
   end
 
 end
+sleep(4)
 ]]),
 
 
 editor("3. Lead", [[
 -- distorted synth lead
 use_synth("junopad")
-
-push_fx("eqthree", {lowFreq=800,highFreq=2400,lowGain=- 8,midGain=- 2,highGain=1})
---push_fx("stereo_delay", {delay=0.25, feedback=0.3, drylevel=0.5, wetLevel=0.50})
+push_fx("eqthree", {lowFreq=800,highFreq=2400,lowGain=- 8,midGain=- 3,highGain=1})
+push_fx("stereo_delay", {delay=0.25, feedback=0.3, drylevel=0.5, wetLevel=0.50})
 push_fx("chorus", {rate=0.20,spread=0.8,depth=0.12})
---push_fx("reverb_massive", {dryLevel=0.2, wetLevel=0.8})
+push_fx("reverb_massive", {dryLevel=0.2, wetLevel=0.8})
+push_fx("gainpan", {level=0.4,pan=0.6})
 
 -- overdrive/distortion?
 -- add values to incease fx through track?
 push_fx("distortion", {preGain=1.0,postGain=0.08})
-push_fx("reverb_massive", {dryLevel=0.2, wetLevel=0.8})
+push_fx("reverb_massive", {dryLevel=0.3, wetLevel=0.85})
 
 -- pattern 1
 synthpattern1 = {A4,D5,A4,D5,E5,A4,D5,A4,G4}
@@ -148,7 +149,7 @@ sleep(32)
 pop_fx("distortion")
 pop_fx("reverb_massive")
 push_fx("distortion", {preGain=5,postGain=0.03})
-push_fx("reverb_massive", {dryLevel=0.2, wetLevel=0.8})
+push_fx("reverb_massive", {dryLevel=0.3, wetLevel=0.85})
 
 -- pattern 2
 synthpattern2 = {{A4,A3},D5,{A4,F3},D5,E5,{A4,D3},D5,{A4,A3},{G4,D4}}
@@ -162,14 +163,16 @@ for thisloop = 1, 2 do
     sleep(synthdurations2[playnotes])
   end
 end
+sleep(4)
 ]]),
 
 
 editor("4. Kick", [[
 -- BD
 push_fx("eqthree", {lowFreq=140,highFreq=1200,lowGain=2,midGain=- 10,highGain=3})
-push_fx("reverb_small", {dryLevel=0.65,wetLevel=0.10})
+push_fx("reverb_small", {dryLevel=0.60,wetLevel=0.10})
 push_fx("compressor", {threshold=- 9, knee=5, ratio=4, attack=0.10, release=0.20})
+push_fx("gainpan", {level=1.2,pan=0})
 
 -- 16 bars
 for i = 1, 16 do
@@ -177,10 +180,11 @@ for i = 1, 16 do
   drum_pattern("B--- B--- B--- B---", {
             duration=0.25,
             rate=0.75,
-            level=0.4,
+            level=0.6,
             B="bd_tek",
             cutoff=1400})
 end
+sleep(4)
 ]]),
 
 
@@ -199,6 +203,7 @@ for i = 1, 16 do
             t="hat_gem",
             s="elec_hi_snare"})
 end
+sleep(4)
 ]]),
 
 
@@ -206,12 +211,7 @@ editor("6. FX Perc", [[
 -- percussion 2 heavy fx
 push_fx("distortion", {preGain=0.8,postGain=0.08})
 push_fx("reverb_medium", {dryLevel=0.3,wetLevel=0.2})
-push_fx("eqthree", {
-   lowFreq=800,
-   highFreq=2400,
-   lowGain=- 18,
-   midGain=1,
-   highGain=- 12})
+push_fx("eqthree", {lowFreq=800,highFreq=2400,lowGain=- 18,midGain=1,highGain=- 12})
    
 percPatterns = {"t--- s-tt -tt- sstt","--t- s-tt --t- ----"}
 
@@ -226,6 +226,7 @@ for patternLoop = 1, 8 do
             s="elec_tick"})
   end
 end
+sleep(4)
 
 ]]),
 
@@ -260,12 +261,15 @@ for blockLoop = 1, 32 do
     --remaining sleep up to 8 beats
   sleep(8 - sleepValue)
 end
+sleep(4)
 ]]),
 
 
 editor("8. Fx Crash", [[
 push_fx("reverb_massive", {dryLevel=0.1, wetLevel=0.6})
-sample("hat_noiz", {level=0.1,rate=0.1})]]),
+sample("hat_noiz", {level=0.1,rate=0.1})
+sleep(16)
+]]),
 
 
 editor("9. SEQUENCE", [[

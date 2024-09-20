@@ -2,7 +2,7 @@
 
 title = "The Black Dog - rol"
 author = ""
-user_id = "a23318c4-e64e-4721-8396-9f393696bab3"
+user_id = "2e295afb-48cb-41b6-930c-ade68ebf017e"
 description = ""
 bpm = 104
 quantum = 4
@@ -25,6 +25,7 @@ use_synth("chiral")
 push_fx("stereo_delay", {leftDelay=0.500,rightDelay=0.375,feedback=0.5,dryLevel=0.5,wetLevel=0.6})
 push_fx("reverb_large", {dryLevel=0.4,wetLevel=0.6})
 push_fx("eqthree", {lowFreq=700,highFreq=2800,lowGain=- 8,midGain=0,highGain=0})
+push_fx("gainpan", {level=1.2,pan=- 0.3})
 
 cutoffValue = 500
 transpose = 0
@@ -53,16 +54,16 @@ editor("Low Synth", [[
 use_synth("analoguelead")
 push_fx("stereo_delay", {leftDelay=0.250,rightDelay=0.500,feedback=0.4,dryLevel=0.6,wetLevel=0.5})
 push_fx("reverb_large", {dryLevel=0.6,wetLevel=0.4})
-push_fx("eqthree", {lowFreq=500,highFreq=2800,lowGain=5,midGain=0,highGain=- 1})
+push_fx("eqthree", {lowFreq=600,highFreq=2800,lowGain=5,midGain=1,highGain=- 2})
 push_fx("compressor", {threshold=- 8, knee=8, ratio=3.5, attack=0.012, release=0.230})
-push_fx("gainpan", {level=1.5,pan=0})
+push_fx("gainpan", {level=1.8,pan=0})
 
 notes = {C1,{C2,C1}}
 for playnotes = 1, 2 do
   play(notes[playnotes], {
     volume=0.8,
     duration=4.00,
-    cutoff=randi(900, 1600),
+    cutoff=randi(900, 1400),
     resonance=1.1,
     attack =1,
     decay=0.5,
@@ -78,7 +79,7 @@ for patternLoop = 1, 2 do
     play(notes[playnotes], {
     volume=0.7,
     duration=2.40,
-    cutoff=randi(1400, 1900),
+    cutoff=randi(1400, 1700),
     resonance=0.1,
     attack =1,
     decay=0.5,
@@ -107,6 +108,7 @@ push_fx("chorus", {rate=0.2,spread=0.8,depth=0.25,dryLevel=0.1,wetLevel=0.7})
 push_fx("stereo_delay", {leftDelay=0.250,rightDelay=0.500,feedback=0.5,dryLevel=0.2,wetLevel=0.8})
 push_fx("reverb_large", {dryLevel=0.2,wetLevel=0.8})
 push_fx("eqthree", {lowFreq=500,highFreq=2800,lowGain=- 10,midGain=3,highGain=1})
+push_fx("gainpan", {level=1.2,pan=0})
 
 cutoff = 1000
 
@@ -141,6 +143,7 @@ use_synth("sweepbass")
 push_fx("stereo_delay", {leftDelay=0.250,rightDelay=0.500,feedback=0.5,wetLevel=0.7})
 push_fx("reverb_large", {dryLevel=0.4,wetLevel=0.5})
 push_fx("eqthree", {lowFreq=800,highFreq=2800,lowGain=- 18,midGain=0,highGain=2})
+push_fx("gainpan", {level=1.2,pan=0.4})
 
 --cutoff = 1000
 notes = ring({C5,G5,C5,G5,As5,D6,G5,C6})
@@ -158,15 +161,16 @@ for patternrepeat = 1, 8 do
   --cutoff = cutoff + 300
 
 end
-
+sleep(4)
 ]]),
 
 
 editor("FX", [[
 --fx
-push_fx("eqthree", {lowFreq=400,highFreq=2800,lowGain=- 18,midGain=-2,highGain=3})
+push_fx("eqthree", {lowFreq=400,highFreq=2800,lowGain=- 18,midGain=- 2,highGain=3})
 push_fx("stereo_delay", {leftDelay=0.432,rightDelay=0.577,feedback=0.7,wetLevel=0.8})
 push_fx("reverb_large", {dryLevel=0.3,wetLevel=0.8})
+push_fx("gainpan", {level=1.2,pan=0})
 
 for looper = 1, 16 do
   sleepInit = randi(0, 4)
@@ -177,7 +181,7 @@ for looper = 1, 16 do
       cutoff=randi(800, 2000)})
   sleep(8 - sleepInit)
 end
-
+sleep(4)
 
 ]]),
 
@@ -210,7 +214,7 @@ sleep(2)
 sample("misc_cineboom", {rate=0.1,level=0.1,cutoff=800})
 sleep(2)
 sample("misc_cineboom", {rate=0.075,level=0.05,cutoff=500})
-]]),
+sleep(10)]]),
 
 
 } -- end content
