@@ -517,14 +517,8 @@ defmodule BleepWeb.MainLive do
             Save
           </button>
         </div>
-        <div class="absolute transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2">
-          <img
-            id="bleep-logo"
-            src={~p"/images/cnotf.png"}
-            width="140"
-            phx-update="ignore"
-            alt="Bleep Logo"
-          />
+        <div class="absolute">
+          <img id="bleep-logo" width="140" phx-update="ignore" alt="Bleep Logo" />
         </div>
         <button
           phx-click="stop_all"
