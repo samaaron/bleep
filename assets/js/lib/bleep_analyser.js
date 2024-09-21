@@ -32,4 +32,14 @@ export default class BleepAnalyser {
     }
     return this.#scope_buffer;
   }
+
+  getScopeData2() {
+    // Create a Float32Array to hold the time-domain data
+    const floatData = new Float32Array(this.#analyser.frequencyBinCount);
+
+    // Get the time-domain data as floats in [-1, 1]
+    this.#analyser.getFloatTimeDomainData(floatData);
+
+    return floatData;
+}
 }

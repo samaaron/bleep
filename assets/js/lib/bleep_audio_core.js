@@ -9,6 +9,7 @@ export default class BleepAudioCore {
   #running_fx = new Map();
   #started = false;
   #init_promise = null;
+  #main_analyser;
 
   constructor() {}
 
@@ -28,6 +29,7 @@ export default class BleepAudioCore {
         );
         this.#main_out = this.#audio_engine.createFinalMix();
         this.#main_out.out.connect(this.#audio_context.destination);
+        this.#main_analyser = this.createNodeAnalyser(this.#main_out);
         this.#main_out.setGain(0.8);
         await this.#audio_engine.loadPresetSynthDefs();
         console.log("loaded synthdefs");
@@ -39,7 +41,82 @@ export default class BleepAudioCore {
     });
 
     await this.#init_promise;
+    this.startVisualiser();
   }
+
+  startVisualiser() {
+    const canvas = document.getElementById("bleep-logo");
+    const canvasCtx = canvas.getContext('2d');
+
+    const resizeCanvas = () => {
+        // Get the computed style of the canvas
+        const canvasStyles = window.getComputedStyle(canvas);
+        const width = parseInt(canvasStyles.width);
+        const height = parseInt(canvasStyles.height);
+
+        // Set the canvas drawing surface dimensions to match the displayed size
+        canvas.width = width;
+        canvas.height = height;
+    };
+
+    // Initial resize to set up canvas dimensions
+    resizeCanvas();
+
+    // Add an event listener to handle window resizing
+    window.addEventListener('resize', resizeCanvas);
+
+    if (!canvasCtx) {
+        console.error('Failed to get canvas 2D context');
+        return;
+    }
+
+    // Rest of your drawing code...
+    const draw = () => {
+        requestAnimationFrame(draw);
+
+        // Use getScopeData2() to get the data
+        const data = this.#main_analyser.getScopeData2();
+
+        if (!data || data.length === 0) {
+            // console.error('No data available to draw');
+            return;
+        }
+
+        // Clear the canvas with Tailwind's bg-zinc-950 color
+        canvasCtx.fillStyle = '#09090b'; // Tailwind's bg-zinc-950
+        canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Set waveform style
+        canvasCtx.lineWidth = 1; // Adjust line thickness as desired
+        canvasCtx.strokeStyle = '#ea580c'; // Tailwind's orange-600
+        canvasCtx.beginPath();
+
+        const bufferLength = data.length;
+        const sliceWidth = canvas.width / bufferLength;
+        let x = 0;
+
+        for (let i = 0; i < bufferLength; i++) {
+            const v = data[i]; // Data is in [-1, 1]
+            const y = (1 - v) * (canvas.height / 2) + 20;
+
+            if (i === 0) {
+                canvasCtx.moveTo(x, y);
+            } else {
+                canvasCtx.lineTo(x, y);
+            }
+
+            x += sliceWidth;
+        }
+
+        canvasCtx.stroke();
+    };
+
+    draw();
+
+    // Optional: Clean up the resize event listener when necessary
+    // window.removeEventListener('resize', resizeCanvas);
+}
+
 
   setVolume(vol) {
     this.#main_out.setGain(vol, this.#audio_context.currentTime);
@@ -76,6 +153,7 @@ export default class BleepAudioCore {
     this.#main_out.gracefulStop();
     this.#main_out = this.#audio_engine.createFinalMix();
     this.#main_out.out.connect(this.#audio_context.destination);
+    this.#main_analyser = this.createNodeAnalyser(this.#main_out);
     setTimeout(() => {
       this.#running_fx.forEach((fx) => {
         fx.stop();
@@ -203,7 +281,7 @@ export default class BleepAudioCore {
 
   jsonDispatch(adjusted_time_s, json) {
     const now_s = Date.now() / 1000;
-    const delta_s = adjusted_time_s - now_s
+    const delta_s = adjusted_time_s - now_s;
 
     switch (json.cmd) {
       case "triggerOneShotSynth":

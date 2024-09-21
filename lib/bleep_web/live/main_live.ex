@@ -517,9 +517,14 @@ defmodule BleepWeb.MainLive do
             Save
           </button>
         </div>
-        <div class="absolute">
-          <img id="bleep-logo" width="140" phx-update="ignore" alt="Bleep Logo" />
+
+
+
+        <div class="z-[-1] absolute transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2">
+          <canvas id="bleep-logo" width="600" height="80" phx-update="ignore" alt="Bleep Logo">
+          </canvas>
         </div>
+
         <button
           phx-click="stop_all"
           class="flex items-center justify-center px-1 py-0.5 text-xs font-bold text-orange-600 border rounded-sm border-zinc-600 bg-zinc-800 hover:bg-orange-600 hover:text-zinc-200
