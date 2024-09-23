@@ -1,8 +1,8 @@
 -- Bleep Save
 
-title = "The Black Dog - With You I Stll Feel Alone"
+title = "The Black Dog - With You I Still Feel Alone"
 author = ""
-user_id = "2e295afb-48cb-41b6-930c-ade68ebf017e"
+user_id = "a882ab8f-7b6e-4af9-a269-0a9a88d83142"
 description = ""
 bpm = 130
 quantum = 4
@@ -15,22 +15,40 @@ init = [[
 content = {
 
 markdown [[
-### The Black Dog - With You I Stll Feel Alone
+# The Black Dog - With You I Still Feel Alone
+
+From the album "Other, Like Me":  
+https://theblackdog.bandcamp.com/album/other-like-me  
+https://www.duststore.com/pages/other-like-me  
 ]],
 
 
-editor("1. FULL SEQ", [[
+markdown [[
+"This was one of the earliest projects created while learning the software and code used. We went back to the original projects in Ableton Live and recreated the main parts in code. The full sequence was then created by using good old-fashioned "copy and paste" to build what you can see below. 
+]],
+
+markdown [[
+Since building this, the Launcher has been introduced for live control of the individual code blocks, and a new Run() command has been added, allowing you to trigger a block from another block. Examples of this are in some of the other demos." - tBd
+]],
+
+
+markdown [[
+### The Test Arrangement
+Just hit *Run* to start a short remix of the track.
+]],
+
+
+editor("FULL SEQ", [[
 -- FULL Sequence
 push_fx("reverb_small", {wetLevel=0.32})
 push_fx("eqthree", {lowFreq=140,highFreq=3500,lowGain=1.4,midGain=- 5,highGain=2})
-push_fx("compressor", {threshold=- 14, knee=8, ratio=1.6, attack=0.012, release=0.230})
-push_fx("gainpan", {level=1.1,pan=0})
+push_fx("compressor", {threshold=- 15, knee=8, ratio=1.6, attack=0.012, release=0.230})
 
 -- FX hit start
 sample("burst_reverb", {
     duration=4,
     rate=randf(0.1, 1.5),
-    level=randf(0.2, 0.4),
+    level=randf(0.2, 0.6),
     cutoff=randi(800, 5000)})
 
 -- "bars" is the bar count
@@ -62,7 +80,7 @@ for bars = 1, 80 do
     sample("burst_reverb", {
       duration=4,
       rate=randf(0.1, 1.5),
-      level=randf(0.2, 0.4),
+      level=randf(0.2, 0.6),
       cutoff=randi(800, 5000)})
   end
 
@@ -282,7 +300,7 @@ for bars = 1, 8 do
     sample("burst_reverb", {
     duration=4,
     rate=randf(0.1, 1.5),
-    level=randf(0.2, 0.4),
+    level=randf(0.2, 0.6),
     cutoff=randi(800, 5000)})
   end
 
@@ -298,14 +316,20 @@ end
 sample("burst_reverb", {
   duration=4,
   rate=randf(0.1, 1.5),
-  level=randf(0.2, 0.4),
+  level=randf(0.2, 0.6),
   cutoff=randi(800, 5000)})
 
 sleep(16)
 --END]]),
 
 
-editor("2. Kick & FX", [[
+markdown [[
+### The Individual Parts
+Use the Launcher panel on the right to trigger parts and play a live mix. Remember to switch on "Loop" mode first if you want code blocks to repeat automatically! Then edit the code to create your own remix. 
+]],
+
+
+editor("Kick & FX", [[
 -- BD
 --push_fx("mono_delay", {delay=0.25,feedback=0.3,wetLevel=0.3})
 push_fx("reverb_small", {dryLevel=0.75,wetLevel=0.3})
@@ -327,7 +351,7 @@ drum_pattern("B--- B--- B--B ----", {
 ]]),
 
 
-editor("3. Perc New", [[
+editor("Perc New", [[
 -- hats
 push_fx("deep_phaser", {wetLevel=0.9})
 push_fx("mono_delay", {delay=0.25,feedback=0.2,wetLevel=0.3})
@@ -344,7 +368,7 @@ drum_pattern("--tt -t-t --tt --tt", {
 ]]),
 
 
-editor("4. Perc", [[
+editor("Perc", [[
 -- perc loop
 push_fx("reverb_medium", {wetLevel=0.1})
 drum_pattern("htbT bthb btTh TtTb", {
@@ -360,7 +384,7 @@ drum_pattern("htbT bthb btTh TtTb", {
 ]]),
 
 
-editor("5. FX Bed", [[
+editor("FX Bed", [[
 -- FX Bed
 push_fx("reverb_large", {wetLevel=0.7})
 
@@ -371,7 +395,7 @@ sleep(16)
 ]]),
 
 
-editor("6. Pad", [[
+editor("Pad", [[
 -- Sustained Pad
 --push_fx("stereo_delay", {leftDelay=0.346,rightDelay=0.231,feedback=0.3,wetLevel=0.3})
 push_fx("reverb_large", {dryLevel=0.4,wetLevel=0.6})
@@ -401,7 +425,7 @@ end
 ]]),
 
 
-editor("7. High Keys", [[
+editor("High Keys", [[
 -- high key sample
 push_fx("stereo_delay", {leftDelay=0.346,rightDelay=0.231,feedback=0.8,wetLevel=0.38})
 push_fx("reverb_large", {drylevel=0.5,wetLevel=0.7})
@@ -457,7 +481,7 @@ sleep(16)
 ]]),
 
 
-editor("8. Voc Tone", [[
+editor("Voc Tone", [[
 -- Voc Tone
 push_fx("reverb_large", {drylevel=0.3,wetLevel=0.9})
 
@@ -484,7 +508,7 @@ sleep(16)
 ]]),
 
 
-editor("9. Burst FX", [[
+editor("Burst FX", [[
 -- FX
 push_fx("reverb_massive", {dryLevel=0.2,wetLevel=0.6})
 
@@ -497,6 +521,13 @@ sample("burst_reverb", {
   cutoff=randi(800, 5000)})
 sleep(8 - sleepInit)
 ]]),
+
+
+
+markdown [[
+V20240922
+]],
+
 
 
 } -- end content

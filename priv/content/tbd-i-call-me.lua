@@ -14,12 +14,27 @@ init = [[
 
 content = {
 
+
 markdown [[
-## The Black Dog - I Call Me
+# The Black Dog - I Call Me
+From the "Seclusion EP":  
+https://theblackdog.bandcamp.com/album/seclusion-ep
+https://www.duststore.com/collections/all/products/seclusion-ep 
 ]],
 
 
-editor("1. Keys", [[
+markdown [[
+"While the arpeggio part was came from an Ableton Live project, all the other parts were developed here and later rerecorded for the final track." - tBd
+]],
+
+
+markdown [[
+### The Individual Parts
+Use the Launcher panel on the right to trigger parts and play a live mix. Remember to switch on "Loop" mode first if you want code blocks to repeat automatically! Then edit the code to create your own remix. 
+]],
+
+
+editor("Keys", [[
 -- keys
 use_synth("chiral", {attack=0,decay=0.50,sustain=0.3,release=0.5})
 push_fx("eqthree", {lowFreq=500,highFreq=1900,lowGain=- 10,midGain=1,highGain=- 2})
@@ -57,7 +72,7 @@ end
 sleep(4)]]),
 
 
-editor("2. Bass", [[
+editor("Bass", [[
 -- bassline
 use_synth("rolandtb")
 push_fx("compressor", {threshold=- 8, knee=8, ratio=5, attack=0.012, release=0.140})
@@ -108,7 +123,7 @@ sleep(4)
 ]]),
 
 
-editor("3. Lead", [[
+editor("Lead", [[
 -- distorted synth lead
 use_synth("junopad")
 push_fx("eqthree", {lowFreq=800,highFreq=2400,lowGain=- 8,midGain=- 3,highGain=1})
@@ -167,7 +182,7 @@ sleep(4)
 ]]),
 
 
-editor("4. Kick", [[
+editor("Kick", [[
 -- BD
 push_fx("eqthree", {lowFreq=140,highFreq=1200,lowGain=2,midGain=- 10,highGain=3})
 push_fx("reverb_small", {dryLevel=0.60,wetLevel=0.10})
@@ -188,7 +203,7 @@ sleep(4)
 ]]),
 
 
-editor("5. Perc", [[
+editor("Perc", [[
 -- percussion
 push_fx("eqthree", {lowFreq=1000,highFreq=2900,lowGain=- 24,midGain=- 4,highGain=1})
 push_fx("mono_delay", {delay=0.409, feedback=0.3, drylevel=0.2, wetLevel=0.04})
@@ -207,7 +222,7 @@ sleep(4)
 ]]),
 
 
-editor("6. FX Perc", [[
+editor("FX Perc", [[
 -- percussion 2 heavy fx
 push_fx("distortion", {preGain=0.8,postGain=0.08})
 push_fx("reverb_medium", {dryLevel=0.3,wetLevel=0.2})
@@ -231,7 +246,7 @@ sleep(4)
 ]]),
 
 
-editor("7. Rnd Hits", [[
+editor("Random Hits", [[
 -- randomised overloaded percussion hits
 push_fx("distortion", {preGain=4,postGain=0.02})
 push_fx("eqthree", {lowFreq=800, highFreq=2000, lowGain=- 24, midGain=0, highGain=- 6})
@@ -265,39 +280,55 @@ sleep(4)
 ]]),
 
 
-editor("8. Fx Crash", [[
+editor("Fx Crash", [[
 push_fx("reverb_massive", {dryLevel=0.1, wetLevel=0.6})
 sample("hat_noiz", {level=0.1,rate=0.1})
 sleep(16)
 ]]),
 
 
-editor("9. SEQUENCE", [[
+
+markdown [[
+### The Test Arrangement
+Just hit *Run* to start the track. This uses the Run() command to trigger the individual code blocks at the correct time.
+]],
+
+
+
+editor("SEQUENCE", [[
 -- full sequence
 bar = 4
 
-run("7. Rnd Hits")
-run("1. Keys")
+run("Random Hits")
+run("Keys")
 sleep(bar * 8)
 
-run("2. Bass")
+run("Bass")
 sleep(bar * 8)
 
-run("6. FX Perc")
-run("3. Lead")
+run("FX Perc")
+run("Lead")
 sleep(bar * 16)
 
-run("8. Fx Crash")
-run("4. Kick")
+run("Fx Crash")
+run("Kick")
 sleep(bar * 8)
 
-run("5. Perc")
+run("Perc")
 sleep(bar * 8)
 
-run("8. Fx Crash")
-run("4. Kick")
+run("Fx Crash")
+run("Kick")
 sleep(bar * 16)
 ]]),
+
+
+
+
+markdown [[
+V20240922
+]],
+
 
 
 } -- end content

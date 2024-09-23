@@ -1,6 +1,6 @@
 -- Bleep Save
 
-title = "The Black Dog - rol"
+title = "The Black Dog - ROL"
 author = ""
 user_id = "2e295afb-48cb-41b6-930c-ade68ebf017e"
 description = ""
@@ -15,7 +15,17 @@ init = [[
 content = {
 
 markdown [[
-### The Black Dog - rol
+# The Black Dog - ROL
+]],
+
+markdown [[
+"This is an early demo of an unfinished and unreleased track, developed entirely in this software." - tBd
+]],
+
+
+markdown [[
+### The Individual Parts
+Use the Launcher panel on the right to trigger parts and play a live mix. There are loops programmed into the parts, but remember to enable "Loop" mode first if you want code blocks to repeat automatically! You can also edit the code to create your own remix. 
 ]],
 
 
@@ -186,6 +196,13 @@ sleep(4)
 ]]),
 
 
+markdown [[
+### The Test Arrangement
+Just hit *Run* to start the track. This uses the Run() command to trigger the individual code blocks at the correct time.
+]],
+
+
+
 editor("SEQUENCE", [[
 -- SEQUENCE
 bar = 4 -- do the sleep in bars not beats
@@ -209,12 +226,26 @@ sleep(bar * 2)
 run("FX")
 sleep(bar)
 
+
+-- finish with fx
 sample("misc_cineboom", {rate=0.15,level=0.2,cutoff=800})
 sleep(2)
 sample("misc_cineboom", {rate=0.1,level=0.1,cutoff=800})
 sleep(2)
 sample("misc_cineboom", {rate=0.075,level=0.05,cutoff=500})
-sleep(10)]]),
+sleep(10)
+
+]]),
+
+
+
+
+
+markdown [[
+V20240922
+]],
+
+
 
 
 } -- end content

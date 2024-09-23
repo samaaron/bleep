@@ -2,7 +2,7 @@
 
 title = "The Black Dog - BeatsB"
 author = ""
-user_id = "2e295afb-48cb-41b6-930c-ade68ebf017e"
+user_id = "f96e4d78-89cc-4e7d-9244-dd73dade2416"
 description = ""
 bpm = 123
 quantum = 4
@@ -15,7 +15,18 @@ init = [[
 content = {
 
 markdown [[
-### The Black Dog - BeatsB
+# The Black Dog - BeatsB
+]],
+
+
+markdown [[
+"This is an early experiment for running a series of drum patterns and effects, using just a couple of variables to make all the changes." - tBd
+]],
+
+
+markdown [[
+### Drums - 1 Bar
+Enable "Loop" mode and hit Cue to get started. Change the variables to select different drum patterns and effects, then hit Cue again to hear the changes. The new version will replace the previous loop.
 ]],
 
 
@@ -28,11 +39,10 @@ push_fx("reverb_small", {dryLevel=0.9,wetLevel=0.15})
 push_fx("eqthree", {lowFreq=300,highFreq=2800,lowGain=2,midGain=- 6,highGain=2})
 push_fx("compressor", {threshold=- 12, knee=2, ratio=4, attack=0.012, release=0.15})
 --sample("burst_reverb", {rate=0.25,level=0.04})
--- randomFX = false
 
 -- select options
-playPattern = 6 -- BD=1,2,5,7 break=3,4,6
-fxSelect = 4 -- 0 or 1-4
+playPattern = 1 -- BD=1,2,5,7 breakdown=3,4,6
+fxSelect = 0 -- 0 for no fx, or 1-4
 
 
 -- apply fx
@@ -138,6 +148,12 @@ end
 ]]),
 
 
+markdown [[
+### Drums - 1 Bar v2
+Same concept as before, just with new patterns.
+]],
+
+
 editor("D 1Bar 2", [[
 -- NO "FOR" ACTION, USE NEW LOOP CONTROL
 -- enter pattern and fx code, then trigger
@@ -214,6 +230,12 @@ if playPattern == 4 then
 end]]),
 
 
+markdown [[
+### 4/4 Time Kick
+If your patterns need a little extra, drop in a standard 4/4 time kick drum to underpin the mix. Remember to enable "Loop" mode!
+]],
+
+
 editor("4/4 Kick", [[
 -- 4/4 Kick
 drum_pattern("KKKK", {
@@ -224,28 +246,22 @@ drum_pattern("KKKK", {
 ]]),
 
 
-
-editor("Ping", [[
--- ping
-use_synth("submarine")
-push_fx("stereo_delay", {leftDelay=0.375,rightDelay=0.750,feedback=0.6,dryLevel=0.5,wetLevel=0.7})
-
-notes = ring({C6,G4,G6,C3})
-for pattern = 1, 4 do
-  play(notes[pattern], {level=0.3})
-  sleep(8)
-end
-
-]]),
+markdown [[
+### Simple Crash Effect
+Just because we can.
+]],
 
 
-editor("Plip Crash", [[
+editor("Crash FX", [[
 push_fx("eqthree", {lowFreq=180,highFreq=2800,lowGain=- 24,midGain=0,highGain=0})
 push_fx("reverb_massive", {dryLevel=0.3,wetLevel=0.7})
 sample("elec_plip", {level=0.2,rate=0.25})]]),
 
 
-editor("", [[ ]]),
+markdown [[
+### Drums - Randomised
+An alternative version, where the pattern and effect selections are both chosen using random values. No need to use "Loop" mode as it's intended to run for a set number of iterations.
+]],
 
 
 editor("D Random", [[
@@ -257,20 +273,17 @@ push_fx("compressor", {threshold=- 12, knee=2, ratio=4, attack=0.020, release=0.
 sample("burst_reverb", {rate=0.25,level=0.04})
 randomFX = false
 
-for sequence = 1, 12 do
+for sequence = 1, 16 do
 
   -- sequence patterns are selected at random
-  playPattern = dice(6) 
-
-  -- play preset sequence
-  -- playSequence = {1,1,2,2,3,4,2,2,5,6,1,1}
-  -- playPattern = playSequence[sequence]
+  playPattern = dice(6)
   
-  -- randomly apply effect on this pass
+  -- if effect was previously enabled, reset for this pass
   if randomFX == true then
     randomFX = false
     pop_fx()
   else 
+    -- randomly apply effect on this pass
     fxselect = dice(8)
     if fxselect == 1 then
       randomFX = true
@@ -381,7 +394,7 @@ sample("elec_plip", {level=0.1,rate=0.25})
 
 
 markdown [[
-v20240920
+v20240922
 ]],
 
 

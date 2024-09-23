@@ -15,7 +15,21 @@ init = [[
 content = {
 
 markdown [[
-### The Black Dog - Please Stop Talking
+# The Black Dog - Please Stop Talking
+From the "Seclusion EP":  
+https://theblackdog.bandcamp.com/album/seclusion-ep
+https://www.duststore.com/collections/all/products/seclusion-ep 
+]],
+
+
+markdown [[
+"This was the original start point for the track featured on the Seclusion EP. The ideas created here were recorded and mixed in Ableton Live for the final release." - tBd
+]],
+
+
+markdown [[
+### The Individual Parts
+Use the Launcher panel on the right to trigger parts and play a live mix. Remember to switch on "Loop" mode first if you want code blocks to repeat automatically! Then edit the code to create your own remix. 
 ]],
 
 
@@ -253,6 +267,12 @@ sleep(4)
 ]]),
 
 
+markdown [[
+### The Test Arrangement
+Just hit *Run* to start the track. This uses the Run() command to trigger the individual code blocks at the correct time.
+]],
+
+
 editor("SEQUENCE", [[
 -- arrangent of parts for song structure
 bar = 4
@@ -260,7 +280,6 @@ bar = 4
 run("FX")
 sleep(bar * 2)
 
---run("FX Hi")
 run("Arpeggio")
 sleep(bar * 8)
 
@@ -274,7 +293,11 @@ sleep(bar * 8)
 ]]),
 
 
-editor [[ ]],
+
+markdown [[
+V20240922
+]],
+
 
 
 } -- end content

@@ -14,9 +14,22 @@ init = [[
 
 content = {
 
+
 markdown [[
-### The Black Dog - Drone & Arp
+# The Black Dog - Drone & Arp
 ]],
+
+
+markdown [[
+"There's no musical structure here in the traditional sense, but just simple code tests for experimenting with layered drones and arpeggios. These parts were played live during the showcase at Festival of the Mind 2024." - tBd
+]],
+
+
+markdown [[
+### Drone
+Use the variables to set the tonal controls and pitch of the synth, then hit Run or Cue. While this is playing, edit the values and hit Run or Cue again to create another tonal layer. Keep repeating this for as long as you like, but be careful, it's possible to create something very loud!
+]],
+
 
 
 editor("Drone", [[
@@ -55,6 +68,14 @@ play(theNote, {
 sleep(40)
 
 ]]),
+
+
+
+markdown [[
+### Arpeggio
+Use the variables to set the timing and tonal controls of the synth, then hit Cue. While this is playing, edit the values and hit Cue again to create another layer. This can create a round-robin effect, with the same arpeggio being played across different octaves and at different speeds. We also use the Cue button to launch this, ensuring that the block starts on the bar with each iteration.
+]],
+
 
 
 editor("Arpeggio", [[
@@ -123,6 +144,14 @@ for patternLoop = 1, theRepeats do
 end]]),
 
 
+
+markdown [[
+### Noise Effects
+A couple of blocks to create noise effects for some background texture.
+]],
+
+
+
 editor("BG Noise", [[
 -- background fx
 push_fx("reverb_massive", {dryLevel=0.4,wetLevel=0.9})
@@ -160,6 +189,8 @@ grains("vinyl_hiss", {
 sleep(20)]]),
 
 
+
+
 editor("FX Hit", [[
 -- background fx hit
 push_fx("reverb_massive", {dryLevel=0.4,wetLevel=0.9})
@@ -173,10 +204,12 @@ sample("burst_reverb", {
 ]]),
 
 
-editor("", [[
--- spare
 
-]]),
+markdown [[
+V20240922
+]],
+
+
 
 
 } -- end content
