@@ -27,6 +27,10 @@ markdown [[
 ]],
 
 markdown [[
+If you want to find out more about how the band wrote this code, you can follow our [online tutorial and workbook](/artist/tbd).
+]],
+
+markdown [[
 ## Find out more
 Responsive visuals at the performance were by [Human Studio](https://humanstudio.com/). Much of the music performed was drawn from the band's [Seclusion EP](https://www.theblackdogma.com/2024/09/seclusion-ep-out-now/). You can find out more about The Black Dog
 at the following links: 
