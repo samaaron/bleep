@@ -2,7 +2,9 @@ defmodule BleepWeb.MainLive do
   require Logger
   use BleepWeb, :live_view
 
-  @content_folder Path.join([:code.priv_dir(:bleep), "content"])
+  def content_folder do
+    Path.join([:code.priv_dir(:bleep), "content"])
+  end
 
   @impl true
   def mount(params, session, socket) do
@@ -193,7 +195,7 @@ defmodule BleepWeb.MainLive do
       |> String.normalize(:nfd)
       |> String.replace(~r/[^0-9A-z-_]/u, "")
 
-    Path.join([@content_folder, "#{normalised}.lua"])
+    Path.join([content_folder(), "#{normalised}.lua"])
   end
 
   def render_frag(%{kind: "video"} = assigns) do

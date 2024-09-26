@@ -1,6 +1,11 @@
 defmodule Bleep.Lang do
-  @core_lua_path Path.join([:code.priv_dir(:bleep), "lua", "core.lua"])
-  @core_lua File.read!(@core_lua_path)
+  def core_lua_path do
+    Path.join([:code.priv_dir(:bleep), "lua", "core.lua"])
+  end
+
+  def core_lua do
+    File.read!(core_lua_path())
+  end
 
   require Logger
 
@@ -195,12 +200,12 @@ defmodule Bleep.Lang do
   end
 
   def start_run(run_tag, user_id, editor_id, start_time_s, code, init_code, opts \\ %{}) do
-    core_lua =
+    core =
       if Application.get_env(:bleep, :reload_lua) do
         # for dev environments reload the lua file on each run
-        File.read!(@core_lua_path)
+        File.read!(core_lua_path())
       else
-        @core_lua
+        core_lua()
       end
 
     bpm = opts[:bpm] || 60
@@ -210,7 +215,7 @@ defmodule Bleep.Lang do
     final_mix_fx_id = "#{editor_id}-final-mix-fx"
 
     lua =
-      Bleep.VM.make_vm(core_lua)
+      Bleep.VM.make_vm(core)
       |> Bleep.VM.set_global("__bleep_core_user_id", user_id)
       |> Bleep.VM.set_global("__bleep_core_editor_id", editor_id)
       |> Bleep.VM.set_global("__bleep_core_run_id", run_id)
