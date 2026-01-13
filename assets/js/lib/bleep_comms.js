@@ -1,6 +1,6 @@
 import BleepPrescheduler from "./bleep_prescheduler";
 import { Socket } from "phoenix";
-import RingBuffer from "../../vendor/ringbuffer";
+import RingBuffer from "ringbufferjs";
 
 export default class BleepComms {
   #user_id;

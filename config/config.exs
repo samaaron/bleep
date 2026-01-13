@@ -32,7 +32,7 @@ config :esbuild,
     args:
       ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/* --loader:.ttf=file),
     cd: Path.expand("../assets", __DIR__),
-    env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
+    env: %{"NODE_PATH" => "#{Path.expand("../deps", __DIR__)}:#{Path.expand("../assets/node_modules", __DIR__)}"}
   ],
   web_workers: [
     args: ~w(
@@ -44,7 +44,7 @@ config :esbuild,
   ],
   monaco_editor: [
     args: ~w(
-      vendor/monaco-editor/esm/vs/editor/editor.worker.js
+      node_modules/monaco-editor/esm/vs/editor/editor.worker.js
       --bundle
       --target=es2017
       --outdir=../priv/static/assets/monaco-editor
@@ -58,7 +58,7 @@ config :esbuild,
       --target=es2017
       --outdir=../priv/static/assets/synth_designer/),
     cd: Path.expand("../assets", __DIR__),
-    env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
+    env: %{"NODE_PATH" => "#{Path.expand("../deps", __DIR__)}:#{Path.expand("../assets/node_modules", __DIR__)}"}
   ],
   synth_designer: [
     args: ~w(
@@ -67,7 +67,8 @@ config :esbuild,
       --bundle
       --target=es2017
       --outdir=../priv/static/assets/synth_designer/),
-    cd: Path.expand("../assets", __DIR__)
+    cd: Path.expand("../assets", __DIR__),
+    env: %{"NODE_PATH" => Path.expand("../assets/vendor/bleep-synth/node_modules", __DIR__)}
   ]
 
 # Configure tailwind (the version is required)

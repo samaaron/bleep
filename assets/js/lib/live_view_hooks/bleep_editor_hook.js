@@ -54,7 +54,8 @@ const BleepEditorHook = {
               RenameGlobals: false,
               SolveMath: false,
             })
-            .slice(0, -(placeholder.length + 1));
+            .slice(0, -(placeholder.length + 1))
+            .replace(/^--\[\[[\s\S]*?--\]\]\s*/, ''); // strip lua-format watermark
 
           this.editor.setCode(formatted);
           this.pushEvent(strategy, {

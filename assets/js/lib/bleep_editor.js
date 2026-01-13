@@ -1,5 +1,5 @@
 import { linearPath, polarPath } from "../../vendor/waveform-path.js";
-import * as monaco from "../../vendor/monaco-editor/esm/vs/editor/editor.main";
+import * as monaco from "monaco-editor";
 
 export default class BleepEditor {
   #bleep;

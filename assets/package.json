@@ -1,0 +1,12 @@
+{
+  "name": "bleep-assets",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "monaco-editor": "^0.52.0",
+    "uuid": "^10.0.0",
+    "topbar": "^3.0.0",
+    "lua-format": "^1.5.3-c",
+    "ringbufferjs": "^2.0.0"
+  }
+}

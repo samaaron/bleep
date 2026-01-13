@@ -2,8 +2,8 @@ import "phoenix_html";
 import { Socket } from "phoenix";
 import { LiveSocket } from "phoenix_live_view";
 
-import { v4 as uuidv4 } from "../vendor/uuid/index";
-import topbar from "../vendor/topbar";
+import { v4 as uuidv4 } from "uuid";
+import topbar from "topbar";
 
 const bleep_user_id = get_or_create_user_uuid();
 

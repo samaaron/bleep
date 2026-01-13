@@ -2,9 +2,9 @@ import "phoenix_html";
 import { Socket } from "phoenix";
 import { LiveSocket } from "phoenix_live_view";
 
-import { v4 as uuidv4 } from "../vendor/uuid/index";
-import topbar from "../vendor/topbar";
-import luamin from "../vendor/luamin";
+import { v4 as uuidv4 } from "uuid";
+import topbar from "topbar";
+import * as luamin from "lua-format";
 window.luamin = luamin;
 
 import BleepEditorHook from "./lib/live_view_hooks/bleep_editor_hook";

@@ -63,7 +63,12 @@ defmodule Bleep.MixProject do
   defp aliases do
     [
       setup: ["deps.get", "assets.setup", "assets.build"],
-      "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
+      "assets.setup": [
+        "tailwind.install --if-missing",
+        "esbuild.install --if-missing",
+        "cmd npm install --prefix assets",
+        "cmd npm install --prefix assets/vendor/bleep-synth"
+      ],
       "assets.build": [
         "copy_bleep_synth_assets",
         "tailwind default",
